@@ -126,10 +126,11 @@ _(reproduced by the pipeline into `results/`)_
   the narrower range. All four fits are non-singular.
   A **second specification** — a negative-binomial GAM (`mgcv`) of region under-5
   deaths with a `log(birth-exposure)` offset, a smooth spline on calendar year
-  `s(year_c)`, and country random intercept + `pfpr10` slope — corroborates the
-  log-rate model: +6.4% (U5MR) and +10.9% (1mo–5y) per +10 PfPR₂₋₁₀ points. The
-  year spline collapses to a straight line (edf ≈ 1.0), confirming a linear time
-  trend is adequate (`component2_count_model_coefficients.csv`). See `results/component2_country_slopes.png`,
+  `s(year_c)`, and a country random intercept + `pfpr10` slope — corroborates the
+  log-rate model: +6.0% (U5MR) and +9.9% (1mo–5y) per +10 PfPR₂₋₁₀ points
+  (`component2_count_model_coefficients.csv`). (With no survey-round random
+  intercept, `s(year_c)` takes on curvature, edf ≈ 5, absorbing the survey-level
+  temporal variation.) See `results/component2_country_slopes.png`,
   `component2_model_coefficients.csv` (`sample` column = `full` / `pfpr_5_50`),
   `component2_country_slopes.csv`.
 

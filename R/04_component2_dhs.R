@@ -100,7 +100,7 @@ fit_count <- function(rate_col) {
   dd$deaths  <- round(dd[[rate_col]] / 1000 * dd$exposure)
   dd$country <- factor(dd$country); dd$svkey <- factor(dd$svkey)
   m <- mgcv::gam(deaths ~ pfpr10 + dtp3 + log_gdp + pct_urban + stunting + s(year_c) +
-                   s(country, bs = "re") + s(country, pfpr10, bs = "re") + s(svkey, bs = "re") +
+                   s(country, bs = "re") + s(country, pfpr10, bs = "re") +
                    offset(log(exposure)),
                  family = mgcv::nb(), method = "REML", data = dd)
   list(m = m, dd = dd)
