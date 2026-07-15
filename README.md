@@ -87,7 +87,9 @@ A mixed-effects model is then fit on the **log** of mortality (so coefficients a
 % changes):
 ```
 log(mortality) ~ PfPR2-10 + DTP3 + log(GDP p.c.) + % urban + calendar year
-                 + stunting + (1 + PfPR2-10 | country) + (1 | survey)
+                 + stunting + (1 + PfPR2-10 || country) + (1 | survey)
+                 # || = uncorrelated country random intercept & slope (avoids a
+                 #      singular intercept-slope covariance; fixed effects unchanged)
 ```
 for both U5MR and 1mo–5y mortality. The headline is the adjusted **% change in
 under-5 mortality per +10 PfPR₂₋₁₀ points**, with country-specific random slopes.
@@ -116,12 +118,12 @@ _(reproduced by the pipeline into `results/`)_
 - **Component 3:** microscopy ≈ **0.74 × RDT** (r ≈ 0.90, 431 survey-regions).
 - **Component 1:** `results/component1_share_vs_pfpr.png`, `component1_model_coefficients.csv`, `component1_outliers.csv`.
 - **Component 2** (600 survey-regions, 44 surveys, 23 countries; adjusted for DTP3,
-  GDP p.c., % urban, year, stunting): **+6.7% under-5 mortality per +10 PfPR₂₋₁₀
-  points** (95% CI +2.4 to +11.2), and **+11.7% for 1mo–5y mortality**
-  (95% CI +5.3 to +18.4). **Sensitivity** restricting to mid-transmission regions
-  (PfPR₂₋₁₀ 5–50%, 354 regions): attenuated to +5.1% (CI −0.7 to +11.2) for U5MR
-  and +7.7% (CI +0.1 to +15.9) for 1mo–5y — positive but weaker/less precise over
-  the narrower range. See `results/component2_country_slopes.png`,
+  GDP p.c., % urban, year, stunting): **+6.9% under-5 mortality per +10 PfPR₂₋₁₀
+  points** (95% CI +2.3 to +11.7), and **+11.7% for 1mo–5y mortality**
+  (95% CI +5.3 to +18.5). **Sensitivity** restricting to mid-transmission regions
+  (PfPR₂₋₁₀ 5–50%, 354 regions): attenuated to +4.9% (CI −1.2 to +11.4) for U5MR
+  and +7.5% (CI −0.7 to +16.3) for 1mo–5y — positive but weaker/non-significant over
+  the narrower range. All four fits are non-singular. See `results/component2_country_slopes.png`,
   `component2_model_coefficients.csv` (`sample` column = `full` / `pfpr_5_50`),
   `component2_country_slopes.csv`.
 

@@ -61,8 +61,8 @@ cat(sprintf("Component 2: %d survey-regions, %d surveys, %d countries\n",
 covs <- c("pfpr10", "dtp3", "log_gdp", "pct_urban", "year_c", "stunting")
 fit_one <- function(outcome, dat = d) {
   dd <- dat[complete.cases(dat[, c(outcome, covs, "country", "svkey")]), ]
-  f  <- as.formula(paste0("log(", outcome, ") ~ ",
-                          paste(c(covs, "(1 + pfpr10 | country)", "(1 | svkey)"), collapse = " + ")))
+  f  <- as.formula(paste0("log(", outcome, ") ~ ",   # || = uncorrelated country intercept & slope
+                          paste(c(covs, "(1 + pfpr10 || country)", "(1 | svkey)"), collapse = " + ")))
   m  <- lmer(f, data = dd, REML = TRUE, control = lmerControl(optimizer = "bobyqa"))
   list(m = m, dd = dd)
 }
