@@ -132,7 +132,13 @@ _(reproduced by the pipeline into `results/`)_
   `pfpr_5_50`). Its **5–50% sensitivity** attenuates likewise: +3.9% (U5MR) and
   +6.2% (1mo–5y) — see `results/component2_sensitivity_5to50.png`. (With no
   survey-round random intercept, `s(year_c)` takes on curvature, edf ≈ 5,
-  absorbing the survey-level temporal variation.) See `results/component2_country_slopes.png`,
+  absorbing the survey-level temporal variation.)
+- **Exposure-response shape** (`results/component2_exposure_response_spline.png`):
+  replacing linear prevalence with a smooth `s(PfPR₂₋₁₀)` gives **edf = 1.0 for
+  U5MR (linear across the range** — constant proportional effect per PfPR point)
+  but **edf ≈ 5.4 for 1mo–5y (nonlinear** — steep rise at low prevalence, a
+  plateau ~10–25%, then rising again). Removing neonatal deaths from the
+  denominator reveals curvature the all-U5 relationship doesn't show. See `results/component2_country_slopes.png`,
   `component2_model_coefficients.csv` (`sample` column = `full` / `pfpr_5_50`),
   `component2_country_slopes.csv`.
 

@@ -142,6 +142,52 @@ p_s <- (mk_s("u5mr", "All-cause U5MR, 5q0 (per 1,000 lb)", adj(count_sens, "u5mr
 ggsave(file.path(RESULTS, "component2_sensitivity_5to50.png"), p_s, width = 13, height = 6.5, dpi = 140)
 cat("saved: results/component2_sensitivity_5to50.png\n")
 
+## ---- FINAL: exposure-response linearity — smooth s(pfpr10) ------------------
+# Replace the linear prevalence term with a smooth; edf ~ 1 => linear across range.
+fit_spline <- function(rate_col, dat = d) {
+  dd <- dat[complete.cases(dat[, c(rate_col, covs, "country", "svkey")]) & is.finite(dat$exposure) & dat$exposure > 0, ]
+  dd$deaths <- round(dd[[rate_col]] / 1000 * dd$exposure)
+  dd$country <- factor(dd$country); dd$svkey <- factor(dd$svkey)
+  m <- mgcv::gam(deaths ~ s(pfpr10) + dtp3 + log_gdp + pct_urban + stunting + s(year_c) +
+                   s(country, bs = "re") + s(country, pfpr10, bs = "re") + offset(log(exposure)),
+                 family = mgcv::nb(), method = "REML", data = dd)
+  list(m = m, dd = dd)
+}
+sp_u5 <- fit_spline("u5mr"); sp_pn <- fit_spline("m1mo5y")
+cat("\nEXPOSURE-RESPONSE smooth s(pfpr10) — linear if edf ~ 1:\n")
+report_edf <- function(res, oc) { st <- summary(res$m)$s.table
+  cat(sprintf("  %-7s: s(pfpr10) edf=%.2f (p=%.1e); s(year_c) edf=%.2f\n",
+              oc, st["s(pfpr10)", "edf"], st["s(pfpr10)", "p-value"], st["s(year_c)", "edf"]))
+  data.frame(outcome = oc, term = "s(pfpr10)", edf = st["s(pfpr10)", "edf"], p = st["s(pfpr10)", "p-value"]) }
+edf_tab <- rbind(report_edf(sp_u5, "u5mr"), report_edf(sp_pn, "m1mo5y"))
+write.csv(edf_tab, file.path(RESULTS, "component2_exposure_response_edf.csv"), row.names = FALSE)
+
+# fitted s(pfpr10) partial effect (log-rate scale) + 95% CI
+smooth_curve <- function(res, lbl) {
+  dd <- res$dd
+  g <- data.frame(pfpr10 = seq(min(dd$pfpr10), max(dd$pfpr10), length = 120),
+                  dtp3 = mean(dd$dtp3), log_gdp = mean(dd$log_gdp), pct_urban = mean(dd$pct_urban),
+                  stunting = mean(dd$stunting), year_c = 0, exposure = 1,
+                  country = dd$country[1], svkey = dd$svkey[1])
+  pr <- predict(res$m, g, type = "terms", terms = "s(pfpr10)", se.fit = TRUE)
+  data.frame(pfpr2_10 = g$pfpr10 * 10, fit = as.numeric(pr$fit), se = as.numeric(pr$se.fit), outcome = lbl)
+}
+curve_df <- rbind(smooth_curve(sp_u5, "U5MR"), smooth_curve(sp_pn, "1mo-5y"))
+p_sp <- ggplot(curve_df, aes(pfpr2_10, fit)) +
+  geom_ribbon(aes(ymin = fit - 1.96 * se, ymax = fit + 1.96 * se), fill = "grey85") +
+  geom_line(colour = "#08519c", linewidth = 0.8) +
+  geom_hline(yintercept = 0, linetype = "dotted", colour = "grey50") +
+  facet_wrap(~outcome, scales = "free_y") +
+  labs(x = expression("Age-standardised "*PfPR[2-10]*" (%)"),
+       y = "Partial effect on log-mortality (centred)",
+       title = "Component 2 — exposure-response: smooth s(PfPR2-10)",
+       subtitle = sprintf("Smooth edf: U5MR %.1f, 1mo-5y %.1f  (edf ~ 1 => linear across the range)",
+                          edf_tab$edf[1], edf_tab$edf[2]),
+       caption = "GAM (nb) partial smooth on the log-rate scale with 95% CI; adjusted for covariates + country random effects.") +
+  theme_minimal(base_size = 11) + theme(panel.grid.minor = element_blank())
+ggsave(file.path(RESULTS, "component2_exposure_response_spline.png"), p_sp, width = 11, height = 5.5, dpi = 140)
+cat("saved: results/component2_exposure_response_spline.png + component2_exposure_response_edf.csv\n")
+
 # country-specific prevalence slopes (per +10 pts) from the U5MR model
 cc <- coef(r_u5$m)$country
 csd <- data.frame(country = rownames(cc), pct_change_per10 = (exp(cc[, "pfpr10"]) - 1) * 100)
