@@ -105,15 +105,17 @@ parse_ihme <- function(csv) {
 }
 
 ## ---- DHS.rates: all-cause mortality by region -------------------------------
-# Returns regkey, u5mr (5q0) and m1mo5y (U5MR - neonatal), per 1,000 live births.
+# Returns regkey, u5mr (5q0) and m1mo5y (U5MR - neonatal), per 1,000 live births,
+# plus exposure = chmort's weighted N (birth-exposure denominator, for count models).
 mort_by_region <- function(br, regvar) {
   if (!regvar %in% names(br)) return(NULL)
   r <- tryCatch(suppressMessages(DHS.rates::chmort(br, Class = regvar)), error = function(e) NULL)
   if (is.null(r)) return(NULL)
-  u <- r[grepl("^U5MR", rownames(r)), c("Class", "R")]; names(u)[2] <- "u5mr"
+  u <- r[grepl("^U5MR", rownames(r)), c("Class", "R", "WN")]; names(u)[2:3] <- c("u5mr", "exposure")
   n <- r[grepl("^NNMR", rownames(r)), c("Class", "R")]; names(n)[2] <- "nnmr"
   m <- merge(u, n, by = "Class")
-  data.frame(regkey = rkey(m$Class), u5mr = m$u5mr, m1mo5y = m$u5mr - m$nnmr, stringsAsFactors = FALSE)
+  data.frame(regkey = rkey(m$Class), u5mr = m$u5mr, m1mo5y = m$u5mr - m$nnmr,
+             exposure = m$exposure, stringsAsFactors = FALSE)
 }
 
 ## ---- DHS PR recode: prevalence + region covariates --------------------------

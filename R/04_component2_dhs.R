@@ -89,6 +89,31 @@ coef_sens <- rbind(summarise(s_u5, "u5mr"), summarise(s_pn, "m1mo5y")); coef_sen
 
 write.csv(rbind(coef_full, coef_sens), file.path(RESULTS, "component2_model_coefficients.csv"), row.names = FALSE)
 
+## ---- SECOND SPECIFICATION: Poisson count model ------------------------------
+# Region under-5 deaths (= rate/1000 x birth-exposure) modelled with a log-exposure
+# offset (so the coefficient is a rate ratio) and an observation-level random
+# effect (obs) to absorb over-dispersion. Weights regions by their denominator.
+fit_count <- function(rate_col) {
+  dd <- d[complete.cases(d[, c(rate_col, covs, "country", "svkey")]) & is.finite(d$exposure) & d$exposure > 0, ]
+  dd$deaths <- round(dd[[rate_col]] / 1000 * dd$exposure); dd$obs <- factor(seq_len(nrow(dd)))
+  scov <- c("dtp3", "log_gdp", "pct_urban", "year_c", "stunting")   # standardise confounders (glmer scaling)
+  for (v in scov) dd[[v]] <- as.numeric(scale(dd[[v]]))             # pfpr10 kept raw = per +10 PfPR2-10 pts
+  f <- as.formula(paste0("deaths ~ ", paste(c("pfpr10", scov, "(1 + pfpr10 || country)", "(1 | svkey)",
+                                              "(1 | obs)", "offset(log(exposure))"), collapse = " + ")))
+  list(m = glmer(f, data = dd, family = poisson, control = glmerControl(optimizer = "bobyqa")), dd = dd)
+}
+count_summ <- function(res, outcome) {
+  m <- res$m; fe <- fixef(m); se <- sqrt(diag(vcov(m))); b <- fe["pfpr10"]; s <- se["pfpr10"]
+  cat(sprintf("  %-7s (Poisson count): %+.1f%% per +10 PfPR2-10 pts (95%% CI %+.1f to %+.1f); n=%d\n",
+              outcome, (exp(b) - 1) * 100, (exp(b - 1.96 * s) - 1) * 100, (exp(b + 1.96 * s) - 1) * 100, nrow(res$dd)))
+  data.frame(outcome = outcome, term = names(fe), beta = as.numeric(fe), se = as.numeric(se),
+             pct_change_per_unit = (exp(fe) - 1) * 100, p = 2 * pnorm(-abs(fe / se)),
+             model = "poisson_count", stringsAsFactors = FALSE)
+}
+cat("\nCOUNT model (Poisson, log-exposure offset, obs-level RE for over-dispersion):\n")
+count_tab <- rbind(count_summ(fit_count("u5mr"), "u5mr"), count_summ(fit_count("m1mo5y"), "m1mo5y"))
+write.csv(count_tab, file.path(RESULTS, "component2_count_model_coefficients.csv"), row.names = FALSE)
+
 # country-specific prevalence slopes (per +10 pts) from the U5MR model
 cc <- coef(r_u5$m)$country
 csd <- data.frame(country = rownames(cc), pct_change_per10 = (exp(cc[, "pfpr10"]) - 1) * 100)

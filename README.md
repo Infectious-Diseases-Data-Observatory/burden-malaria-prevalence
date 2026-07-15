@@ -123,7 +123,11 @@ _(reproduced by the pipeline into `results/`)_
   (95% CI +5.3 to +18.5). **Sensitivity** restricting to mid-transmission regions
   (PfPR₂₋₁₀ 5–50%, 354 regions): attenuated to +4.9% (CI −1.2 to +11.4) for U5MR
   and +7.5% (CI −0.7 to +16.3) for 1mo–5y — positive but weaker/non-significant over
-  the narrower range. All four fits are non-singular. See `results/component2_country_slopes.png`,
+  the narrower range. All four fits are non-singular.
+  A **second specification** — a Poisson count model of region under-5 deaths with
+  a `log(birth-exposure)` offset and an observation-level random effect for
+  over-dispersion — corroborates the log-rate model closely: +6.7% (U5MR) and
+  +11.2% (1mo–5y) per +10 PfPR₂₋₁₀ points (`component2_count_model_coefficients.csv`). See `results/component2_country_slopes.png`,
   `component2_model_coefficients.csv` (`sample` column = `full` / `pfpr_5_50`),
   `component2_country_slopes.csv`.
 
