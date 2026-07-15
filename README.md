@@ -87,9 +87,9 @@ A mixed-effects model is then fit on the **log** of mortality (so coefficients a
 % changes):
 ```
 log(mortality) ~ PfPR2-10 + DTP3 + log(GDP p.c.) + % urban + calendar year
-                 + stunting + (1 + PfPR2-10 || country) + (1 | survey)
-                 # || = uncorrelated country random intercept & slope (avoids a
-                 #      singular intercept-slope covariance; fixed effects unchanged)
+                 + stunting + (1 + PfPR2-10 || country)
+                 # || = uncorrelated country random intercept & slope
+                 #      (avoids a singular intercept-slope covariance)
 ```
 for both U5MR and 1mo–5y mortality. The headline is the adjusted **% change in
 under-5 mortality per +10 PfPR₂₋₁₀ points**, with country-specific random slopes.
@@ -119,10 +119,10 @@ _(reproduced by the pipeline into `results/`)_
 - **Component 1:** `results/component1_share_vs_pfpr.png`, `component1_model_coefficients.csv`, `component1_outliers.csv`.
 - **Component 2** (600 survey-regions, 44 surveys, 23 countries; adjusted for DTP3,
   GDP p.c., % urban, year, stunting): **+6.9% under-5 mortality per +10 PfPR₂₋₁₀
-  points** (95% CI +2.3 to +11.7), and **+11.7% for 1mo–5y mortality**
-  (95% CI +5.3 to +18.5). **Sensitivity** restricting to mid-transmission regions
-  (PfPR₂₋₁₀ 5–50%, 354 regions): attenuated to +4.9% (CI −1.2 to +11.4) for U5MR
-  and +7.5% (CI −0.7 to +16.3) for 1mo–5y — positive but weaker/non-significant over
+  points** (95% CI +2.6 to +11.4), and **+11.0% for 1mo–5y mortality**
+  (95% CI +5.0 to +17.5). **Sensitivity** restricting to mid-transmission regions
+  (PfPR₂₋₁₀ 5–50%, 354 regions): attenuated to +5.3% (CI −0.6 to +11.6) for U5MR
+  and +7.4% (CI −0.5 to +16.0) for 1mo–5y — positive but weaker/non-significant over
   the narrower range. All four fits are non-singular.
   A **second specification** — a negative-binomial GAM (`mgcv`) of region under-5
   deaths with a `log(birth-exposure)` offset, a smooth spline on calendar year
