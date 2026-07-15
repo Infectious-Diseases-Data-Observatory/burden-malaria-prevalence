@@ -11,7 +11,7 @@
 # Prevalence + covariate table comes from Component 3; mortality from DHS.rates.
 # =============================================================================
 source("R/00_utils.R")
-suppressMessages({library(DHS.rates); library(malariaAtlas); library(lme4); library(ggplot2)})
+suppressMessages({library(DHS.rates); library(malariaAtlas); library(lme4); library(mgcv); library(ggplot2)})
 DHS <- file.path(DATA, "dhs")
 
 ## ---- inputs: per-region prevalence/covariates + RDT->micro conversion -------
@@ -89,28 +89,33 @@ coef_sens <- rbind(summarise(s_u5, "u5mr"), summarise(s_pn, "m1mo5y")); coef_sen
 
 write.csv(rbind(coef_full, coef_sens), file.path(RESULTS, "component2_model_coefficients.csv"), row.names = FALSE)
 
-## ---- SECOND SPECIFICATION: Poisson count model ------------------------------
-# Region under-5 deaths (= rate/1000 x birth-exposure) modelled with a log-exposure
-# offset (so the coefficient is a rate ratio) and an observation-level random
-# effect (obs) to absorb over-dispersion. Weights regions by their denominator.
+## ---- SECOND SPECIFICATION: GAM count model (mgcv) ---------------------------
+# Region under-5 deaths (= rate/1000 x birth-exposure) as a negative-binomial GAM
+# with a log-exposure offset (coefficient = rate ratio), a SMOOTH spline on
+# calendar year s(year_c), and random intercept + random pfpr10 slope by country
+# plus a survey random intercept as bs="re" smooths. nb() family absorbs
+# over-dispersion; regions weighted by their birth denominator.
 fit_count <- function(rate_col) {
   dd <- d[complete.cases(d[, c(rate_col, covs, "country", "svkey")]) & is.finite(d$exposure) & d$exposure > 0, ]
-  dd$deaths <- round(dd[[rate_col]] / 1000 * dd$exposure); dd$obs <- factor(seq_len(nrow(dd)))
-  scov <- c("dtp3", "log_gdp", "pct_urban", "year_c", "stunting")   # standardise confounders (glmer scaling)
-  for (v in scov) dd[[v]] <- as.numeric(scale(dd[[v]]))             # pfpr10 kept raw = per +10 PfPR2-10 pts
-  f <- as.formula(paste0("deaths ~ ", paste(c("pfpr10", scov, "(1 + pfpr10 || country)", "(1 | svkey)",
-                                              "(1 | obs)", "offset(log(exposure))"), collapse = " + ")))
-  list(m = glmer(f, data = dd, family = poisson, control = glmerControl(optimizer = "bobyqa")), dd = dd)
+  dd$deaths  <- round(dd[[rate_col]] / 1000 * dd$exposure)
+  dd$country <- factor(dd$country); dd$svkey <- factor(dd$svkey)
+  m <- mgcv::gam(deaths ~ pfpr10 + dtp3 + log_gdp + pct_urban + stunting + s(year_c) +
+                   s(country, bs = "re") + s(country, pfpr10, bs = "re") + s(svkey, bs = "re") +
+                   offset(log(exposure)),
+                 family = mgcv::nb(), method = "REML", data = dd)
+  list(m = m, dd = dd)
 }
 count_summ <- function(res, outcome) {
-  m <- res$m; fe <- fixef(m); se <- sqrt(diag(vcov(m))); b <- fe["pfpr10"]; s <- se["pfpr10"]
-  cat(sprintf("  %-7s (Poisson count): %+.1f%% per +10 PfPR2-10 pts (95%% CI %+.1f to %+.1f); n=%d\n",
-              outcome, (exp(b) - 1) * 100, (exp(b - 1.96 * s) - 1) * 100, (exp(b + 1.96 * s) - 1) * 100, nrow(res$dd)))
-  data.frame(outcome = outcome, term = names(fe), beta = as.numeric(fe), se = as.numeric(se),
-             pct_change_per_unit = (exp(fe) - 1) * 100, p = 2 * pnorm(-abs(fe / se)),
-             model = "poisson_count", stringsAsFactors = FALSE)
+  sm <- summary(res$m); pt <- sm$p.table; edf <- sm$s.table["s(year_c)", "edf"]
+  b <- pt["pfpr10", "Estimate"]; s <- pt["pfpr10", "Std. Error"]
+  cat(sprintf("  %-7s (GAM/nb count): %+.1f%% per +10 PfPR2-10 pts (95%% CI %+.1f to %+.1f); n=%d; s(year) edf=%.1f\n",
+              outcome, (exp(b) - 1) * 100, (exp(b - 1.96 * s) - 1) * 100, (exp(b + 1.96 * s) - 1) * 100,
+              nrow(res$dd), edf))
+  data.frame(outcome = outcome, term = rownames(pt), beta = pt[, "Estimate"], se = pt[, "Std. Error"],
+             pct_change_per_unit = (exp(pt[, "Estimate"]) - 1) * 100, p = pt[, ncol(pt)],
+             model = "gam_nb_count", stringsAsFactors = FALSE)
 }
-cat("\nCOUNT model (Poisson, log-exposure offset, obs-level RE for over-dispersion):\n")
+cat("\nCOUNT model (mgcv GAM, negative-binomial, log-exposure offset, s(year_c) spline):\n")
 count_tab <- rbind(count_summ(fit_count("u5mr"), "u5mr"), count_summ(fit_count("m1mo5y"), "m1mo5y"))
 write.csv(count_tab, file.path(RESULTS, "component2_count_model_coefficients.csv"), row.names = FALSE)
 
