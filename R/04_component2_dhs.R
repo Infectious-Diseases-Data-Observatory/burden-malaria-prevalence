@@ -59,8 +59,8 @@ cat(sprintf("Component 2: %d survey-regions, %d surveys, %d countries\n",
 
 ## ---- mixed models (log outcome; country random slope on prevalence) ---------
 covs <- c("pfpr10", "dtp3", "log_gdp", "pct_urban", "year_c", "stunting")
-fit_one <- function(outcome) {
-  dd <- d[complete.cases(d[, c(outcome, covs, "country", "svkey")]), ]
+fit_one <- function(outcome, dat = d) {
+  dd <- dat[complete.cases(dat[, c(outcome, covs, "country", "svkey")]), ]
   f  <- as.formula(paste0("log(", outcome, ") ~ ",
                           paste(c(covs, "(1 + pfpr10 | country)", "(1 | svkey)"), collapse = " + ")))
   m  <- lmer(f, data = dd, REML = TRUE, control = lmerControl(optimizer = "bobyqa"))
@@ -77,9 +77,17 @@ summarise <- function(res, outcome) {
               nrow(res$dd), length(unique(res$dd$country)), isSingular(m)))
   tab
 }
+cat("MAIN model (all survey-regions):\n")
 r_u5 <- fit_one("u5mr"); r_pn <- fit_one("m1mo5y")
-coef_tab <- rbind(summarise(r_u5, "u5mr"), summarise(r_pn, "m1mo5y"))
-write.csv(coef_tab, file.path(RESULTS, "component2_model_coefficients.csv"), row.names = FALSE)
+coef_full <- rbind(summarise(r_u5, "u5mr"), summarise(r_pn, "m1mo5y")); coef_full$sample <- "full"
+
+# sensitivity: restrict to mid-transmission regions (PfPR2-10 in [5, 50]%)
+d_s <- d[d$pfpr2_10 >= 5 & d$pfpr2_10 <= 50, ]
+cat(sprintf("\nSENSITIVITY — PfPR2-10 in [5,50]%% (%d of %d survey-regions):\n", nrow(d_s), nrow(d)))
+s_u5 <- fit_one("u5mr", d_s); s_pn <- fit_one("m1mo5y", d_s)
+coef_sens <- rbind(summarise(s_u5, "u5mr"), summarise(s_pn, "m1mo5y")); coef_sens$sample <- "pfpr_5_50"
+
+write.csv(rbind(coef_full, coef_sens), file.path(RESULTS, "component2_model_coefficients.csv"), row.names = FALSE)
 
 # country-specific prevalence slopes (per +10 pts) from the U5MR model
 cc <- coef(r_u5$m)$country

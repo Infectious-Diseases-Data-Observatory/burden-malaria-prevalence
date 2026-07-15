@@ -118,8 +118,12 @@ _(reproduced by the pipeline into `results/`)_
 - **Component 2** (600 survey-regions, 44 surveys, 23 countries; adjusted for DTP3,
   GDP p.c., % urban, year, stunting): **+6.7% under-5 mortality per +10 PfPR₂₋₁₀
   points** (95% CI +2.4 to +11.2), and **+11.7% for 1mo–5y mortality**
-  (95% CI +5.3 to +18.4). See `results/component2_country_slopes.png`,
-  `component2_model_coefficients.csv`, `component2_country_slopes.csv`.
+  (95% CI +5.3 to +18.4). **Sensitivity** restricting to mid-transmission regions
+  (PfPR₂₋₁₀ 5–50%, 354 regions): attenuated to +5.1% (CI −0.7 to +11.2) for U5MR
+  and +7.7% (CI +0.1 to +15.9) for 1mo–5y — positive but weaker/less precise over
+  the narrower range. See `results/component2_country_slopes.png`,
+  `component2_model_coefficients.csv` (`sample` column = `full` / `pfpr_5_50`),
+  `component2_country_slopes.csv`.
 
 ## Caveats
 - MAP PfPR₂₋₁₀ is available through 2024; the IHME export is 2025, so Component 1
