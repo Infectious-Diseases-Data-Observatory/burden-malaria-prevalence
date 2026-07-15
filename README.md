@@ -5,6 +5,8 @@ mortality in sub-Saharan Africa, at country and subnational level, using MAP
 (prevalence), IHME/GBD (malaria-attributable deaths), UN IGME (all-cause child
 mortality) and DHS/MIS surveys (subnational prevalence + mortality).
 
+📄 **[SUMMARY.md](SUMMARY.md)** — Methods & Results with the key figures embedded.
+
 The analysis has **three components**:
 
 1. **Country level** — malaria's share of all-cause under-5 deaths (with and
