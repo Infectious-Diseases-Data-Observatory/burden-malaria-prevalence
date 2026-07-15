@@ -98,6 +98,27 @@ Table: `results/rdt_microscopy_conversion.csv`.
 
 ---
 
+## Cross-component prediction — total child mortality, 10% → 30% PfPR₂₋₁₀
+
+Holding covariates at their means and anchoring both models to the same baseline at 10% PfPR
+(within each outcome), the predicted change in **total** all-cause child mortality as prevalence
+rises from 10% to 30%:
+
+| Outcome | baseline @10% | Component 1 (share, non-malaria fixed) | Component 2 (direct model) |
+|---|---:|---:|---:|
+| All under-5 (U5MR) | 64.2 / 1,000 | **+23.8%** → 79.5 | **+14.2%** → 73.3 |
+| 1mo–5y (neonatal excl.) | 38.3 / 1,000 | **+48.3%** → 56.7 | **+23.3%** → 47.2 |
+
+![Predicted total child mortality vs prevalence, 10% → 30% PfPR2-10](results/prediction_10_to_30.png)
+
+Component 2 (direct total-mortality model) gives the empirical net effect; Component 1 (malaria's
+share, assuming non-malaria mortality is fixed) gives the upper "malaria-as-pure-addition" bound.
+Effects are larger for 1mo–5y because the malaria-irrelevant neonatal floor is removed. The 95%
+CIs (shaded) overlap, so the two independent routes are consistent. *(1mo–5y is nonlinear — see
+the exposure-response above — so its log-linear prediction is an approximation over this span.)*
+
+---
+
 ## Caveats
 - **Component 1 is ecological** (country-level); **Component 2** adjusts for the main confounders
   but is observational, and region-level U5MR from a single survey is noisy.
