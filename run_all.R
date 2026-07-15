@@ -9,4 +9,5 @@ source("R/01_fetch_data.R")        # inputs -> data/ (needs internet; DHS/IHME l
 source("R/02_component1_country.R")# Component 1: country-level share vs PfPR (+GDP,+DTP3, outliers)
 source("R/03_component3_rdt_microscopy.R") # Component 3: RDT<->microscopy conversion (+ prevalence table)
 source("R/04_component2_dhs.R")    # Component 2: DHS multivariable mixed model
+source("R/05_prediction_10_to_30.R") # cross-component prediction: total U5MR, 10% -> 30% PfPR
 message("\nAll components complete. See results/ for figures and tables.")

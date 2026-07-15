@@ -1,3 +1,12 @@
+---
+title: "Malaria prevalence and child mortality — Methods & Results"
+output:
+  pdf_document:
+    latex_engine: xelatex      # xelatex handles the Unicode subscripts (PfPR2-10) & symbols
+  html_document:
+    self_contained: true       # single shareable .html with images embedded
+  word_document: default
+---
 # Malaria prevalence and child mortality — Methods & Results summary
 
 Three analyses relating *P. falciparum* prevalence to all-cause under-5 mortality in

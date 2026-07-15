@@ -11,8 +11,18 @@ output/
 *.gpkg
 *.zip
 *.ZIP
-*.pdf
 *.png.aux.xml
+
+# Rendered outputs of SUMMARY.md + LaTeX/Word build cruft (regenerate from the .md)
+*.pdf
+*.html
+*.docx
+*.tex
+*.log
+*.aux
+*.out
+~$*
+*_files/
 
 # ---- R session cruft ----
 .Rhistory
