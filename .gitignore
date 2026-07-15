@@ -1,0 +1,33 @@
+# ---- Raw / access-controlled / large data (NOT shared) ----
+data/
+archive/
+# old exploratory byproducts, superseded by results/
+output/
+
+# Data file types anywhere
+*.rds
+*.tif
+*.tiff
+*.gpkg
+*.zip
+*.ZIP
+*.pdf
+*.png.aux.xml
+
+# ---- R session cruft ----
+.Rhistory
+.RData
+.Rproj.user/
+*.Rproj
+
+# ---- editor / local tooling ----
+.claude/
+results/_*.log
+
+# ---- OS ----
+.DS_Store
+
+# ---- Keep (explicitly tracked despite rules above) ----
+!results/
+!results/*.png
+!results/*.csv
