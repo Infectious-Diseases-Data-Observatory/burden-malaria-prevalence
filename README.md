@@ -128,9 +128,11 @@ _(reproduced by the pipeline into `results/`)_
   deaths with a `log(birth-exposure)` offset, a smooth spline on calendar year
   `s(year_c)`, and a country random intercept + `pfpr10` slope — corroborates the
   log-rate model: +6.0% (U5MR) and +9.9% (1mo–5y) per +10 PfPR₂₋₁₀ points
-  (`component2_count_model_coefficients.csv`). (With no survey-round random
-  intercept, `s(year_c)` takes on curvature, edf ≈ 5, absorbing the survey-level
-  temporal variation.) See `results/component2_country_slopes.png`,
+  (`component2_count_model_coefficients.csv`, `sample` column = `full` /
+  `pfpr_5_50`). Its **5–50% sensitivity** attenuates likewise: +3.9% (U5MR) and
+  +6.2% (1mo–5y) — see `results/component2_sensitivity_5to50.png`. (With no
+  survey-round random intercept, `s(year_c)` takes on curvature, edf ≈ 5,
+  absorbing the survey-level temporal variation.) See `results/component2_country_slopes.png`,
   `component2_model_coefficients.csv` (`sample` column = `full` / `pfpr_5_50`),
   `component2_country_slopes.csv`.
 

@@ -11,7 +11,7 @@
 # Prevalence + covariate table comes from Component 3; mortality from DHS.rates.
 # =============================================================================
 source("R/00_utils.R")
-suppressMessages({library(DHS.rates); library(malariaAtlas); library(lme4); library(mgcv); library(ggplot2)})
+suppressMessages({library(DHS.rates); library(malariaAtlas); library(lme4); library(mgcv); library(ggplot2); library(patchwork)})
 DHS <- file.path(DATA, "dhs")
 
 ## ---- inputs: per-region prevalence/covariates + RDT->micro conversion -------
@@ -95,8 +95,8 @@ write.csv(rbind(coef_full, coef_sens), file.path(RESULTS, "component2_model_coef
 # calendar year s(year_c), and random intercept + random pfpr10 slope by country
 # plus a survey random intercept as bs="re" smooths. nb() family absorbs
 # over-dispersion; regions weighted by their birth denominator.
-fit_count <- function(rate_col) {
-  dd <- d[complete.cases(d[, c(rate_col, covs, "country", "svkey")]) & is.finite(d$exposure) & d$exposure > 0, ]
+fit_count <- function(rate_col, dat = d) {
+  dd <- dat[complete.cases(dat[, c(rate_col, covs, "country", "svkey")]) & is.finite(dat$exposure) & dat$exposure > 0, ]
   dd$deaths  <- round(dd[[rate_col]] / 1000 * dd$exposure)
   dd$country <- factor(dd$country); dd$svkey <- factor(dd$svkey)
   m <- mgcv::gam(deaths ~ pfpr10 + dtp3 + log_gdp + pct_urban + stunting + s(year_c) +
@@ -115,9 +115,32 @@ count_summ <- function(res, outcome) {
              pct_change_per_unit = (exp(pt[, "Estimate"]) - 1) * 100, p = pt[, ncol(pt)],
              model = "gam_nb_count", stringsAsFactors = FALSE)
 }
-cat("\nCOUNT model (mgcv GAM, negative-binomial, log-exposure offset, s(year_c) spline):\n")
-count_tab <- rbind(count_summ(fit_count("u5mr"), "u5mr"), count_summ(fit_count("m1mo5y"), "m1mo5y"))
-write.csv(count_tab, file.path(RESULTS, "component2_count_model_coefficients.csv"), row.names = FALSE)
+cat("\nCOUNT model (mgcv GAM, negative-binomial, log-exposure offset, s(year_c) spline) — full sample:\n")
+count_full <- rbind(count_summ(fit_count("u5mr"), "u5mr"), count_summ(fit_count("m1mo5y"), "m1mo5y")); count_full$sample <- "full"
+cat("\nCOUNT model — sensitivity, PfPR2-10 in [5,50]%:\n")
+count_sens <- rbind(count_summ(fit_count("u5mr", d_s), "u5mr"), count_summ(fit_count("m1mo5y", d_s), "m1mo5y")); count_sens$sample <- "pfpr_5_50"
+write.csv(rbind(count_full, count_sens), file.path(RESULTS, "component2_count_model_coefficients.csv"), row.names = FALSE)
+
+## ---- figure: sensitivity subset (PfPR2-10 5-50%) ----------------------------
+adj <- function(tab, oc) tab$pct_change_per_unit[tab$outcome == oc & tab$term == "pfpr10"]
+mk_s <- function(yv, ylab, pct) ggplot(d_s, aes(pfpr2_10, .data[[yv]])) +
+  geom_smooth(method = "gam", formula = y ~ s(x), se = TRUE, colour = "grey20", fill = "grey85", linewidth = 0.6) +
+  geom_point(aes(colour = country), size = 1.5, alpha = 0.75) +
+  annotate("text", x = 5, y = max(d_s[[yv]], na.rm = TRUE), hjust = 0, vjust = 1, fontface = "bold", size = 3.3,
+           label = sprintf("adjusted GAM: %+.1f%% per +10 PfPR2-10 pts", pct)) +
+  guides(colour = guide_legend(ncol = 1, override.aes = list(size = 2, alpha = 1))) +
+  labs(x = expression("Age-standardised "*PfPR[2-10]*" (%), restricted to 5-50%"), y = ylab) +
+  theme_minimal(base_size = 10) + theme(panel.grid.minor = element_blank(),
+    legend.key.size = unit(3, "mm"), legend.text = element_text(size = 6), legend.title = element_text(size = 8))
+p_s <- (mk_s("u5mr", "All-cause U5MR, 5q0 (per 1,000 lb)", adj(count_sens, "u5mr")) + theme(legend.position = "none")) +
+       mk_s("m1mo5y", "1mo-5y mortality (per 1,000 lb)", adj(count_sens, "m1mo5y")) +
+       plot_annotation(
+         title = "Component 2 sensitivity — mid-transmission survey-regions (PfPR2-10 5-50%)",
+         subtitle = sprintf("%d survey-regions, %d countries. Points + GAM trend; annotation = adjusted GAM effect (nb, s(year), country RE).",
+                            nrow(d_s), length(unique(d_s$country))),
+         caption = "Restricted to PfPR2-10 in [5,50]%. Adjusted for DTP3, GDP p.c., % urban, s(year_c), stunting.")
+ggsave(file.path(RESULTS, "component2_sensitivity_5to50.png"), p_s, width = 13, height = 6.5, dpi = 140)
+cat("saved: results/component2_sensitivity_5to50.png\n")
 
 # country-specific prevalence slopes (per +10 pts) from the U5MR model
 cc <- coef(r_u5$m)$country
