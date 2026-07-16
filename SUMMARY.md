@@ -161,12 +161,41 @@ coefficient is shared across countries, a pooled-total CI is the total re-evalua
 coefficient's bounds. A national/subnational check for Nigeria and DR Congo (below) showed
 aggregating admin-1 estimates moves the total by <1%, so national PfPR is the representative scale.
 
-Pooled over the **25 countries** with national PfPR₂₋₁₀ > 10% (point [95% CI]):
+Malaria-attributable child deaths for the **25 countries** with national PfPR₂₋₁₀ > 10%
+(point estimates; sorted by Component 2 all-U5). C1 = fitted share, C2 = attributable fraction:
 
-| Denominator | All-cause deaths | Component 1 (share) | Component 2 (AF) | IHME ref. |
-|---|--:|--:|--:|--:|
-| All under-5 | 2,292,071 | 513,116 [357,649–668,584] | 354,352 [172,582–519,653] | 436,242 |
-| 1mo–5y (excl. neonatal) | 1,507,890 | 550,323 [367,934–732,712] | 354,836 [200,714–489,777] | — |
+| Country | PfPR | C1 (U5) | C2 (U5) | C1 (1mo–5y) | C2 (1mo–5y) | IHME |
+|---|--:|--:|--:|--:|--:|--:|
+| Nigeria | 24.7% | 178,352 | 133,962 | 189,730 | 134,093 | 150,493 |
+| DR Congo | 36.0% | 125,535 | 86,371 | 146,432 | 94,214 | 68,300 |
+| Niger | 17.3% | 26,496 | 13,657 | 31,259 | 14,716 | 23,329 |
+| Uganda | 21.9% | 21,246 | 11,502 | 19,985 | 9,826 | 28,474 |
+| Mozambique | 23.9% | 17,193 | 11,324 | 16,013 | 9,892 | 11,388 |
+| Cameroon | 25.2% | 13,727 | 9,807 | 13,872 | 9,137 | 17,718 |
+| Angola | 20.4% | 8,394 | 8,841 | 8,550 | 8,489 | 15,266 |
+| Côte d'Ivoire | 21.6% | 11,184 | 8,806 | 10,665 | 7,695 | 14,113 |
+| Chad | 15.0% | 10,901 | 8,232 | 12,325 | 8,704 | 5,498 |
+| Mali | 17.8% | 13,424 | 7,988 | 13,846 | 7,533 | 15,377 |
+| Benin | 36.4% | 10,138 | 7,854 | 10,176 | 7,388 | 8,123 |
+| Burkina Faso | 20.9% | 13,717 | 7,254 | 15,672 | 7,529 | 12,439 |
+| Guinea | 21.4% | 6,608 | 6,077 | 7,160 | 6,247 | 7,979 |
+| South Sudan | 23.1% | 7,040 | 4,861 | 6,778 | 4,357 | 4,282 |
+| Central African Rep. | 33.7% | 5,179 | 4,487 | 5,230 | 4,446 | 4,320 |
+| Sierra Leone | 30.8% | 8,044 | 4,414 | 9,076 | 4,533 | 7,181 |
+| Malawi | 19.2% | 8,494 | 3,991 | 7,334 | 3,145 | 6,316 |
+| Ghana | 16.2% | 5,914 | 3,305 | 5,074 | 2,515 | 7,254 |
+| Burundi | 23.4% | 7,093 | 3,207 | 6,937 | 2,887 | 15,659 |
+| Zambia | 14.3% | 6,196 | 3,091 | 5,934 | 2,655 | 5,272 |
+| Togo | 21.0% | 3,570 | 1,993 | 3,575 | 1,810 | 1,972 |
+| Liberia | 15.1% | 2,656 | 1,432 | 2,774 | 1,363 | 3,088 |
+| Congo-Brazzaville | 23.0% | 1,439 | 1,083 | 1,374 | 948 | 1,414 |
+| Equatorial Guinea | 22.8% | 456 | 549 | 458 | 511 | 724 |
+| Gabon | 18.4% | 118 | 262 | 96 | 200 | 262 |
+| **TOTAL (25)** | — | **513,116** | **354,352** | **550,323** | **354,836** | **436,242** |
+
+Pooled-total 95% CIs (coefficient-only): all-U5 — C1 [357,649–668,584], C2 [172,582–519,653];
+1mo–5y — C1 [367,934–732,712], C2 [200,714–489,777]. All-cause denominators (2,292,071 U5;
+1,507,890 post-neonatal) and every cell's CI are in `results/country_malaria_deaths_gt10.csv`.
 
 The IHME reference (436k, all-U5) sits between the two model routes (C1 ~18% above, C2 ~19% below).
 Component 2 is internally consistent across denominators (355k either way — the higher post-neonatal

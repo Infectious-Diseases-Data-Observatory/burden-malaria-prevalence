@@ -28,18 +28,15 @@ hi <- c1[is.finite(c1$pfpr_pct) & c1$pfpr_pct > 10 &
 hi$allcause_u5 <- hi$u5mr      / 1000 * hi$births      # all under-5
 hi$allcause_pn <- hi$m_1mo_5y  / 1000 * hi$births      # post-neonatal (1mo-5y)
 
-## ---- Component 1 share models (per outcome) ---------------------------------
-fit_c1 <- function(y) { m <- lm(reformulate(c("pfpr_pct", "log_gdp", "dtp3"), y), data = c1)
+## ---- Component 1 share models (per outcome; shared spec 00_utils.R) ---------
+fit_c1 <- function(y) { m <- fit_c1_share(c1, y)
   list(b = coef(m), se = summary(m)$coefficients["pfpr_pct", "Std. Error"]) }
 c1u <- fit_c1("share_u5"); c1p <- fit_c1("share_1mo5y")
 share_hat <- function(b, p, lg, dt, bpf) b["(Intercept)"] + bpf * p + b["log_gdp"] * lg + b["dtp3"] * dt
 
-## ---- Component 2 mixed models (per outcome) ---------------------------------
+## ---- Component 2 mixed models (per outcome; shared LMM spec 00_utils.R) ------
 d2 <- read.csv(file.path(RESULTS, "component2_region_data.csv"), stringsAsFactors = FALSE)
-covs <- c("pfpr10", "dtp3", "log_gdp", "pct_urban", "year_c")
-fit_c2 <- function(y) { dd <- d2[complete.cases(d2[, c(y, covs, "country", "svkey")]), ]
-  m <- lmer(reformulate(c(covs, "(1 + pfpr10 || country)"), response = paste0("log(", y, ")")),
-            data = dd, REML = TRUE, control = lmerControl(optimizer = "bobyqa"))
+fit_c2 <- function(y) { m <- fit_c2_lmm(d2, y)$m       # no-stunting default (full coverage)
   list(beta = fixef(m)["pfpr10"], se = sqrt(vcov(m)["pfpr10", "pfpr10"])) }
 c2u <- fit_c2("u5mr"); c2p <- fit_c2("m1mo5y")
 AF <- function(p, b) 1 - exp(-b * p / 10)

@@ -138,3 +138,29 @@ prev_cov_by_region <- function(pr, regvar) {
   data.frame(regkey = rkey(regs), region = regs, rdt = as.numeric(rdt),
              mic = pick(mic), pct_urban = pick(urb), stunting = pick(st), stringsAsFactors = FALSE)
 }
+
+## ---- shared model specifications (Components 1 & 2) -------------------------
+# Fit definitions live here so every downstream script (02, 04, 05, 07, 08) uses
+# one identical specification instead of re-declaring the formula. Callers pull
+# coefficients / predictions from the returned object.
+
+# Component 1 — malaria's % share of child deaths ~ prevalence + confounders.
+# `terms` lets the caller fit the prevalence-only variant (outlier residuals).
+C1_COVS <- c("pfpr_pct", "log_gdp", "dtp3")
+fit_c1_share <- function(dat, outcome, terms = C1_COVS)
+  lm(reformulate(terms, outcome), data = dat)
+
+# Component 2 — log child-mortality rate ~ prevalence + confounders, with an
+# uncorrelated country random intercept & slope on prevalence (REML, bobyqa).
+# `covs` defaults to the no-stunting set (keeps all countries incl. Liberia);
+# pass c(C2_COVS, "stunting") for the fuller-adjustment / sensitivity fit.
+# Returns list(m = model, dd = complete-case data used).
+C2_COVS <- c("pfpr10", "dtp3", "log_gdp", "pct_urban", "year_c")
+fit_c2_lmm <- function(dat, outcome, covs = C2_COVS) {
+  dd <- dat[complete.cases(dat[, c(outcome, covs, "country")]), ]
+  f  <- as.formula(paste0("log(", outcome, ") ~ ",
+                          paste(c(covs, "(1 + pfpr10 || country)"), collapse = " + ")))
+  list(m = lme4::lmer(f, data = dd, REML = TRUE,
+                      control = lme4::lmerControl(optimizer = "bobyqa")),
+       dd = dd)
+}

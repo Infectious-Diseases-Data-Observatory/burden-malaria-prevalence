@@ -58,14 +58,8 @@ cat(sprintf("Component 2: %d survey-regions, %d surveys, %d countries\n",
             nrow(d), length(unique(d$svkey)), length(unique(d$iso3))))
 
 ## ---- mixed models (log outcome; country random slope on prevalence) ---------
-covs <- c("pfpr10", "dtp3", "log_gdp", "pct_urban", "year_c", "stunting")
-fit_one <- function(outcome, dat = d) {
-  dd <- dat[complete.cases(dat[, c(outcome, covs, "country", "svkey")]), ]
-  f  <- as.formula(paste0("log(", outcome, ") ~ ",   # || = uncorrelated country intercept & slope
-                          paste(c(covs, "(1 + pfpr10 || country)"), collapse = " + ")))
-  m  <- lmer(f, data = dd, REML = TRUE, control = lmerControl(optimizer = "bobyqa"))
-  list(m = m, dd = dd)
-}
+covs <- c(C2_COVS, "stunting")     # Component 2 primary: fullest adjustment (see 00_utils.R)
+fit_one <- function(outcome, dat = d) fit_c2_lmm(dat, outcome, covs)   # shared LMM spec
 summarise <- function(res, outcome) {
   m <- res$m; fe <- fixef(m); se <- sqrt(diag(vcov(m)))
   tab <- data.frame(outcome = outcome, term = names(fe), beta = as.numeric(fe), se = as.numeric(se),

@@ -15,19 +15,17 @@ suppressMessages({library(lme4); library(ggplot2)})
 
 c1 <- read.csv(file.path(RESULTS, "component1_country_data.csv"), stringsAsFactors = FALSE); c1$log_gdp <- log(c1$gdp_pc)
 c2 <- read.csv(file.path(RESULTS, "component2_region_data.csv"), stringsAsFactors = FALSE)
-covs <- c("pfpr10", "dtp3", "log_gdp", "pct_urban", "year_c", "stunting")
+covs <- c(C2_COVS, "stunting")     # match Component 2 primary (00_utils.R)
 grid <- seq(10, 30, by = 0.5)
 
 predict_outcome <- function(share_col, mort_col, label) {
-  ## Component 1 — share model
-  m1  <- lm(reformulate(c("pfpr_pct", "log_gdp", "dtp3"), share_col), data = c1)
+  ## Component 1 — share model (shared spec: 00_utils.R)
+  m1  <- fit_c1_share(c1, share_col)
   b1  <- coef(m1)["pfpr_pct"]; se1 <- summary(m1)$coefficients["pfpr_pct", "Std. Error"]
   s10 <- predict(m1, data.frame(pfpr_pct = 10, log_gdp = mean(c1$log_gdp), dtp3 = mean(c1$dtp3)))
   s30 <- predict(m1, data.frame(pfpr_pct = 30, log_gdp = mean(c1$log_gdp), dtp3 = mean(c1$dtp3)))
-  ## Component 2 — total-mortality model
-  cc <- c2[complete.cases(c2[, c(mort_col, covs, "country")]), ]
-  f  <- as.formula(paste0("log(", mort_col, ") ~ ", paste(c(covs, "(1 + pfpr10 || country)"), collapse = " + ")))
-  m2 <- lmer(f, data = cc, REML = TRUE, control = lmerControl(optimizer = "bobyqa"))
+  ## Component 2 — total-mortality model (shared LMM spec: 00_utils.R)
+  res2 <- fit_c2_lmm(c2, mort_col, covs); m2 <- res2$m; cc <- res2$dd
   b2 <- fixef(m2)["pfpr10"]; se2 <- sqrt(vcov(m2)["pfpr10", "pfpr10"])
   ndm <- data.frame(pfpr10 = 1, dtp3 = mean(cc$dtp3), log_gdp = mean(cc$log_gdp),
                     pct_urban = mean(cc$pct_urban), year_c = 0, stunting = mean(cc$stunting))

@@ -31,17 +31,14 @@ c1$log_gdp <- log(c1$gdp_pc)
 nat <- c1[c1$iso3 %in% names(ISOS), ]
 nat$allcause_u5 <- nat$u5mr / 1000 * nat$births            # D: all-cause U5 deaths
 
-## ---- Component 1 coefficients (share_u5 vs PfPR + log GDP + DTP3) ------------
-m1  <- lm(share_u5 ~ pfpr_pct + log_gdp + dtp3, data = c1)
+## ---- Component 1 coefficients (share_u5 model; shared spec 00_utils.R) -------
+m1  <- fit_c1_share(c1, "share_u5")
 b1  <- coef(m1); se_p1 <- summary(m1)$coefficients["pfpr_pct", "Std. Error"]
 share_hat <- function(p, lg, dt, bpf) (b1["(Intercept)"] + bpf * p + b1["log_gdp"] * lg + b1["dtp3"] * dt)
 
-## ---- Component 2 coefficient (pfpr10 fixed effect, U5MR LMM, no-stunting) ----
+## ---- Component 2 coefficient (pfpr10 fixed effect, U5MR LMM; shared spec) ----
 d2 <- read.csv(file.path(RESULTS, "component2_region_data.csv"), stringsAsFactors = FALSE)
-covs <- c("pfpr10", "dtp3", "log_gdp", "pct_urban", "year_c")
-dd <- d2[complete.cases(d2[, c("u5mr", covs, "country", "svkey")]), ]
-m2 <- lmer(reformulate(c(covs, "(1 + pfpr10 || country)"), response = "log(u5mr)"),
-           data = dd, REML = TRUE, control = lmerControl(optimizer = "bobyqa"))
+m2 <- fit_c2_lmm(d2, "u5mr")$m                       # no-stunting default (full country coverage)
 beta <- fixef(m2)["pfpr10"]; se_b2 <- sqrt(vcov(m2)["pfpr10", "pfpr10"])
 AF <- function(p, b) 1 - exp(-b * p / 10)
 

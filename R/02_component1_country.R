@@ -52,8 +52,8 @@ cat(sprintf("Component 1: %d SSA countries (IHME year %s, MAP PfPR %d)\n", nrow(
 # "prevalence alone" (defines outliers) and the multivariable adjustment.
 coefs <- list(); m$resid_u5 <- m$resid_1mo5y <- NA_real_
 for (out in c("share_u5", "share_1mo5y")) {
-  uni  <- lm(reformulate("pfpr_pct", out), data = m)                       # prevalence only
-  mult <- lm(reformulate(c("pfpr_pct", "log_gdp", "dtp3"), out), data = m) # + GDP + DTP3
+  uni  <- fit_c1_share(m, out, terms = "pfpr_pct")   # prevalence only (defines outliers)
+  mult <- fit_c1_share(m, out)                       # + GDP + DTP3 (shared spec: 00_utils.R)
   m[[paste0("resid_", sub("share_", "", out))]] <- rstudent(uni)           # outlier metric = prevalence-only residual
   ct <- as.data.frame(summary(mult)$coefficients); ct$term <- rownames(ct); ct$outcome <- out; ct$model <- "multivariable"
   cu <- as.data.frame(summary(uni)$coefficients);  cu$term <- rownames(cu); cu$outcome <- out; cu$model <- "prevalence_only"
