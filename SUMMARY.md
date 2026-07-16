@@ -303,6 +303,42 @@ D'Alessandro-zone CIs are Poisson, un-clustered). Data: `results/triangulation_r
 
 ---
 
+## Trend over time — Component 2 vs WHO and IHME (2000–2024)
+
+Applying the Component 2 model longitudinally: for each SSA country-year, malaria deaths =
+**AF(PfPR₂₋₁₀) × all-cause child deaths**, with AF from the negative-binomial GAM (the attributable
+fraction), all-cause deaths from IGME/World Bank (U5MR/NNMR × births), and national PfPR₂₋₁₀
+pop-weighted from the **MAP annual surfaces (2000–2024)**. Summed across SSA and compared, on a
+like-for-like **under-5** footing, with **WHO** (WMR 2025 African-region deaths × ~75% under-5 share)
+and **IHME/GBD** (SSA under-5).
+
+| Source | 2000 | 2024 | Change |
+|---|--:|--:|--:|
+| **Ours** — Component 2 GAM (SSA under-5) | 879k | 375k | **−57%** |
+| WHO — African-region under-5 (WMR 2025) | 603k | 434k | −28% |
+| IHME/GBD — SSA under-5 | 564k | 428k | −24% |
+
+![Malaria child deaths over time: Component 2 vs WHO and IHME](results/malaria_deaths_timeseries.png)
+
+**WHO and IHME — two independent systems — agree closely** (both ≈560–600k in 2000, ≈430k in 2024,
+declining ~25%). **Our Component 2 estimate is the outlier**: it starts ~50% higher and declines more
+than twice as steeply (−57%), crossing the WHO/IHME lines around 2014–2016 and finishing slightly
+below them. The divergence is structural — our estimate is prevalence-driven, so it inherits the large
+early-2000s prevalence *and* the steep post-2000 falls in both prevalence and all-cause child
+mortality. Our **2000 value is implausibly high** (it nearly equals WHO's *global, all-ages* total of
+864k), so the AF applied at 2000's very high transmission + high baseline mortality over-predicts —
+the main thing to scrutinise. (Our 1mo–5y variant runs ~10–15% above the all-U5 line.)
+
+Uncertainty note: **our band is AF-spline uncertainty only** (not the all-cause death counts or MAP
+prevalence, which we take as point values), whereas the WHO/IHME bands are their own reported 95% CIs
+— so the bands are not like-for-like. Other caveats: the 75% U5 share is held constant (the 2000 share
+was likely higher); WHO African Region and GBD "Sub-Saharan Africa" ≈ our SSA but are not identical.
+Script `R/11_malaria_deaths_timeseries.R` (heavy MAP download; kept out of `run_all.R`); data
+`results/malaria_deaths_timeseries_*.csv`, `who_wmr2025_{global,africa}_deaths.csv`,
+`ihme_u5_deaths_ssa_timeseries.csv`.
+
+---
+
 ## Caveats
 - **Component 1 is ecological** (country-level); **Component 2** adjusts for the main confounders
   but is observational, and region-level U5MR from a single survey is noisy.
