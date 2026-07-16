@@ -1,10 +1,12 @@
 # =============================================================================
 # 10_triangulation_rct.R — RCT triangulation of the prevalence -> mortality link
 #
-# Premise (user): Components 1 (IHME share) & 2 (DHS log-rate) predict the
-# all-cause child MORTALITY effect from the PREVALENCE effect. So a bigger drop
-# in parasite prevalence should map to a bigger mortality reduction. We test this
-# against cluster-RCTs of insecticide-treated nets/curtains that measured BOTH.
+# Premise (user): the Component 2 (DHS log-rate) model predicts the all-cause
+# child MORTALITY effect from the PREVALENCE effect. So a bigger drop in parasite
+# prevalence should map to a bigger mortality reduction. We test this against
+# cluster-RCTs of insecticide-treated nets/curtains that measured BOTH.
+# (Component 1's linear share model is unsuitable here: extrapolated per-arm to
+# these prevalences its fitted share exceeds 100%, so it is not used.)
 #
 # Because Component 2's exposure-response is NON-LINEAR, we age-standardise each
 # arm's parasite prevalence to PfPR2-10 and evaluate the model at BOTH the
@@ -60,10 +62,7 @@ rct$pfpr_c <- mapply(std, rct$prev_control, rct$prev_amin, rct$prev_amax)
 rct$dPfPR  <- rct$pfpr_c - rct$pfpr_t                        # prevalence reduction (PfPR2-10 pts)
 rct$obs_red <- (1 - rct$mort_rr) * 100                       # observed mortality reduction (%)
 
-## ---- model fits (neonatal-excluded outcome, matched to trial ages) ----------
-c1 <- read.csv(file.path(RESULTS, "component1_country_data.csv")); c1$log_gdp <- log(c1$gdp_pc)
-m1 <- fit_c1_share(c1, "share_1mo5y")
-share_hat <- function(p) predict(m1, data.frame(pfpr_pct = p, log_gdp = mean(c1$log_gdp), dtp3 = mean(c1$dtp3)))
+## ---- Component 2 model fit (neonatal-excluded outcome, matched to trial ages) --
 d2 <- read.csv(file.path(RESULTS, "component2_region_data.csv"))
 dd <- d2[complete.cases(d2[, c("m1mo5y", C2_COVS, "country")]) & is.finite(d2$exposure) & d2$exposure > 0, ]
 dd$deaths <- round(dd$m1mo5y/1000 * dd$exposure); dd$country <- factor(dd$country)
@@ -83,12 +82,10 @@ sm_eval <- function(pfpr_pct) {
 }
 
 ## ---- per-trial predicted mortality reduction (%) ----------------------------
-# Component 2 spline (nonlinear): RR = exp( s(P_treated) - s(P_control) )
-# Component 2 linear (LMM):       RR = exp( beta * (P_treated - P_control)/10 )
-# Component 1 share:              RR = (1 - share(P_control)) / (1 - share(P_treated))
+# Component 2 spline (nonlinear, primary): RR = exp( s(P_treated) - s(P_control) )
+# Component 2 linear (LMM, reference):      RR = exp( beta * (P_treated - P_control)/10 )
 rct$pred_c2_spline <- (1 - exp(mapply(sm_eval, rct$pfpr_t) - mapply(sm_eval, rct$pfpr_c))) * 100
 rct$pred_c2_linear <- (1 - exp(beta_lin * (rct$pfpr_t - rct$pfpr_c)/10)) * 100
-rct$pred_c1        <- (1 - (1 - share_hat(rct$pfpr_c)/100) / (1 - share_hat(rct$pfpr_t)/100)) * 100
 
 d <- rct[rct$include, ]
 write.csv(rct, file.path(RESULTS, "triangulation_rct_data.csv"), row.names = FALSE)
@@ -100,7 +97,7 @@ cat(sprintf("WLS: mortality reduction per +1 PfPR2-10 pt reduced = %.3f%% (per +
             (1-exp(coef(wls)["dPfPR"]))*100, (1-exp(coef(wls)["dPfPR"]*10))*100,
             summary(wls)$coefficients["dPfPR","Pr(>|t|)"]))
 cat(sprintf("Component 2 LMM slope: %.1f%% mortality change per +10 PfPR pts\n", (exp(beta_lin)-1)*100))
-print(d[, c("study","pfpr_c","pfpr_t","dPfPR","obs_red","pred_c1","pred_c2_linear","pred_c2_spline")],
+print(d[, c("study","pfpr_c","pfpr_t","dPfPR","obs_red","pred_c2_spline","pred_c2_linear")],
       row.names = FALSE, digits = 3)
 
 ## ---- figure A: observed mortality reduction vs prevalence reduction ---------
@@ -120,13 +117,9 @@ pA <- ggplot(d, aes(dPfPR, obs_red)) +
        subtitle = sprintf("%d cluster-RCT points (D'Alessandro 5 zones + 3 trials). Grey = inverse-variance weighted fit.", nrow(d))) +
   theme_minimal(base_size = 11) + theme(panel.grid.minor = element_blank(), legend.position = "top")
 
-## ---- figure B: predicted vs observed ----------------------------------------
-# Component 1 (linear share) is EXCLUDED from the plot: extrapolated per-arm to
-# these high prevalences its fitted share exceeds 100%, so the (1-s_c)/(1-s_t)
-# mortality ratio is undefined/nonsensical (values retained in the CSV, flagged).
-cat(sprintf("\nComponent 1 per-arm prediction is invalid where fitted share >100%% (Habluetzel/Phillips-Howard/zone5);\n  excluded from the figure. Only Component 2 gives bounded per-arm predictions.\n"))
+## ---- figure B: Component 2 predicted vs observed ----------------------------
 pv <- rbind(data.frame(study=d$study, lab=lab, model="Component 2 (spline, nonlinear)", pred=d$pred_c2_spline, obs=d$obs_red),
-            data.frame(study=d$study, lab=lab, model="Component 2 (linear)",           pred=d$pred_c2_linear, obs=d$obs_red))
+            data.frame(study=d$study, lab=lab, model="Component 2 (linear LMM)",        pred=d$pred_c2_linear, obs=d$obs_red))
 rng <- range(pv$pred, pv$obs, 0, na.rm = TRUE)
 pB <- ggplot(pv, aes(pred, obs, colour = model)) +
   geom_abline(slope = 1, intercept = 0, linetype = "dotted", colour = "grey50") +
@@ -134,7 +127,7 @@ pB <- ggplot(pv, aes(pred, obs, colour = model)) +
   geom_point(size = 2.6, alpha = 0.9) +
   geom_text(data = subset(pv, grepl("spline", model)), aes(label = lab), size = 2.4, vjust = -0.9, colour = "grey25", show.legend = FALSE) +
   scale_colour_manual(values = c("Component 2 (spline, nonlinear)"="#d73027",
-                                 "Component 2 (linear)"="#fdae61"), name = NULL) +
+                                 "Component 2 (linear LMM)"="#fdae61"), name = NULL) +
   coord_equal(xlim = rng, ylim = rng) +
   labs(x = "Model-predicted U5 mortality reduction (%)", y = "Observed U5 mortality reduction (%)",
        title = "Predicted vs observed", subtitle = "On the dotted line = model matches the trial. Prediction uses each point's two PfPR2-10 levels.") +
