@@ -41,3 +41,5 @@ results/_*.log
 !results/
 !results/*.png
 !results/*.csv
+# rendered summary is tracked & shared (other *.pdf stay ignored)
+!SUMMARY.pdf
