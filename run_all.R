@@ -13,4 +13,5 @@ source("R/05_prediction_10_to_30.R") # cross-component prediction: total U5MR, 1
 source("R/06_attributable_fraction.R") # malaria-attributable fraction of child deaths vs PfPR
 source("R/07_ng_drc_malaria_deaths.R") # NG/DRC malaria deaths: national vs subnational (admin-1)
 source("R/08_country_malaria_deaths.R")# malaria deaths for all countries with PfPR2-10 > 10%
+source("R/09_method_comparison.R")     # overlay Component 1 & 2 on shared axes (method comparison)
 message("\nAll components complete. See results/ for figures and tables.")
