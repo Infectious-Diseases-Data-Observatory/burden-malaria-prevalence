@@ -144,5 +144,5 @@ pB <- ggplot(pv, aes(pred, obs)) +
   theme_minimal(base_size = 11) + theme(panel.grid.minor = element_blank(), legend.position = "top")
 
 ggsave(file.path(RESULTS, "triangulation_rct.png"), pA + pB + patchwork::plot_layout(widths = c(1.35, 1)),
-       width = 14, height = 6.4, dpi = 140)
+       width = 14, height = 6.4, dpi = 300)
 cat("saved: results/triangulation_rct.png + triangulation_rct_data.csv\n")

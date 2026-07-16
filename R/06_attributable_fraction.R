@@ -81,7 +81,7 @@ p <- ggplot(af, aes(pfpr, 100 * af, colour = method_grp, fill = method_grp)) +
        caption = "Linear = LMM log-rate coefficient; spline = nb-GAM smooth s(PfPR). Shaded = 95% CI (prevalence-effect sampling error only). No-stunting spec, 600 survey-regions.") +
   theme_minimal(base_size = 11) +
   theme(panel.grid.minor = element_blank(), legend.position = "top")
-ggsave(file.path(RESULTS, "attributable_fraction.png"), p, width = 11, height = 5.5, dpi = 140)
+ggsave(file.path(RESULTS, "attributable_fraction.png"), p, width = 11, height = 5.5, dpi = 300)
 
 ## ---- console summary at round prevalences -----------------------------------
 show <- af[af$pfpr %in% c(10, 20, 30, 40, 50), c("outcome", "method_grp", "pfpr", "af", "lo", "hi")]

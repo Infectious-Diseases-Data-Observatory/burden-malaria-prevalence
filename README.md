@@ -147,6 +147,14 @@ _(reproduced by the pipeline into `results/`)_
   denominator reveals curvature the all-U5 relationship doesn't show. See `results/component2_country_slopes.png`,
   `component2_model_coefficients.csv` (`sample` column = `full` / `pfpr_5_50`),
   `component2_country_slopes.csv`.
+- **RCT triangulation** (`results/triangulation_rct.png`, `R/10`): across ITN cluster-RCTs that
+  measured both a parasite-prevalence change and all-cause U5 mortality (D'Alessandro 1995 — 5 zones,
+  Habluetzel, Phillips-Howard, Nevill), the observed dose-response is **≈ 8.6% fewer U5 deaths per
+  +10 PfPR₂₋₁₀ points of prevalence removed** — close to Component 2's own ≈ 11.3%/10 points.
+  Component 2 (spline, evaluated at both prevalence levels) predicts the negative control (a failed
+  programme zone where prevalence and mortality both rose) and the low-effect trials well, and
+  under-predicts the largest, most imprecise reductions (within their 95% CIs). Exploratory (8
+  heterogeneous points). See `results/triangulation_rct_data.csv`.
 
 ## Caveats
 - MAP PfPR₂₋₁₀ is available through 2024; the IHME export is 2025, so Component 1

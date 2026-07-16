@@ -61,5 +61,5 @@ p <- ggplot(pred, aes(pfpr, mort, colour = component, fill = component)) +
        subtitle = "Covariates at means; within each panel both curves share the baseline at 10% PfPR. Shaded = 95% CI on the prevalence effect.",
        caption = "C2: direct total-mortality model. C1: malaria share model, total assuming non-malaria mortality fixed. 1mo-5y response is nonlinear (approx.).") +
   theme_minimal(base_size = 11) + theme(panel.grid.minor = element_blank(), legend.position = "top")
-ggsave(file.path(RESULTS, "prediction_10_to_30.png"), p, width = 12, height = 6, dpi = 140)
+ggsave(file.path(RESULTS, "prediction_10_to_30.png"), p, width = 12, height = 6, dpi = 300)
 cat("saved: results/prediction_10_to_30.png + prediction_10_to_30.csv\n")

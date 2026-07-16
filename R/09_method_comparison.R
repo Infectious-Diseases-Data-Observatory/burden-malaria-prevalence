@@ -53,5 +53,5 @@ p <- ggplot() +
        subtitle = "Grey points = Component 1 country shares. Lines at mean covariates, shaded = 95% CI. C1 drawn over its national-prevalence data range.",
        caption = "C1: share ~ PfPR + log GDP + DTP3 (country level, IHME/IGME). C2: AF = 1 - exp(-(s(PfPR))) from the DHS log-rate model (script 06 spline).") +
   theme_minimal(base_size = 11) + theme(panel.grid.minor = element_blank(), legend.position = "top")
-ggsave(file.path(RESULTS, "method_comparison.png"), p, width = 12, height = 5.8, dpi = 140)
+ggsave(file.path(RESULTS, "method_comparison.png"), p, width = 12, height = 5.8, dpi = 300)
 cat("saved: results/method_comparison.png\n")

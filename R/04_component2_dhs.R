@@ -133,7 +133,7 @@ p_s <- (mk_s("u5mr", "All-cause U5MR, 5q0 (per 1,000 lb)", adj(count_sens, "u5mr
          subtitle = sprintf("%d survey-regions, %d countries. Points + GAM trend; annotation = adjusted GAM effect (nb, s(year), country RE).",
                             nrow(d_s), length(unique(d_s$country))),
          caption = "Restricted to PfPR2-10 in [5,50]%. Adjusted for DTP3, GDP p.c., % urban, s(year_c).")
-ggsave(file.path(RESULTS, "component2_sensitivity_5to50.png"), p_s, width = 13, height = 6.5, dpi = 140)
+ggsave(file.path(RESULTS, "component2_sensitivity_5to50.png"), p_s, width = 13, height = 6.5, dpi = 300)
 cat("saved: results/component2_sensitivity_5to50.png\n")
 
 ## ---- FINAL: exposure-response linearity — smooth s(pfpr10) ------------------
@@ -179,7 +179,7 @@ p_sp <- ggplot(curve_df, aes(pfpr2_10, fit)) +
                           edf_tab$edf[1], edf_tab$edf[2]),
        caption = "GAM (nb) partial smooth on the log-rate scale with 95% CI; adjusted for covariates + country random effects.") +
   theme_minimal(base_size = 11) + theme(panel.grid.minor = element_blank())
-ggsave(file.path(RESULTS, "component2_exposure_response_spline.png"), p_sp, width = 11, height = 5.5, dpi = 140)
+ggsave(file.path(RESULTS, "component2_exposure_response_spline.png"), p_sp, width = 11, height = 5.5, dpi = 300)
 cat("saved: results/component2_exposure_response_spline.png + component2_exposure_response_edf.csv\n")
 
 # country-specific prevalence slopes (per +10 pts) from the U5MR model
@@ -209,5 +209,5 @@ p <- ggplot() +
        caption = "DHS.rates 5q0 & microscopy-equivalent PfPR2-10; adjusted for DTP3, GDP p.c., % urban, year.") +
   theme_minimal(base_size = 11) + theme(panel.grid.minor = element_blank(),
     legend.key.size = unit(3.3, "mm"), legend.text = element_text(size = 6), legend.title = element_text(size = 8))
-ggsave(file.path(RESULTS, "component2_country_slopes.png"), p, width = 12, height = 7.5, dpi = 140)
+ggsave(file.path(RESULTS, "component2_country_slopes.png"), p, width = 12, height = 7.5, dpi = 300)
 cat("saved: results/component2_country_slopes.png + component2_{model_coefficients,country_slopes,region_data}.csv\n")

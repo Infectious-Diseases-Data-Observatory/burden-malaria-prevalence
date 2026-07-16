@@ -87,5 +87,5 @@ p <- mk("share_1mo5y", "Malaria % of 1mo-5y deaths (neonatal excl.)") +
        title = "Component 1 — Country level: malaria's share of child deaths vs prevalence",
        subtitle = "Line = fit on prevalence alone; red = outliers (studentized resid > 2) where malaria exceeds the prevalence prediction. Multivariable model adjusts for GDP p.c. + DTP3.",
        caption = "IHME/GBD U5 malaria deaths (2025); IGME all-cause U5 mortality; MAP PfPR2-10 (2024); World Bank GDP p.c. & DTP3.")
-ggsave(file.path(RESULTS, "component1_share_vs_pfpr.png"), p, width = 13, height = 6.5, dpi = 140)
+ggsave(file.path(RESULTS, "component1_share_vs_pfpr.png"), p, width = 13, height = 6.5, dpi = 300)
 cat("saved: results/component1_share_vs_pfpr.png + component1_{model_coefficients,outliers,country_data}.csv\n")

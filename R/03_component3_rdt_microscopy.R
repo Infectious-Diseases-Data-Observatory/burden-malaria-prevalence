@@ -70,5 +70,5 @@ p <- ggplot(b2, aes(rdt, mic)) +
        caption = "All DHS/MIS survey-regions with both tests. Conversion used in Component 2 to impute microscopy where only RDT exists.") +
   theme_minimal(base_size = 11) + theme(panel.grid.minor = element_blank(),
     legend.key.size = unit(3.3, "mm"), legend.text = element_text(size = 6.5), legend.title = element_text(size = 8))
-ggsave(file.path(RESULTS, "component3_rdt_vs_microscopy.png"), p, width = 10, height = 7.5, dpi = 140)
+ggsave(file.path(RESULTS, "component3_rdt_vs_microscopy.png"), p, width = 10, height = 7.5, dpi = 300)
 cat("saved: results/component3_rdt_vs_microscopy.png + rdt_microscopy_conversion.csv\n")
