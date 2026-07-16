@@ -95,7 +95,14 @@ malaria-plausible direction, which strengthens the causal reading.
 
 ![Component 2 negative control: prevalence effect by age window](results/component2_negative_control.png)
 
-Table: `results/component2_negative_control.csv`.
+At the **raw-data** level the crude neonatal–prevalence trend is *weakly positive* — but this is
+between-country confounding (poorer, higher-mortality countries have both higher prevalence and higher
+neonatal mortality); the **covariate- and country-adjusted** effect is null. So adjustment removes the
+(confounding-driven) neonatal signal while leaving the post-neonatal (malaria) signal intact:
+
+![Neonatal mortality vs prevalence, by survey-region](results/component2_neonatal_scatter.png)
+
+Tables: `results/component2_negative_control.csv`; figure `results/component2_neonatal_scatter.png`.
 
 ---
 
