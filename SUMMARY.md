@@ -149,6 +149,24 @@ counterfactual (vs zero-transmission) fractions assuming the adjusted associatio
 
 ---
 
+## Comparing the two methods
+
+Both components estimate the same quantity — malaria as a **% of child deaths** — so they can be
+overlaid on shared axes. Component 1 is the country-level share (points = IHME ÷ IGME per country;
+line = fitted `share ~ PfPR + log GDP + DTP3` at mean covariates); Component 2 is the DHS
+attributable-fraction spline. Drawn over Component 1's national-prevalence range (to ~40%).
+
+![Method comparison: Component 1 share vs Component 2 attributable fraction](results/method_comparison.png)
+
+The routes **broadly agree** and their 95% bands overlap throughout. For **all under-5** the two
+track the country cloud closely, Component 2 running slightly below Component 1. For **1mo–5y** both
+rise more steeply once neonatal deaths are removed; they coincide at low–mid transmission and diverge
+at the top of the range, where Component 1 extrapolates roughly linearly while Component 2 begins to
+plateau. That two independent data sources (IHME/IGME country totals vs DHS survey mortality) and two
+different models land on a similar prevalence–share relationship is the main cross-check of the work.
+
+---
+
 ## National malaria-burden estimates (PfPR₂₋₁₀ > 10%)
 
 Applying both methods to a common denominator — all-cause child deaths = mortality rate × live
