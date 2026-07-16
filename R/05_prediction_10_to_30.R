@@ -15,7 +15,7 @@ suppressMessages({library(lme4); library(ggplot2)})
 
 c1 <- read.csv(file.path(RESULTS, "component1_country_data.csv"), stringsAsFactors = FALSE); c1$log_gdp <- log(c1$gdp_pc)
 c2 <- read.csv(file.path(RESULTS, "component2_region_data.csv"), stringsAsFactors = FALSE)
-covs <- c(C2_COVS, "stunting")     # match Component 2 primary (00_utils.R)
+covs <- C2_COVS     # match Component 2 primary: no-stunting (00_utils.R)
 grid <- seq(10, 30, by = 0.5)
 
 predict_outcome <- function(share_col, mort_col, label) {
@@ -28,7 +28,7 @@ predict_outcome <- function(share_col, mort_col, label) {
   res2 <- fit_c2_lmm(c2, mort_col, covs); m2 <- res2$m; cc <- res2$dd
   b2 <- fixef(m2)["pfpr10"]; se2 <- sqrt(vcov(m2)["pfpr10", "pfpr10"])
   ndm <- data.frame(pfpr10 = 1, dtp3 = mean(cc$dtp3), log_gdp = mean(cc$log_gdp),
-                    pct_urban = mean(cc$pct_urban), year_c = 0, stunting = mean(cc$stunting))
+                    pct_urban = mean(cc$pct_urban), year_c = 0)
   B  <- exp(predict(m2, ndm, re.form = NA))                       # common baseline at 10% PfPR
   ## curves over 10 -> 30
   c2f <- B * exp(b2 * (grid - 10) / 10)

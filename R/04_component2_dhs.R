@@ -2,7 +2,7 @@
 # 04_component2_dhs.R — DHS SUBNATIONAL + NATIONAL
 # Association between child malaria prevalence and all-cause under-5 mortality
 # across all usable SSA DHS/MIS survey-regions, adjusted for DTP3, GDP per
-# capita, % urban, calendar year and stunting, via a mixed-effects model with
+# capita, % urban and calendar year, via a mixed-effects model with
 # country random slopes. Outcome on the log scale so the malaria coefficient
 # reads as a % change in mortality. Fit for U5MR and for 1mo-5y (neonatal excl.).
 #
@@ -58,7 +58,7 @@ cat(sprintf("Component 2: %d survey-regions, %d surveys, %d countries\n",
             nrow(d), length(unique(d$svkey)), length(unique(d$iso3))))
 
 ## ---- mixed models (log outcome; country random slope on prevalence) ---------
-covs <- c(C2_COVS, "stunting")     # Component 2 primary: fullest adjustment (see 00_utils.R)
+covs <- C2_COVS     # no-stunting spec: keeps all 600 regions / 23 countries (see 00_utils.R)
 fit_one <- function(outcome, dat = d) fit_c2_lmm(dat, outcome, covs)   # shared LMM spec
 summarise <- function(res, outcome) {
   m <- res$m; fe <- fixef(m); se <- sqrt(diag(vcov(m)))
@@ -93,7 +93,7 @@ fit_count <- function(rate_col, dat = d) {
   dd <- dat[complete.cases(dat[, c(rate_col, covs, "country", "svkey")]) & is.finite(dat$exposure) & dat$exposure > 0, ]
   dd$deaths  <- round(dd[[rate_col]] / 1000 * dd$exposure)
   dd$country <- factor(dd$country); dd$svkey <- factor(dd$svkey)
-  m <- mgcv::gam(deaths ~ pfpr10 + dtp3 + log_gdp + pct_urban + stunting + s(year_c) +
+  m <- mgcv::gam(deaths ~ pfpr10 + dtp3 + log_gdp + pct_urban + s(year_c) +
                    s(country, bs = "re") + s(country, pfpr10, bs = "re") +
                    offset(log(exposure)),
                  family = mgcv::nb(), method = "REML", data = dd)
@@ -132,7 +132,7 @@ p_s <- (mk_s("u5mr", "All-cause U5MR, 5q0 (per 1,000 lb)", adj(count_sens, "u5mr
          title = "Component 2 sensitivity — mid-transmission survey-regions (PfPR2-10 5-50%)",
          subtitle = sprintf("%d survey-regions, %d countries. Points + GAM trend; annotation = adjusted GAM effect (nb, s(year), country RE).",
                             nrow(d_s), length(unique(d_s$country))),
-         caption = "Restricted to PfPR2-10 in [5,50]%. Adjusted for DTP3, GDP p.c., % urban, s(year_c), stunting.")
+         caption = "Restricted to PfPR2-10 in [5,50]%. Adjusted for DTP3, GDP p.c., % urban, s(year_c).")
 ggsave(file.path(RESULTS, "component2_sensitivity_5to50.png"), p_s, width = 13, height = 6.5, dpi = 140)
 cat("saved: results/component2_sensitivity_5to50.png\n")
 
@@ -142,7 +142,7 @@ fit_spline <- function(rate_col, dat = d) {
   dd <- dat[complete.cases(dat[, c(rate_col, covs, "country", "svkey")]) & is.finite(dat$exposure) & dat$exposure > 0, ]
   dd$deaths <- round(dd[[rate_col]] / 1000 * dd$exposure)
   dd$country <- factor(dd$country); dd$svkey <- factor(dd$svkey)
-  m <- mgcv::gam(deaths ~ s(pfpr10, k = 4) + dtp3 + log_gdp + pct_urban + stunting + s(year_c) +
+  m <- mgcv::gam(deaths ~ s(pfpr10, k = 4) + dtp3 + log_gdp + pct_urban + s(year_c) +
                    s(country, bs = "re") + s(country, pfpr10, bs = "re") + offset(log(exposure)),
                  family = mgcv::nb(), method = "REML", data = dd)   # k=4: low-df smooth (max ~3 edf)
   list(m = m, dd = dd)
@@ -161,7 +161,7 @@ smooth_curve <- function(res, lbl) {
   dd <- res$dd
   g <- data.frame(pfpr10 = seq(min(dd$pfpr10), max(dd$pfpr10), length = 120),
                   dtp3 = mean(dd$dtp3), log_gdp = mean(dd$log_gdp), pct_urban = mean(dd$pct_urban),
-                  stunting = mean(dd$stunting), year_c = 0, exposure = 1,
+                  year_c = 0, exposure = 1,
                   country = dd$country[1], svkey = dd$svkey[1])
   pr <- predict(res$m, g, type = "terms", terms = "s(pfpr10)", se.fit = TRUE)
   data.frame(pfpr2_10 = g$pfpr10 * 10, fit = as.numeric(pr$fit), se = as.numeric(pr$se.fit), outcome = lbl)
@@ -194,7 +194,7 @@ lines <- do.call(rbind, lapply(seq_len(nrow(cf)), function(i) data.frame(
   country = cf$country[i], x = xr,
   y = exp(cf[i, "(Intercept)"] + cf[i, "pfpr10"] * (xr / 10) +
           fe["dtp3"] * mean(dd$dtp3) + fe["log_gdp"] * mean(dd$log_gdp) +
-          fe["pct_urban"] * mean(dd$pct_urban) + fe["stunting"] * mean(dd$stunting)))))
+          fe["pct_urban"] * mean(dd$pct_urban)))))
 p <- ggplot() +
   geom_point(data = dd, aes(pfpr2_10, u5mr, colour = country), size = 1.1, alpha = 0.35) +
   geom_line(data = lines, aes(x, y, colour = country, group = country), linewidth = 0.6, alpha = 0.9) +
@@ -206,7 +206,7 @@ p <- ggplot() +
        y = "All-cause under-5 mortality, 5q0 (per 1,000 live births)",
        title = "Component 2 — DHS: adjusted malaria-prevalence effect on child mortality",
        subtitle = "Lines = country-specific fitted U5MR vs prevalence at mean covariates (mixed model, country random slopes).",
-       caption = "DHS.rates 5q0 & microscopy-equivalent PfPR2-10; adjusted for DTP3, GDP p.c., % urban, year, stunting.") +
+       caption = "DHS.rates 5q0 & microscopy-equivalent PfPR2-10; adjusted for DTP3, GDP p.c., % urban, year.") +
   theme_minimal(base_size = 11) + theme(panel.grid.minor = element_blank(),
     legend.key.size = unit(3.3, "mm"), legend.text = element_text(size = 6), legend.title = element_text(size = 8))
 ggsave(file.path(RESULTS, "component2_country_slopes.png"), p, width = 12, height = 7.5, dpi = 140)

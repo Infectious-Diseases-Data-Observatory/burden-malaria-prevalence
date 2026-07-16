@@ -16,7 +16,7 @@ The analysis has **three components**:
    deaths than prevalence predicts.
 2. **DHS subnational + national** — association between child malaria prevalence
    and all-cause under-5 mortality across all usable DHS/MIS survey-regions,
-   adjusted for DTP3, GDP per capita, urban/rural, calendar year and stunting, in
+   adjusted for DTP3, GDP per capita, urban/rural and calendar year, in
    a mixed-effects model with country random slopes; reported as the **% change
    in under-5 mortality per +10 PfPR₂₋₁₀ points**.
 3. **RDT vs microscopy** — a consensus conversion factor between the two malaria
@@ -89,9 +89,11 @@ A mixed-effects model is then fit on the **log** of mortality (so coefficients a
 % changes):
 ```
 log(mortality) ~ PfPR2-10 + DTP3 + log(GDP p.c.) + % urban + calendar year
-                 + stunting + (1 + PfPR2-10 || country)
+                 + (1 + PfPR2-10 || country)
                  # || = uncorrelated country random intercept & slope
                  #      (avoids a singular intercept-slope covariance)
+                 # stunting was evaluated but excluded: MIS surveys (incl. Liberia)
+                 # lack anthropometry, dropping ~11% of regions and one country.
 ```
 for both U5MR and 1mo–5y mortality. The headline is the adjusted **% change in
 under-5 mortality per +10 PfPR₂₋₁₀ points**, with country-specific random slopes.
@@ -120,26 +122,28 @@ _(reproduced by the pipeline into `results/`)_
 - **Component 3:** microscopy ≈ **0.74 × RDT** (r ≈ 0.90, 431 survey-regions).
 - **Component 1:** `results/component1_share_vs_pfpr.png`, `component1_model_coefficients.csv`, `component1_outliers.csv`.
 - **Component 2** (600 survey-regions, 44 surveys, 23 countries; adjusted for DTP3,
-  GDP p.c., % urban, year, stunting): **+6.9% under-5 mortality per +10 PfPR₂₋₁₀
-  points** (95% CI +2.6 to +11.4), and **+11.0% for 1mo–5y mortality**
-  (95% CI +5.0 to +17.5). **Sensitivity** restricting to mid-transmission regions
-  (PfPR₂₋₁₀ 5–50%, 354 regions): attenuated to +5.3% (CI −0.6 to +11.6) for U5MR
-  and +7.4% (CI −0.5 to +16.0) for 1mo–5y — positive but weaker/non-significant over
-  the narrower range. All four fits are non-singular.
+  GDP p.c., % urban, year): **+7.0% under-5 mortality per +10 PfPR₂₋₁₀
+  points** (95% CI +3.2 to +10.9), and **+11.3% for 1mo–5y mortality**
+  (95% CI +5.8 to +17.0). **Sensitivity** restricting to mid-transmission regions
+  (PfPR₂₋₁₀ 5–50%, 354 regions): attenuated to +6.2% (CI +0.9 to +11.9) for U5MR
+  and +8.4% (CI +1.6 to +15.7) for 1mo–5y — positive but weaker over
+  the narrower range. All four fits are non-singular. (Child stunting was evaluated
+  but excluded — MIS-type surveys incl. Liberia lack anthropometry, dropping ~11% of
+  regions and one country while leaving the effect essentially unchanged.)
   A **second specification** — a negative-binomial GAM (`mgcv`) of region under-5
   deaths with a `log(birth-exposure)` offset, a smooth spline on calendar year
   `s(year_c)`, and a country random intercept + `pfpr10` slope — corroborates the
-  log-rate model: +6.0% (U5MR) and +9.9% (1mo–5y) per +10 PfPR₂₋₁₀ points
+  log-rate model: +6.9% (U5MR) and +11.0% (1mo–5y) per +10 PfPR₂₋₁₀ points
   (`component2_count_model_coefficients.csv`, `sample` column = `full` /
-  `pfpr_5_50`). Its **5–50% sensitivity** attenuates likewise: +3.9% (U5MR) and
-  +6.2% (1mo–5y) — see `results/component2_sensitivity_5to50.png`. (With no
-  survey-round random intercept, `s(year_c)` takes on curvature, edf ≈ 5,
+  `pfpr_5_50`). Its **5–50% sensitivity** attenuates likewise: +5.6% (U5MR) and
+  +8.7% (1mo–5y) — see `results/component2_sensitivity_5to50.png`. (With no
+  survey-round random intercept, `s(year_c)` takes on curvature, edf ≈ 6,
   absorbing the survey-level temporal variation.)
 - **Exposure-response shape** (`results/component2_exposure_response_spline.png`):
-  replacing linear prevalence with a smooth `s(PfPR₂₋₁₀)` gives **edf = 1.0 for
-  U5MR (linear across the range** — constant proportional effect per PfPR point)
-  but **edf ≈ 5.4 for 1mo–5y (nonlinear** — steep rise at low prevalence, a
-  plateau ~10–25%, then rising again). Removing neonatal deaths from the
+  replacing linear prevalence with a low-df smooth `s(PfPR₂₋₁₀, k=4)` gives **edf ≈ 1.0
+  for U5MR (linear across the range** — constant proportional effect per PfPR point)
+  but **edf ≈ 2.1 for 1mo–5y (mild curvature** — a smooth, decelerating rise, steeper
+  at low prevalence). Removing neonatal deaths from the
   denominator reveals curvature the all-U5 relationship doesn't show. See `results/component2_country_slopes.png`,
   `component2_model_coefficients.csv` (`sample` column = `full` / `pfpr_5_50`),
   `component2_country_slopes.csv`.

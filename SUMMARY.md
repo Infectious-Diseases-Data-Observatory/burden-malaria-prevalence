@@ -50,29 +50,33 @@ is missing), then **age-standardised 0.5–5y → PfPR₂₋₁₀ (2–10y)** w
 `malariaAtlas::convertPrevalence` (Smith et al. 2007 age–prevalence model). Two specifications:
 
 1. **Primary — log-rate linear mixed model:**
-   `log(mortality) ~ PfPR2-10 + DTP3 + log(GDP) + %urban + year + stunting + (1 + PfPR2-10 || country)`.
+   `log(mortality) ~ PfPR2-10 + DTP3 + log(GDP) + %urban + year + (1 + PfPR2-10 || country)`.
 2. **Count — negative-binomial GAM (`mgcv`):** region under-5 deaths with a `log(exposure)`
    offset, a smooth `s(year_c)`, and country random intercept + slope.
+
+Child stunting was evaluated as a further confounder but **excluded from the primary model**: five
+MIS-type surveys (including Liberia's only survey) collected no anthropometry, so adding it dropped
+~11% of survey-regions and one country while leaving the malaria coefficient essentially unchanged.
 
 **Results** (600 survey-regions, 44 surveys, 23 countries). Higher child malaria prevalence
 predicts higher child mortality, adjusted for all covariates:
 
 | | LMM (log-rate) | GAM (nb count) |
 |---|---|---|
-| **U5MR**, per +10 PfPR₂₋₁₀ pts | **+6.9%** (95% CI +2.6, +11.4) | +6.0% (+2.2, +9.9) |
-| **1mo–5y**, per +10 pts | **+11.0%** (+5.0, +17.5) | +9.9% (+4.3, +15.8) |
+| **U5MR**, per +10 PfPR₂₋₁₀ pts | **+7.0%** (95% CI +3.2, +10.9) | +6.9% (+3.5, +10.4) |
+| **1mo–5y**, per +10 pts | **+11.3%** (+5.8, +17.0) | +11.0% (+5.8, +16.5) |
 
 The effect is **positive in every country** (country random slopes; figure below) and covariates
-behave as expected — DTP3 and % urban protective, stunting harmful, a ~3%/yr secular decline,
-GDP ~null after the others. **Sensitivity** restricting to mid-transmission regions (PfPR₂₋₁₀
-5–50%) attenuates the effect (LMM: U5MR +5.3%, 1mo–5y +7.4%; GAM: +3.9% / +6.2%) — positive but
+behave as expected — DTP3 and % urban protective, a ~3%/yr secular decline, GDP ~null after the
+others. **Sensitivity** restricting to mid-transmission regions (PfPR₂₋₁₀ 5–50%, 354 regions)
+attenuates the effect (LMM: U5MR +6.2%, 1mo–5y +8.4%; GAM: +5.6% / +8.7%) — positive but
 weaker/less precise over the narrower range.
 
 ![Component 2: adjusted country-specific prevalence–mortality slopes](results/component2_country_slopes.png)
 
 **Exposure-response shape.** Replacing linear prevalence with a low-df smooth `s(PfPR₂₋₁₀, k=4)`:
 **U5MR is linear** across the range (edf = 1.0 — a constant proportional effect), while
-**1mo–5y shows mild curvature** (edf ≈ 1.8 — a smooth, decelerating rise, steeper at low
+**1mo–5y shows mild curvature** (edf ≈ 2.1 — a smooth, decelerating rise, steeper at low
 prevalence). Removing neonatal deaths from the denominator uncovers the modest nonlinearity the
 all-U5 relationship hides.
 
@@ -107,8 +111,8 @@ rises from 10% to 30%:
 
 | Outcome | baseline @10% | Component 1 (share, non-malaria fixed) | Component 2 (direct model) |
 |---|---:|---:|---:|
-| All under-5 (U5MR) | 64.2 / 1,000 | **+23.8%** → 79.5 | **+14.2%** → 73.3 |
-| 1mo–5y (neonatal excl.) | 38.3 / 1,000 | **+48.3%** → 56.7 | **+23.3%** → 47.2 |
+| All under-5 (U5MR) | 64.3 / 1,000 | **+23.8%** → 79.6 | **+14.4%** → 73.6 |
+| 1mo–5y (neonatal excl.) | 38.3 / 1,000 | **+48.3%** → 56.8 | **+23.8%** → 47.4 |
 
 ![Predicted total child mortality vs prevalence, 10% → 30% PfPR2-10](results/prediction_10_to_30.png)
 
@@ -140,7 +144,7 @@ depends only on *p*, not on the mortality level** *N*; malaria-attributable deat
 ![Malaria-attributable fraction of child deaths vs PfPR2-10](results/attributable_fraction.png)
 
 For **U5MR** the linear and spline curves coincide (exposure-response is linear, edf ≈ 1.0). For
-**1mo–5y** the smooth (edf ≈ 1.8) rises a little faster than the linear form at low–mid prevalence
+**1mo–5y** the smooth (edf ≈ 2.1) rises a little faster than the linear form at low–mid prevalence
 then flattens, the two converging near ~40% by 50% PfPR — a mild, decelerating nonlinearity rather
 than the over-flexible wiggle a high-df spline produced. Removing neonatal deaths (largely
 non-malarial) still roughly doubles malaria's share versus all-U5. These are
