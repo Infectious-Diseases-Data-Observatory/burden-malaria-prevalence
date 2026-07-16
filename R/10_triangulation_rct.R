@@ -104,7 +104,10 @@ print(d[, c("study","pfpr_c","pfpr_t","dPfPR","obs_red","pred_c2_spline","pred_c
 lab <- sub("Phillips-Howard", "P-Howard", sub("D'Alessandro ", "DA ", sub(" 199.| 2003", "", d$study)))
 # hand-tuned label offsets (d row order: DA z1-5, Habluetzel, P-Howard, Nevill)
 d$nax_A <- c(0, 2.0, -2.0, 0,  4.5, -1.8, 1.8, -2.4); d$nay_A <- c(8, 8, -8, -8, 8, 8, -8, 7)
-d$nax_B <- c(0, 2.6,  1.9, 0,  3.2, -1.4, 1.4, -2.4); d$nay_B <- c(7, 7, -7, -8, 7, -7, 7, 6)
+d$nax_B <- c(-4.5, 4.5, 4.5, 4.5, 4.5, -4.5, 4.5, -5); d$nay_B <- c(0, 5, -5, 0, 0, 0, 2, 0)  # beside error bars
+# 95% CI on observed mortality reduction (from SE of log RR) — used in both panels
+d$obs_lo <- (1 - exp(log(d$mort_rr) + 1.96*d$mort_logse)) * 100
+d$obs_hi <- (1 - exp(log(d$mort_rr) - 1.96*d$mort_logse)) * 100
 pA <- ggplot(d, aes(dPfPR, obs_red)) +
   geom_hline(yintercept = 0, colour = "grey80") + geom_vline(xintercept = 0, colour = "grey80") +
   geom_smooth(method = "lm", mapping = aes(weight = 1/mort_logse^2), se = TRUE,
@@ -123,18 +126,21 @@ pA <- ggplot(d, aes(dPfPR, obs_red)) +
 ## ---- figure B: Component 2 predicted vs observed ----------------------------
 # single series: Component 2 nonlinear spline (linear LMM retained in the CSV only)
 pv <- data.frame(study = d$study, lab = lab, pred = d$pred_c2_spline, obs = d$obs_red, comparison = d$comparison)
-rng <- range(pv$pred, pv$obs, 0, na.rm = TRUE) + c(-6, 9)         # pad for labels
+xr <- range(pv$pred, 0) + c(-4, 6)                          # x: predictions (tight)
+yr <- range(d$obs_lo, d$obs_hi, 0) + c(-6, 10)              # y: observed + 95% CI (wide)
 pB <- ggplot(pv, aes(pred, obs)) +
   geom_abline(slope = 1, intercept = 0, linetype = "dotted", colour = "grey50") +
   geom_hline(yintercept = 0, colour = "grey85") + geom_vline(xintercept = 0, colour = "grey85") +
+  geom_errorbar(data = d, aes(x = pred_c2_spline, ymin = obs_lo, ymax = obs_hi),
+                width = 0.9, alpha = 0.35, inherit.aes = FALSE) +
   geom_point(aes(colour = comparison), size = 3) +
   geom_text(data = d, aes(x = pred_c2_spline + nax_B, y = obs_red + nay_B, label = lab),
             size = 2.4, colour = "grey25", inherit.aes = FALSE) +
   scale_colour_manual(values = c("no net"="#08519c","no curtain"="#41ab5d","untreated net"="#d73027"), name = NULL) +
-  coord_equal(xlim = rng, ylim = rng) +
+  coord_cartesian(xlim = xr, ylim = yr) +
   labs(x = "Component 2 predicted U5 mortality reduction (%)", y = "Observed U5 mortality reduction (%)",
        title = "Predicted vs observed (Component 2, nonlinear spline)",
-       subtitle = "On the dotted line = model matches the trial. Prediction uses each point's two PfPR2-10 levels.") +
+       subtitle = "Dotted = identity (model matches trial). Error bars = 95% CI on observed (SE of log RR).") +
   theme_minimal(base_size = 11) + theme(panel.grid.minor = element_blank(), legend.position = "top")
 
 ggsave(file.path(RESULTS, "triangulation_rct.png"), pA + pB + patchwork::plot_layout(widths = c(1.35, 1)),
