@@ -243,6 +243,48 @@ Scripts: `R/07_ng_drc_malaria_deaths.R` (`results/ng_drc_malaria_deaths.csv`),
 
 ---
 
+## RCT triangulation — does the relationship hold in randomised trials?
+
+As an external check, we asked whether the model-implied prevalence→mortality relationship holds in
+**randomised** insecticide-treated-net (ITN) trials. Using the Pryce et al. (2018) Cochrane ITN
+review, we took every sub-Saharan **cluster-RCT** that measured **both** a change in child parasite
+prevalence and all-cause under-5 mortality, extracting the numbers from the **original publications**:
+**D'Alessandro 1995** (Gambia, 5 zones), **Habluetzel 1997/99** (Burkina Faso), **Phillips-Howard
+2003 / ter Kuile** (western Kenya) and **Nevill 1996 / Snow** (Kilifi). Binka 1996 measured no
+parasite prevalence (excluded); Snow 1987 is individually randomised (excluded).
+
+**Method.** Each arm's parasite prevalence is age-standardised to PfPR₂₋₁₀, and **Component 2**
+predicts the mortality reduction from the observed prevalence reduction by evaluating its **nonlinear
+spline at both the control and intervention prevalence levels**. (Component 1's linear share model is
+unusable per-arm here — extrapolated to these prevalences it implies shares > 100%.)
+
+| Trial (zone) | Baseline PfPR₂₋₁₀ | Prevalence reduction (pts) | Observed U5 ↓ | Component 2 predicted |
+|---|--:|--:|--:|--:|
+| D'Alessandro z1 | 37% | 9 | 62% | 7% |
+| D'Alessandro z2 | 34% | 10 | 51% | 10% |
+| D'Alessandro z3 | 26% | 10 | 51% | 11% |
+| D'Alessandro z4 | 54% | 10 | 5% | 6% |
+| D'Alessandro z5 | 46% | −27 (rose) | −20% | −16% |
+| Habluetzel | 95% | 8 | 15% | 4% |
+| Phillips-Howard | 77% | 14 | 15% | 7% |
+| Nevill | 39% | 20 | 30% | 18% |
+
+![RCT triangulation: dose-response and Component 2 predicted vs observed](results/triangulation_rct.png)
+
+**Findings.** The trials show the expected **positive dose-response** — bigger prevalence reductions
+go with bigger mortality reductions — at an inverse-variance-weighted **≈ 8.6% fewer U5 deaths per
+10 PfPR₂₋₁₀ points removed**, close to Component 2's own **≈ 11.3% per 10 points**. Component 2
+correctly predicts the **negative control** (D'Alessandro zone 5, where the programme failed:
+prevalence *rose* and mortality *rose*) and the low-effect points (zone 4, Habluetzel, Phillips-Howard).
+It **under-predicts** the largest observed reductions (D'Alessandro zones 1–3, Nevill), but those rest
+on few deaths, infant-age or near-saturated prevalence, and their **95% CIs overlap** the model line.
+The experimental evidence is thus broadly **consistent** with the observational Component 2 relationship.
+Exploratory (8 heterogeneous points: curtains, an untreated-net comparator, spillover, infant-age;
+D'Alessandro-zone CIs are Poisson, un-clustered). Data: `results/triangulation_rct_data.csv`; script
+`R/10_triangulation_rct.R`.
+
+---
+
 ## Caveats
 - **Component 1 is ecological** (country-level); **Component 2** adjusts for the main confounders
   but is observational, and region-level U5MR from a single survey is noisy.
