@@ -119,6 +119,34 @@ the exposure-response above — so its log-linear prediction is an approximation
 
 ---
 
+## Malaria-attributable fraction of child deaths
+
+From the Component 2 log-rate models, the proportion of child deaths attributable to malaria at
+prevalence *p* is **AF(*p*) = 1 − exp(−(η(*p*) − η(0)))** — the fraction that would be averted if
+transmission fell to zero, covariates fixed. Because the model is multiplicative, **this fraction
+depends only on *p*, not on the mortality level** *N*; malaria-attributable deaths per 1,000 =
+*N* × AF(*p*). Shown for both outcomes as the **linear** closed form (LMM coefficient) and the
+**spline** (nb-GAM `s(PfPR)`); the neonatal-excluded denominator uses *N* = U5MR − NNMR.
+
+| PfPR₂₋₁₀ | All under-5, linear | All under-5, spline | 1mo–5y, linear | 1mo–5y, spline |
+|--:|--:|--:|--:|--:|
+| 10% | 6.5% | 6.5% | 10.1% | 27.6% |
+| 20% | 12.6% | 12.5% | 19.2% | 30.2% |
+| 30% | 18.3% | 18.2% | 27.4% | 39.5% |
+| 40% | 23.6% | 23.5% | 34.7% | 44.2% |
+| 50% | 28.6% | 28.4% | 41.3% | 45.6% |
+
+![Malaria-attributable fraction of child deaths vs PfPR2-10](results/attributable_fraction.png)
+
+For **U5MR** the linear and spline curves coincide (exposure-response is linear, edf ≈ 1.0). For
+**1mo–5y** the spline lies well above the linear form at low prevalence (already ~28% attributable
+by 10% PfPR) then plateaus toward a ~50% ceiling — the nonlinearity the neonatal-excluded outcome
+reveals. Removing neonatal deaths (largely non-malarial) roughly doubles malaria's share. These are
+counterfactual (vs zero-transmission) fractions assuming the adjusted association is causal; the CIs
+(shaded) reflect only the prevalence-effect sampling error. Table: `results/attributable_fraction.csv`.
+
+---
+
 ## Caveats
 - **Component 1 is ecological** (country-level); **Component 2** adjusts for the main confounders
   but is observational, and region-level U5MR from a single survey is noisy.

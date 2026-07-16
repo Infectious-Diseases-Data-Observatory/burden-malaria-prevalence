@@ -10,4 +10,5 @@ source("R/02_component1_country.R")# Component 1: country-level share vs PfPR (+
 source("R/03_component3_rdt_microscopy.R") # Component 3: RDT<->microscopy conversion (+ prevalence table)
 source("R/04_component2_dhs.R")    # Component 2: DHS multivariable mixed model
 source("R/05_prediction_10_to_30.R") # cross-component prediction: total U5MR, 10% -> 30% PfPR
+source("R/06_attributable_fraction.R") # malaria-attributable fraction of child deaths vs PfPR
 message("\nAll components complete. See results/ for figures and tables.")
