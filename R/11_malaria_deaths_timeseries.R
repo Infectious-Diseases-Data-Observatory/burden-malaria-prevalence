@@ -95,33 +95,43 @@ cat(sprintf("countries summed: %d | years %d-%d\n", length(unique(d$iso3)), min(
 cat(sprintf("All-U5 malaria deaths: 2000=%.0f, 2024=%.0f (%+.0f%%)\n",
     agg$mal_u5[agg$year==2000], agg$mal_u5[agg$year==2024], 100*(agg$mal_u5[agg$year==2024]/agg$mal_u5[agg$year==2000]-1)))
 
-## ---- 5. WHO reference (WMR 2025 Table 2.1: GLOBAL, ALL-AGES malaria deaths) --
-# NB scope differs from ours (global & all ages, vs our SSA & under-5); shown for
-# trend comparison, with the caveat noted on the figure. Deaths in persons.
-who <- data.frame(year = 2000:2024,
+## ---- 5. WHO reference (WMR 2025) --------------------------------------------
+# Table 2.1 = GLOBAL, all-ages deaths (context, saved). Table 2.4 = WHO AFRICAN
+# REGION, all-ages deaths; x the ~75% under-5 share (WMR: "just over 75% of all
+# deaths in the region are of children aged under 5") = like-for-like with ours.
+who_glob <- data.frame(year = 2000:2024,
   point = c(864,873,840,811,806,767,771,747,708,715,693,655,610,583,579,578,576,574,575,567,621,601,598,598,610)*1000,
   lo    = c(833,840,809,781,770,734,739,717,679,683,659,625,583,554,546,543,542,540,536,527,575,558,554,550,561)*1000,
   hi    = c(904,916,881,854,863,815,818,790,745,762,744,696,651,625,632,635,634,638,649,649,736,716,722,725,738)*1000)
-write.csv(who, file.path(RESULTS, "who_wmr2025_global_deaths.csv"), row.names = FALSE)
+write.csv(who_glob, file.path(RESULTS, "who_wmr2025_global_deaths.csv"), row.names = FALSE)
+who_af <- data.frame(year = 2000:2024,
+  point = c(804,815,786,758,751,712,723,704,666,673,650,618,578,556,550,550,546,548,552,545,598,577,573,567,579)*1000,
+  lo    = c(781,789,761,733,722,686,695,677,641,646,620,592,552,526,518,517,513,513,514,505,553,535,530,520,531)*1000,
+  hi    = c(834,851,819,792,803,755,766,742,700,716,698,658,616,598,601,605,602,608,624,626,711,691,698,694,706)*1000)
+write.csv(who_af, file.path(RESULTS, "who_wmr2025_africa_deaths.csv"), row.names = FALSE)
+U5 <- 0.75                                             # constant U5 share (WMR); flagged approximation
 
-## ---- 6. plot total over time (ours + WHO) -----------------------------------
+## ---- 6. plot: ours vs WHO African-region under-5 (like-for-like) ------------
+WHOLAB <- "WHO — African-region under-5 (WMR 2025 x 75%)"
 plot_df <- rbind(
   data.frame(year = tot$year,
              series = ifelse(tot$outcome == "All under-5", "Our est. — SSA under-5", "Our est. — SSA 1mo-5y"),
              deaths = tot$deaths, lo = tot$lo, hi = tot$hi),
-  data.frame(year = who$year, series = "WHO — global, all ages (WMR 2025)", deaths = who$point, lo = who$lo, hi = who$hi))
-cols <- c("Our est. — SSA under-5"="#08519c", "Our est. — SSA 1mo-5y"="#d73027", "WHO — global, all ages (WMR 2025)"="grey35")
-lty  <- c("Our est. — SSA under-5"="solid",   "Our est. — SSA 1mo-5y"="solid",   "WHO — global, all ages (WMR 2025)"="22")
+  data.frame(year = who_af$year, series = WHOLAB, deaths = who_af$point*U5, lo = who_af$lo*U5, hi = who_af$hi*U5))
+cols <- setNames(c("#08519c","#d73027","grey30"), c("Our est. — SSA under-5","Our est. — SSA 1mo-5y", WHOLAB))
+lty  <- setNames(c("solid","solid","22"),          c("Our est. — SSA under-5","Our est. — SSA 1mo-5y", WHOLAB))
 p <- ggplot(plot_df, aes(year, deaths/1000, colour = series, fill = series)) +
   geom_ribbon(aes(ymin = lo/1000, ymax = hi/1000), alpha = 0.12, colour = NA) +
   geom_line(aes(linetype = series), linewidth = 1) + geom_point(size = 1.2) +
   scale_colour_manual(values = cols, name = NULL) + scale_fill_manual(values = cols, name = NULL) +
   scale_linetype_manual(values = lty, name = NULL) +
   scale_x_continuous(breaks = seq(2000, 2024, 4)) + expand_limits(y = 0) +
-  labs(x = NULL, y = "Malaria deaths (thousands per year)",
-       title = "Malaria-attributable deaths over time: our Component 2 estimate vs WHO",
-       subtitle = "Ours = SSA child deaths (Component 2 GAM: AF(PfPR2-10) x all-cause child deaths). WHO = WMR 2025 Table 2.1.",
-       caption = "SCOPE DIFFERS: WHO Table 2.1 is GLOBAL & ALL-AGES; ours is SSA & under-5. A like-for-like WHO subset (African-region under-5) is ~70% of the WHO global line. Shaded = 95% CI.") +
+  labs(x = NULL, y = "Malaria-attributable child deaths (thousands/yr)",
+       title = "Malaria child deaths over time: our Component 2 estimate vs WHO (like-for-like)",
+       subtitle = "Our SSA under-5 (Component 2 GAM: AF(PfPR2-10) x all-cause child deaths) vs WHO African-region under-5 (Table 2.4 x 75%).",
+       caption = "WHO African-region deaths x constant 75% U5 share (WMR states 'just over 75%'; the 2000 share was likely higher). WHO African Region ~ SSA. Shaded = 95% CI (ours: AF spline; WHO: reported).") +
   theme_minimal(base_size = 11) + theme(panel.grid.minor = element_blank(), legend.position = "top")
 ggsave(file.path(RESULTS, "malaria_deaths_timeseries.png"), p, width = 11, height = 6.2, dpi = 300)
-cat("saved: results/malaria_deaths_timeseries.png + malaria_deaths_timeseries_{total,by_country}.csv + who_wmr2025_global_deaths.csv\n")
+cat(sprintf("WHO African-region U5 (x%.0f%%): 2000=%.0f, 2024=%.0f (%+.0f%%)\n", 100*U5,
+            who_af$point[1]*U5, who_af$point[25]*U5, 100*(who_af$point[25]/who_af$point[1]-1)))
+cat("saved: results/malaria_deaths_timeseries.png + timeseries CSVs + who_wmr2025_{global,africa}_deaths.csv\n")
