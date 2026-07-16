@@ -47,7 +47,7 @@ p <- ggplot() +
   geom_line(data = lines, aes(pfpr, y, colour = method), linewidth = 1) +
   facet_wrap(~outcome) +
   scale_colour_manual(values = cols, name = NULL) + scale_fill_manual(values = cols, name = NULL) +
-  coord_cartesian(xlim = c(0, 40), ylim = c(0, NA)) +
+  coord_cartesian(xlim = c(0, 40), ylim = c(0, 50)) +
   labs(x = expression(PfPR[2-10]*" (%)"), y = "Malaria as % of child deaths",
        title = "Two methods for malaria's share of child deaths vs prevalence",
        subtitle = "Grey points = Component 1 country shares. Lines at mean covariates, shaded = 95% CI. C1 drawn over its national-prevalence data range.",
