@@ -101,7 +101,10 @@ print(d[, c("study","pfpr_c","pfpr_t","dPfPR","obs_red","pred_c2_spline","pred_c
       row.names = FALSE, digits = 3)
 
 ## ---- figure A: observed mortality reduction vs prevalence reduction ---------
-lab <- sub(" 199.| 2003", "", d$study)
+lab <- sub("Phillips-Howard", "P-Howard", sub("D'Alessandro ", "DA ", sub(" 199.| 2003", "", d$study)))
+# hand-tuned label offsets (d row order: DA z1-5, Habluetzel, P-Howard, Nevill)
+d$nax_A <- c(0, 2.0, -2.0, 0,  4.5, -1.8, 1.8, -2.4); d$nay_A <- c(8, 8, -8, -8, 8, 8, -8, 7)
+d$nax_B <- c(0, 2.6,  1.9, 0,  3.2, -1.4, 1.4, -2.4); d$nay_B <- c(7, 7, -7, -8, 7, -7, 7, 6)
 pA <- ggplot(d, aes(dPfPR, obs_red)) +
   geom_hline(yintercept = 0, colour = "grey80") + geom_vline(xintercept = 0, colour = "grey80") +
   geom_smooth(method = "lm", mapping = aes(weight = 1/mort_logse^2), se = TRUE,
@@ -109,7 +112,7 @@ pA <- ggplot(d, aes(dPfPR, obs_red)) +
   geom_errorbar(aes(ymin = (1-exp(log(mort_rr)+1.96*mort_logse))*100,
                     ymax = (1-exp(log(mort_rr)-1.96*mort_logse))*100), width = 0.7, alpha = 0.35) +
   geom_point(aes(colour = comparison), size = 3) +
-  geom_text(aes(label = lab), size = 2.7, vjust = -0.9) +
+  geom_text(aes(x = dPfPR + nax_A, y = obs_red + nay_A, label = lab), size = 2.6) +
   scale_colour_manual(values = c("no net"="#08519c","no curtain"="#41ab5d","untreated net"="#d73027"), name = NULL) +
   labs(x = "Prevalence reduction (age-standardised PfPR2-10 points, control - intervention)",
        y = "Observed U5 mortality reduction (%)",
@@ -120,12 +123,13 @@ pA <- ggplot(d, aes(dPfPR, obs_red)) +
 ## ---- figure B: Component 2 predicted vs observed ----------------------------
 pv <- rbind(data.frame(study=d$study, lab=lab, model="Component 2 (spline, nonlinear)", pred=d$pred_c2_spline, obs=d$obs_red),
             data.frame(study=d$study, lab=lab, model="Component 2 (linear LMM)",        pred=d$pred_c2_linear, obs=d$obs_red))
-rng <- range(pv$pred, pv$obs, 0, na.rm = TRUE)
+rng <- range(pv$pred, pv$obs, 0, na.rm = TRUE) + c(-6, 9)         # pad for labels
 pB <- ggplot(pv, aes(pred, obs, colour = model)) +
   geom_abline(slope = 1, intercept = 0, linetype = "dotted", colour = "grey50") +
   geom_hline(yintercept = 0, colour = "grey85") + geom_vline(xintercept = 0, colour = "grey85") +
   geom_point(size = 2.6, alpha = 0.9) +
-  geom_text(data = subset(pv, grepl("spline", model)), aes(label = lab), size = 2.4, vjust = -0.9, colour = "grey25", show.legend = FALSE) +
+  geom_text(data = d, aes(x = pred_c2_spline + nax_B, y = obs_red + nay_B, label = lab),
+            size = 2.4, colour = "grey25", inherit.aes = FALSE) +
   scale_colour_manual(values = c("Component 2 (spline, nonlinear)"="#d73027",
                                  "Component 2 (linear LMM)"="#fdae61"), name = NULL) +
   coord_equal(xlim = rng, ylim = rng) +
