@@ -246,3 +246,20 @@ pnc <- ggplot(nc, aes(pct, outcome, colour = spec)) +
   theme_minimal(base_size = 11) + theme(panel.grid.minor = element_blank(), legend.position = "top")
 ggsave(file.path(RESULTS, "component2_negative_control.png"), pnc, width = 10.5, height = 4.6, dpi = 300)
 cat("saved: results/component2_negative_control.png + component2_negative_control.csv\n")
+
+## raw-data scatter: neonatal mortality vs prevalence, one point per survey-region
+sc <- d[is.finite(d$nnmr) & is.finite(d$pfpr2_10), ]
+p_sc <- ggplot(sc, aes(pfpr2_10, nnmr)) +
+  geom_point(aes(size = exposure, colour = country), alpha = 0.6) +
+  geom_smooth(method = "lm", se = TRUE, colour = "grey15", fill = "grey80", linewidth = 0.7) +
+  scale_size_continuous(range = c(0.4, 3), guide = "none") +
+  guides(colour = guide_legend(ncol = 1, override.aes = list(size = 2, alpha = 1))) +
+  labs(x = expression("Age-standardised "*PfPR[2-10]*" (%), microscopy-equivalent"),
+       y = "Neonatal mortality (deaths per 1,000 live births)",
+       title = "Neonatal mortality vs malaria prevalence, by survey-region",
+       subtitle = "Crude fit weakly positive (grey line); covariate + country adjustment removes it (neonatal effect null, p=0.96).",
+       caption = "One point per DHS/MIS survey-region (n=600); size ~ birth-exposure. Neonatal = U5MR - 1mo-5y (DHS.rates). Adjusted effect: neonatal -0.1% vs post-neonatal +11.3% per +10 PfPR2-10 pts.") +
+  theme_minimal(base_size = 11) + theme(panel.grid.minor = element_blank(),
+    legend.key.size = unit(3.3, "mm"), legend.text = element_text(size = 6), legend.title = element_text(size = 8))
+ggsave(file.path(RESULTS, "component2_neonatal_scatter.png"), p_sc, width = 12, height = 6.5, dpi = 300)
+cat("saved: results/component2_neonatal_scatter.png\n")
