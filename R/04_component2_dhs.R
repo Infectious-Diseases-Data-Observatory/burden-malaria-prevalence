@@ -148,9 +148,9 @@ fit_spline <- function(rate_col, dat = d) {
   dd <- dat[complete.cases(dat[, c(rate_col, covs, "country", "svkey")]) & is.finite(dat$exposure) & dat$exposure > 0, ]
   dd$deaths <- round(dd[[rate_col]] / 1000 * dd$exposure)
   dd$country <- factor(dd$country); dd$svkey <- factor(dd$svkey)
-  m <- mgcv::gam(deaths ~ s(pfpr10) + dtp3 + log_gdp + pct_urban + stunting + s(year_c) +
+  m <- mgcv::gam(deaths ~ s(pfpr10, k = 4) + dtp3 + log_gdp + pct_urban + stunting + s(year_c) +
                    s(country, bs = "re") + s(country, pfpr10, bs = "re") + offset(log(exposure)),
-                 family = mgcv::nb(), method = "REML", data = dd)
+                 family = mgcv::nb(), method = "REML", data = dd)   # k=4: low-df smooth (max ~3 edf)
   list(m = m, dd = dd)
 }
 sp_u5 <- fit_spline("u5mr"); sp_pn <- fit_spline("m1mo5y")

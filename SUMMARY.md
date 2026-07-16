@@ -70,10 +70,11 @@ weaker/less precise over the narrower range.
 
 ![Component 2: adjusted country-specific prevalence–mortality slopes](results/component2_country_slopes.png)
 
-**Exposure-response shape.** Replacing linear prevalence with a smooth `s(PfPR₂₋₁₀)`:
-**U5MR is linear** across the range (edf = 1.0 — a constant proportional effect), but
-**1mo–5y is nonlinear** (edf ≈ 5.4 — steep at low prevalence, a plateau ~10–25%, then rising).
-Removing neonatal deaths from the denominator reveals curvature the all-U5 relationship hides.
+**Exposure-response shape.** Replacing linear prevalence with a low-df smooth `s(PfPR₂₋₁₀, k=4)`:
+**U5MR is linear** across the range (edf = 1.0 — a constant proportional effect), while
+**1mo–5y shows mild curvature** (edf ≈ 1.8 — a smooth, decelerating rise, steeper at low
+prevalence). Removing neonatal deaths from the denominator uncovers the modest nonlinearity the
+all-U5 relationship hides.
 
 ![Component 2: smooth exposure-response s(PfPR2-10)](results/component2_exposure_response_spline.png)
 
@@ -126,22 +127,23 @@ prevalence *p* is **AF(*p*) = 1 − exp(−(η(*p*) − η(0)))** — the fracti
 transmission fell to zero, covariates fixed. Because the model is multiplicative, **this fraction
 depends only on *p*, not on the mortality level** *N*; malaria-attributable deaths per 1,000 =
 *N* × AF(*p*). Shown for both outcomes as the **linear** closed form (LMM coefficient) and the
-**spline** (nb-GAM `s(PfPR)`); the neonatal-excluded denominator uses *N* = U5MR − NNMR.
+**spline** (low-df nb-GAM `s(PfPR, k=4)`); the neonatal-excluded denominator uses *N* = U5MR − NNMR.
 
 | PfPR₂₋₁₀ | All under-5, linear | All under-5, spline | 1mo–5y, linear | 1mo–5y, spline |
 |--:|--:|--:|--:|--:|
-| 10% | 6.5% | 6.5% | 10.1% | 27.6% |
-| 20% | 12.6% | 12.5% | 19.2% | 30.2% |
-| 30% | 18.3% | 18.2% | 27.4% | 39.5% |
-| 40% | 23.6% | 23.5% | 34.7% | 44.2% |
-| 50% | 28.6% | 28.4% | 41.3% | 45.6% |
+| 10% | 6.5% | 6.5% | 10.1% | 14.6% |
+| 20% | 12.6% | 12.5% | 19.2% | 25.7% |
+| 30% | 18.3% | 18.2% | 27.4% | 33.3% |
+| 40% | 23.6% | 23.5% | 34.7% | 38.4% |
+| 50% | 28.6% | 28.4% | 41.3% | 42.2% |
 
 ![Malaria-attributable fraction of child deaths vs PfPR2-10](results/attributable_fraction.png)
 
 For **U5MR** the linear and spline curves coincide (exposure-response is linear, edf ≈ 1.0). For
-**1mo–5y** the spline lies well above the linear form at low prevalence (already ~28% attributable
-by 10% PfPR) then plateaus toward a ~50% ceiling — the nonlinearity the neonatal-excluded outcome
-reveals. Removing neonatal deaths (largely non-malarial) roughly doubles malaria's share. These are
+**1mo–5y** the smooth (edf ≈ 1.8) rises a little faster than the linear form at low–mid prevalence
+then flattens, the two converging near ~40% by 50% PfPR — a mild, decelerating nonlinearity rather
+than the over-flexible wiggle a high-df spline produced. Removing neonatal deaths (largely
+non-malarial) still roughly doubles malaria's share versus all-U5. These are
 counterfactual (vs zero-transmission) fractions assuming the adjusted association is causal; the CIs
 (shaded) reflect only the prevalence-effect sampling error. Table: `results/attributable_fraction.csv`.
 

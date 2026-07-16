@@ -38,9 +38,9 @@ af_linear <- function(outcome) {
 af_spline <- function(outcome) {
   dg <- d[complete.cases(d[, c(outcome, covs, "country", "svkey")]) & is.finite(d$exposure) & d$exposure > 0, ]
   dg$deaths <- round(dg[[outcome]] / 1000 * dg$exposure); dg$country <- factor(dg$country)
-  m <- mgcv::gam(deaths ~ s(pfpr10) + dtp3 + log_gdp + pct_urban + s(year_c) +
+  m <- mgcv::gam(deaths ~ s(pfpr10, k = 4) + dtp3 + log_gdp + pct_urban + s(year_c) +
                    s(country, bs = "re") + s(country, pfpr10, bs = "re") + offset(log(exposure)),
-                 family = mgcv::nb(), method = "REML", data = dg)
+                 family = mgcv::nb(), method = "REML", data = dg)   # k=4: low-df smooth (max ~3 edf)
   nd <- data.frame(pfpr10 = grid_p / 10, dtp3 = mean(dg$dtp3), log_gdp = mean(dg$log_gdp),
                    pct_urban = mean(dg$pct_urban), year_c = 0, exposure = 1, country = dg$country[1])
   X   <- predict(m, nd, type = "lpmatrix"); V <- vcov(m); bb <- coef(m)
