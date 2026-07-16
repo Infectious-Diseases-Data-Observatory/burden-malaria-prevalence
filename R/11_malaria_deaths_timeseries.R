@@ -111,27 +111,39 @@ who_af <- data.frame(year = 2000:2024,
 write.csv(who_af, file.path(RESULTS, "who_wmr2025_africa_deaths.csv"), row.names = FALSE)
 U5 <- 0.75                                             # constant U5 share (WMR); flagged approximation
 
-## ---- 6. plot: ours vs WHO African-region under-5 (like-for-like) ------------
-WHOLAB <- "WHO — African-region under-5 (WMR 2025 x 75%)"
-plot_df <- rbind(
-  data.frame(year = tot$year,
-             series = ifelse(tot$outcome == "All under-5", "Our est. — SSA under-5", "Our est. — SSA 1mo-5y"),
-             deaths = tot$deaths, lo = tot$lo, hi = tot$hi),
-  data.frame(year = who_af$year, series = WHOLAB, deaths = who_af$point*U5, lo = who_af$lo*U5, hi = who_af$hi*U5))
-cols <- setNames(c("#08519c","#d73027","grey30"), c("Our est. — SSA under-5","Our est. — SSA 1mo-5y", WHOLAB))
-lty  <- setNames(c("solid","solid","22"),          c("Our est. — SSA under-5","Our est. — SSA 1mo-5y", WHOLAB))
-p <- ggplot(plot_df, aes(year, deaths/1000, colour = series, fill = series)) +
-  geom_ribbon(aes(ymin = lo/1000, ymax = hi/1000), alpha = 0.12, colour = NA) +
-  geom_line(aes(linetype = series), linewidth = 1) + geom_point(size = 1.2) +
-  scale_colour_manual(values = cols, name = NULL) + scale_fill_manual(values = cols, name = NULL) +
+## ---- IHME/GBD U5 malaria deaths, SSA (user-supplied export; access-controlled) ----
+ihme_f <- list.files(DATA, pattern = "export_trigger.*Sub-Saharan|Data Explorer.*Sub-Saharan", full.names = TRUE)
+ihme <- NULL
+if (length(ihme_f)) {
+  xi <- read.csv(ihme_f[1], stringsAsFactors = FALSE, check.names = FALSE)
+  xi <- xi[xi$Measure == "Deaths" & xi$Age == "Under 5" & xi$Unit == "Number" & xi$Location == "Sub-Saharan Africa", ]
+  ihme <- data.frame(year = xi$Year, point = xi$Value, lo = xi$Lower, hi = xi$Upper)
+  ihme <- ihme[order(ihme$year), ]
+  write.csv(ihme, file.path(RESULTS, "ihme_u5_deaths_ssa_timeseries.csv"), row.names = FALSE)
+} else message("IHME SSA export not found in data/ — plotting ours + WHO only.")
+
+## ---- 6. plot: our SSA under-5 vs WHO & IHME (like-for-like under-5) ----------
+OU5 <- "Our est. — SSA under-5 (Component 2)"; OPN <- "Our est. — SSA 1mo-5y (Component 2)"
+WHOL <- "WHO — African-region under-5 (WMR 2025)"; IHL <- "IHME/GBD — SSA under-5"
+pl <- rbind(
+  data.frame(year = tot$year, series = ifelse(tot$outcome == "All under-5", OU5, OPN), deaths = tot$deaths, lo = tot$lo, hi = tot$hi),
+  data.frame(year = who_af$year, series = WHOL, deaths = who_af$point*U5, lo = who_af$lo*U5, hi = who_af$hi*U5))
+if (!is.null(ihme)) pl <- rbind(pl, data.frame(year = ihme$year, series = IHL, deaths = ihme$point, lo = ihme$lo, hi = ihme$hi))
+lev <- c(OU5, OPN, WHOL, IHL); pl$series <- factor(pl$series, levels = lev)
+cols <- setNames(c("#08519c","#d73027","grey35","#238b45"), lev)
+lty  <- setNames(c("solid","solid","22","44"), lev)
+p <- ggplot(pl, aes(year, deaths/1000, colour = series, fill = series)) +
+  geom_ribbon(aes(ymin = lo/1000, ymax = hi/1000), alpha = 0.10, colour = NA) +
+  geom_line(aes(linetype = series), linewidth = 1) + geom_point(size = 1.1) +
+  scale_colour_manual(values = cols, name = NULL) + scale_fill_manual(values = cols, guide = "none") +
   scale_linetype_manual(values = lty, name = NULL) +
-  scale_x_continuous(breaks = seq(2000, 2024, 4)) + expand_limits(y = 0) +
+  scale_x_continuous(breaks = seq(2000, 2025, 5)) + expand_limits(y = 0) +
   labs(x = NULL, y = "Malaria-attributable child deaths (thousands/yr)",
-       title = "Malaria child deaths over time: our Component 2 estimate vs WHO (like-for-like)",
-       subtitle = "Our SSA under-5 (Component 2 GAM: AF(PfPR2-10) x all-cause child deaths) vs WHO African-region under-5 (Table 2.4 x 75%).",
-       caption = "WHO African-region deaths x constant 75% U5 share (WMR states 'just over 75%'; the 2000 share was likely higher). WHO African Region ~ SSA. Shaded = 95% CI (ours: AF spline; WHO: reported).") +
+       title = "Malaria child deaths over time: Component 2 estimate vs WHO and IHME",
+       subtitle = "Like-for-like SSA under-5. 2000->2024: ours -57% (879->375k), WHO -28% (603->434k), IHME -24% (564->428k).",
+       caption = "Ours = AF(PfPR2-10) x all-cause child deaths; band = AF-spline uncertainty only. WHO/IHME bands = their reported 95% CI. WHO African Region & GBD SSA ~ our SSA.") +
   theme_minimal(base_size = 11) + theme(panel.grid.minor = element_blank(), legend.position = "top")
-ggsave(file.path(RESULTS, "malaria_deaths_timeseries.png"), p, width = 11, height = 6.2, dpi = 300)
-cat(sprintf("WHO African-region U5 (x%.0f%%): 2000=%.0f, 2024=%.0f (%+.0f%%)\n", 100*U5,
-            who_af$point[1]*U5, who_af$point[25]*U5, 100*(who_af$point[25]/who_af$point[1]-1)))
-cat("saved: results/malaria_deaths_timeseries.png + timeseries CSVs + who_wmr2025_{global,africa}_deaths.csv\n")
+ggsave(file.path(RESULTS, "malaria_deaths_timeseries.png"), p, width = 11.5, height = 6.4, dpi = 300)
+if (!is.null(ihme)) cat(sprintf("IHME SSA U5: 2000=%.0f, 2024=%.0f (%+.0f%%)\n",
+    ihme$point[ihme$year==2000], ihme$point[ihme$year==2024], 100*(ihme$point[ihme$year==2024]/ihme$point[ihme$year==2000]-1)))
+cat("saved: results/malaria_deaths_timeseries.png + timeseries CSVs + who_wmr2025_{global,africa}_deaths.csv + ihme_u5_deaths_ssa_timeseries.csv\n")
