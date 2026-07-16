@@ -149,6 +149,49 @@ counterfactual (vs zero-transmission) fractions assuming the adjusted associatio
 
 ---
 
+## National malaria-burden estimates (PfPR₂₋₁₀ > 10%)
+
+Applying both methods to a common denominator — all-cause child deaths = mortality rate × live
+births (IGME/WB) — gives the number of malaria-attributable child deaths per country. **Component 1**
+multiplies by the fitted malaria *share* (`share ~ PfPR + log GDP + DTP3`); **Component 2** by the
+attributable fraction `AF = 1 − exp(−β·PfPR/10)` from the DHS log-rate model. Both are shown for
+**all under-5** and **1mo–5y (neonatal-excluded)**, with the outcome-matched coefficients. Only the
+malaria coefficient carries uncertainty (prevalence, GDP, DTP3, births, rates fixed); because that
+coefficient is shared across countries, a pooled-total CI is the total re-evaluated at the
+coefficient's bounds. A national/subnational check for Nigeria and DR Congo (below) showed
+aggregating admin-1 estimates moves the total by <1%, so national PfPR is the representative scale.
+
+Pooled over the **25 countries** with national PfPR₂₋₁₀ > 10% (point [95% CI]):
+
+| Denominator | All-cause deaths | Component 1 (share) | Component 2 (AF) | IHME ref. |
+|---|--:|--:|--:|--:|
+| All under-5 | 2,292,071 | 513,116 [357,649–668,584] | 354,352 [172,582–519,653] | 436,242 |
+| 1mo–5y (excl. neonatal) | 1,507,890 | 550,323 [367,934–732,712] | 354,836 [200,714–489,777] | — |
+
+The IHME reference (436k, all-U5) sits between the two model routes (C1 ~18% above, C2 ~19% below).
+Component 2 is internally consistent across denominators (355k either way — the higher post-neonatal
+fraction offsets the smaller base); Component 1's two share models are fit separately and differ by
+~7%. Nigeria + DR Congo alone are ~60% of the burden. Per-country estimates (all columns, with CIs)
+are in `results/country_malaria_deaths_gt10.csv`; the largest single-country divergences from IHME
+are **Burundi** (IHME far higher than either model) and **Chad** (lower).
+
+**National vs subnational (admin-1) check — all under-5:**
+
+| | National | Subnational (Σ admin-1) |
+|---|--:|--:|
+| Nigeria — Component 1 | 178,352 | 178,350 |
+| Nigeria — Component 2 | 133,962 | 133,488 |
+| DR Congo — Component 1 | 125,535 | 125,535 |
+| DR Congo — Component 2 | 86,371 | 85,696 |
+
+Component 1 is unchanged (its share model is linear in prevalence); Component 2 is marginally lower
+subnationally (the AF curve is concave, so disaggregating high/low-prevalence units loses a little via
+Jensen's inequality) — but within-country prevalence heterogeneity is small, so the effect is <1%.
+Scripts: `R/07_ng_drc_malaria_deaths.R` (`results/ng_drc_malaria_deaths.csv`),
+`R/08_country_malaria_deaths.R` (`results/country_malaria_deaths_gt10.csv`).
+
+---
+
 ## Caveats
 - **Component 1 is ecological** (country-level); **Component 2** adjusts for the main confounders
   but is observational, and region-level U5MR from a single survey is noisy.
