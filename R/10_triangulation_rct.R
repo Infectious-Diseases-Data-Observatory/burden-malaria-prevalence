@@ -121,20 +121,20 @@ pA <- ggplot(d, aes(dPfPR, obs_red)) +
   theme_minimal(base_size = 11) + theme(panel.grid.minor = element_blank(), legend.position = "top")
 
 ## ---- figure B: Component 2 predicted vs observed ----------------------------
-pv <- rbind(data.frame(study=d$study, lab=lab, model="Component 2 (spline, nonlinear)", pred=d$pred_c2_spline, obs=d$obs_red),
-            data.frame(study=d$study, lab=lab, model="Component 2 (linear LMM)",        pred=d$pred_c2_linear, obs=d$obs_red))
+# single series: Component 2 nonlinear spline (linear LMM retained in the CSV only)
+pv <- data.frame(study = d$study, lab = lab, pred = d$pred_c2_spline, obs = d$obs_red, comparison = d$comparison)
 rng <- range(pv$pred, pv$obs, 0, na.rm = TRUE) + c(-6, 9)         # pad for labels
-pB <- ggplot(pv, aes(pred, obs, colour = model)) +
+pB <- ggplot(pv, aes(pred, obs)) +
   geom_abline(slope = 1, intercept = 0, linetype = "dotted", colour = "grey50") +
   geom_hline(yintercept = 0, colour = "grey85") + geom_vline(xintercept = 0, colour = "grey85") +
-  geom_point(size = 2.6, alpha = 0.9) +
+  geom_point(aes(colour = comparison), size = 3) +
   geom_text(data = d, aes(x = pred_c2_spline + nax_B, y = obs_red + nay_B, label = lab),
             size = 2.4, colour = "grey25", inherit.aes = FALSE) +
-  scale_colour_manual(values = c("Component 2 (spline, nonlinear)"="#d73027",
-                                 "Component 2 (linear LMM)"="#fdae61"), name = NULL) +
+  scale_colour_manual(values = c("no net"="#08519c","no curtain"="#41ab5d","untreated net"="#d73027"), name = NULL) +
   coord_equal(xlim = rng, ylim = rng) +
-  labs(x = "Model-predicted U5 mortality reduction (%)", y = "Observed U5 mortality reduction (%)",
-       title = "Predicted vs observed", subtitle = "On the dotted line = model matches the trial. Prediction uses each point's two PfPR2-10 levels.") +
+  labs(x = "Component 2 predicted U5 mortality reduction (%)", y = "Observed U5 mortality reduction (%)",
+       title = "Predicted vs observed (Component 2, nonlinear spline)",
+       subtitle = "On the dotted line = model matches the trial. Prediction uses each point's two PfPR2-10 levels.") +
   theme_minimal(base_size = 11) + theme(panel.grid.minor = element_blank(), legend.position = "top")
 
 ggsave(file.path(RESULTS, "triangulation_rct.png"), pA + pB + patchwork::plot_layout(widths = c(1.35, 1)),
