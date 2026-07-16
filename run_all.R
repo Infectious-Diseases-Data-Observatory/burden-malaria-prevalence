@@ -14,4 +14,5 @@ source("R/06_attributable_fraction.R") # malaria-attributable fraction of child 
 source("R/07_ng_drc_malaria_deaths.R") # NG/DRC malaria deaths: national vs subnational (admin-1)
 source("R/08_country_malaria_deaths.R")# malaria deaths for all countries with PfPR2-10 > 10%
 source("R/09_method_comparison.R")     # overlay Component 1 & 2 on shared axes (method comparison)
+source("R/10_triangulation_rct.R")     # RCT triangulation: predicted vs observed mortality effect (ITN trials)
 message("\nAll components complete. See results/ for figures and tables.")
