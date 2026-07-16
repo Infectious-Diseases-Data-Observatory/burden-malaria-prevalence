@@ -86,6 +86,17 @@ Tables: `results/component2_model_coefficients.csv`, `component2_count_model_coe
 (`sample` = full / pfpr_5_50), `component2_country_slopes.csv`,
 `component2_exposure_response_edf.csv`. Sensitivity figure: `component2_sensitivity_5to50.png`.
 
+**Negative control — neonatal mortality.** Malaria kills post-neonatal children, not neonates, so a
+genuine malaria signal should be **absent** in the neonatal window; a null there also argues the
+prevalence–mortality gradient is not just general socio-economic confounding. Refitting the same model
+by age window gives **all under-5 +7.0%** and **1mo–5y +11.3%**, but **neonatal −0.1% (95% CI −3.2 to
++3.1, p = 0.96)** per +10 PfPR₂₋₁₀ points (GAM: +0.3%, p = 0.81). The effect is age-specific in the
+malaria-plausible direction, which strengthens the causal reading.
+
+![Component 2 negative control: prevalence effect by age window](results/component2_negative_control.png)
+
+Table: `results/component2_negative_control.csv`.
+
 ---
 
 ## Component 3 — RDT vs microscopy (supporting)

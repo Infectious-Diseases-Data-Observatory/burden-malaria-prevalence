@@ -211,3 +211,38 @@ p <- ggplot() +
     legend.key.size = unit(3.3, "mm"), legend.text = element_text(size = 6), legend.title = element_text(size = 8))
 ggsave(file.path(RESULTS, "component2_country_slopes.png"), p, width = 12, height = 7.5, dpi = 300)
 cat("saved: results/component2_country_slopes.png + component2_{model_coefficients,country_slopes,region_data}.csv\n")
+
+## ---- NEGATIVE CONTROL: neonatal mortality -----------------------------------
+# Malaria kills post-neonatal children, not neonates. If the prevalence-mortality
+# gradient were driven by general (socio-economic) confounding it would also show
+# up in NEONATAL mortality; a null there argues the signal is malaria-specific.
+# Refit the same models for U5MR, 1mo-5y and neonatal (NNMR = U5MR - 1mo-5y).
+d$nnmr <- d$u5mr - d$m1mo5y
+nc_lab <- c(u5mr = "All under-5", m1mo5y = "1mo-5y (post-neonatal)", nnmr = "Neonatal (control)")
+nc_lmm <- function(oc) { m <- fit_c2_lmm(d[is.finite(d[[oc]]) & d[[oc]] > 0, ], oc)$m
+  b <- fixef(m)["pfpr10"]; s <- sqrt(vcov(m)["pfpr10", "pfpr10"])
+  data.frame(outcome = nc_lab[[oc]], spec = "LMM (log-rate)", pct = (exp(b)-1)*100,
+             lo = (exp(b-1.96*s)-1)*100, hi = (exp(b+1.96*s)-1)*100, p = 2*pnorm(-abs(b/s))) }
+nc_gam <- function(oc) { sm <- summary(fit_count(oc, d[d[[oc]] > 0, ])$m)$p.table
+  b <- sm["pfpr10", "Estimate"]; s <- sm["pfpr10", "Std. Error"]
+  data.frame(outcome = nc_lab[[oc]], spec = "GAM (nb count)", pct = (exp(b)-1)*100,
+             lo = (exp(b-1.96*s)-1)*100, hi = (exp(b+1.96*s)-1)*100, p = sm["pfpr10", ncol(sm)]) }
+nc <- rbind(do.call(rbind, lapply(names(nc_lab), nc_lmm)), do.call(rbind, lapply(names(nc_lab), nc_gam)))
+nc$outcome <- factor(nc$outcome, levels = rev(unname(nc_lab)))
+write.csv(nc, file.path(RESULTS, "component2_negative_control.csv"), row.names = FALSE)
+cat(sprintf("Negative control — neonatal LMM %+.1f%% per +10 pts (p=%.2f) vs post-neonatal +%.1f%%\n",
+            nc$pct[nc$spec=="LMM (log-rate)" & grepl("Neonatal", nc$outcome)],
+            nc$p [nc$spec=="LMM (log-rate)" & grepl("Neonatal", nc$outcome)],
+            nc$pct[nc$spec=="LMM (log-rate)" & grepl("post-neonatal", nc$outcome)]))
+pnc <- ggplot(nc, aes(pct, outcome, colour = spec)) +
+  geom_vline(xintercept = 0, linetype = "dashed", colour = "grey50") +
+  geom_errorbarh(aes(xmin = lo, xmax = hi), height = 0.16, position = position_dodge(width = 0.55)) +
+  geom_point(size = 2.8, position = position_dodge(width = 0.55)) +
+  scale_colour_manual(values = c("LMM (log-rate)" = "#08519c", "GAM (nb count)" = "#d73027"), name = NULL) +
+  labs(x = "% change in mortality per +10 PfPR2-10 points (95% CI)", y = NULL,
+       title = "Component 2 negative control: prevalence effect by age window",
+       subtitle = "Neonatal (a malaria-implausible outcome) shows no association — a check against confounding.",
+       caption = "Same no-stunting model per outcome; neonatal = U5MR - 1mo-5y. 600 survey-regions, 23 countries.") +
+  theme_minimal(base_size = 11) + theme(panel.grid.minor = element_blank(), legend.position = "top")
+ggsave(file.path(RESULTS, "component2_negative_control.png"), pnc, width = 10.5, height = 4.6, dpi = 300)
+cat("saved: results/component2_negative_control.png + component2_negative_control.csv\n")
