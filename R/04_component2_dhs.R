@@ -233,11 +233,11 @@ pnc <- ggplot(nc, aes(pct, outcome)) +
   geom_vline(xintercept = 0, linetype = "dashed", colour = "grey50") +
   geom_errorbarh(aes(xmin = lo, xmax = hi), height = 0.14) +
   geom_point(size = 3, colour = "#08519c") +
-  labs(x = "% change in mortality per +10 PfPR2-10 points (95% CI)", y = NULL,
-       title = "Component 2 negative control: prevalence effect by age window",
-       subtitle = "Neonatal (a malaria-implausible outcome) shows no association — a check against confounding.",
-       caption = "Primary linear nb-GAM per outcome (PfPR2-10 >= 1%); neonatal = U5MR - 1mo-5y. 467 survey-regions, 22 countries.") +
-  theme_minimal(base_size = 11) + theme(panel.grid.minor = element_blank())
+  labs(x = "% change in mortality per +10 PfPR2-10 points (95% CI)", y = NULL) +
+  theme_minimal(base_size = 11) +
+  theme(panel.grid.minor = element_blank(),
+        axis.title = element_text(size = 14),
+        axis.text  = element_text(size = 13))
 ggsave(file.path(RESULTS, "component2_negative_control.png"), pnc, width = 9, height = 3.8, dpi = 300)
 cat("saved: results/component2_negative_control.png + component2_negative_control.csv\n")
 
