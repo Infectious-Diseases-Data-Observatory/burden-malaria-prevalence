@@ -115,13 +115,14 @@ pA <- ggplot(d, aes(dPfPR, obs_red)) +
   geom_errorbar(aes(ymin = (1-exp(log(mort_rr)+1.96*mort_logse))*100,
                     ymax = (1-exp(log(mort_rr)-1.96*mort_logse))*100), width = 0.7, alpha = 0.35) +
   geom_point(aes(colour = comparison), size = 3) +
-  geom_text(aes(x = dPfPR + nax_A, y = obs_red + nay_A, label = lab), size = 2.6) +
+  geom_text(aes(x = dPfPR + nax_A, y = obs_red + nay_A, label = lab), size = 3.3) +
   scale_colour_manual(values = c("no net"="#08519c","no curtain"="#41ab5d","untreated net"="#d73027"), name = NULL) +
   labs(x = "Prevalence reduction (age-standardised PfPR2-10 points, control - intervention)",
-       y = "Observed U5 mortality reduction (%)",
-       title = "RCT dose-response: mortality reduction vs prevalence reduction",
-       subtitle = sprintf("%d cluster-RCT points (D'Alessandro 5 zones + 3 trials). Grey = inverse-variance weighted fit.", nrow(d))) +
-  theme_minimal(base_size = 11) + theme(panel.grid.minor = element_blank(), legend.position = "top")
+       y = "Observed U5 mortality reduction (%)") +
+  theme_minimal(base_size = 11) +
+  theme(panel.grid.minor = element_blank(), legend.position = "top",
+        axis.title = element_text(size = 14), axis.text = element_text(size = 12),
+        legend.text = element_text(size = 12))
 
 ## ---- figure B: Component 2 predicted vs observed ----------------------------
 # single series: Component 2 primary linear model (spline retained in the CSV only)
@@ -135,14 +136,17 @@ pB <- ggplot(pv, aes(pred, obs)) +
                 width = 0.9, alpha = 0.35, inherit.aes = FALSE) +
   geom_point(aes(colour = comparison), size = 3) +
   geom_text(data = d, aes(x = pred_c2_linear + nax_B, y = obs_red + nay_B, label = lab),
-            size = 2.4, colour = "grey25", inherit.aes = FALSE) +
+            size = 3.0, colour = "grey25", inherit.aes = FALSE) +
   scale_colour_manual(values = c("no net"="#08519c","no curtain"="#41ab5d","untreated net"="#d73027"), name = NULL) +
   coord_cartesian(xlim = xr, ylim = yr) +
-  labs(x = "Component 2 predicted U5 mortality reduction (%)", y = "Observed U5 mortality reduction (%)",
-       title = "Predicted vs observed (Component 2, primary linear model)",
-       subtitle = "Dotted = identity (model matches trial). Error bars = 95% CI on observed (SE of log RR).") +
-  theme_minimal(base_size = 11) + theme(panel.grid.minor = element_blank(), legend.position = "top")
+  labs(x = "Predicted U5 mortality reduction (%)", y = "Observed U5 mortality reduction (%)") +
+  theme_minimal(base_size = 11) +
+  theme(panel.grid.minor = element_blank(), legend.position = "top",
+        axis.title = element_text(size = 14), axis.text = element_text(size = 12),
+        legend.text = element_text(size = 12))
 
-ggsave(file.path(RESULTS, "triangulation_rct.png"), pA + pB + patchwork::plot_layout(widths = c(1.35, 1)),
-       width = 14, height = 6.4, dpi = 300)
+fig3 <- pA + pB + patchwork::plot_layout(widths = c(1.35, 1)) +
+  patchwork::plot_annotation(tag_levels = "A") &
+  theme(plot.tag = element_text(face = "bold", size = 16))
+ggsave(file.path(RESULTS, "triangulation_rct.png"), fig3, width = 14, height = 6.4, dpi = 300)
 cat("saved: results/triangulation_rct.png + triangulation_rct_data.csv\n")

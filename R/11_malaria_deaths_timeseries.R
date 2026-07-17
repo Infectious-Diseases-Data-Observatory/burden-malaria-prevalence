@@ -112,36 +112,28 @@ if (length(ihme_f)) {
 } else message("IHME SSA export not found in data/ — plotting ours + WHO only.")
 
 ## ---- 6. plot: our SSA under-5 vs WHO & IHME (like-for-like under-5) ----------
-OU5 <- "Our est. — SSA under-5 (Component 2)"; OPN <- "Our est. — SSA 1mo-5y (Component 2)"
+OPN  <- "Prevalence/all-cause mortality method"          # our post-neonatal estimate
 WHOL <- "WHO — African-region under-5 (WMR 2025)"; IHL <- "IHME/GBD — SSA under-5"
+tot_pn <- tot[tot$outcome == "1mo-5y (neonatal excl.)", ]  # post-neonatal only (drop all-U5 series)
 pl <- rbind(
-  data.frame(year = tot$year, series = ifelse(tot$outcome == "All under-5", OU5, OPN), deaths = tot$deaths, lo = tot$lo, hi = tot$hi),
+  data.frame(year = tot_pn$year, series = OPN, deaths = tot_pn$deaths, lo = tot_pn$lo, hi = tot_pn$hi),
   data.frame(year = who_af$year, series = WHOL, deaths = who_af$point*U5, lo = who_af$lo*U5, hi = who_af$hi*U5))
 if (!is.null(ihme)) pl <- rbind(pl, data.frame(year = ihme$year, series = IHL, deaths = ihme$point, lo = ihme$lo, hi = ihme$hi))
-lev <- c(OU5, OPN, WHOL, IHL); pl$series <- factor(pl$series, levels = lev)
-cols <- setNames(c("#08519c","#d73027","grey35","#238b45"), lev)
-lty  <- setNames(c("solid","solid","22","44"), lev)
+lev <- c(OPN, WHOL, IHL); pl$series <- factor(pl$series, levels = lev)
+cols <- setNames(c("#d73027","grey35","#238b45"), lev)
+lty  <- setNames(c("solid","22","44"), lev)
 
-## dynamic subtitle: 2000->2024 change for each like-for-like SSA under-5 series
-pc <- function(v0, v1) 100 * (v1 / v0 - 1)
-o0 <- agg$mal_u5[agg$year == 2000]/1000; o1 <- agg$mal_u5[agg$year == 2024]/1000
-w0 <- who_af$point[who_af$year == 2000]*U5/1000; w1 <- who_af$point[who_af$year == 2024]*U5/1000
-sub_i <- if (!is.null(ihme)) sprintf(", IHME %+.0f%% (%.0f->%.0fk)",
-  pc(ihme$point[ihme$year==2000]/1000, ihme$point[ihme$year==2024]/1000),
-  ihme$point[ihme$year==2000]/1000, ihme$point[ihme$year==2024]/1000) else ""
-subt <- sprintf("Like-for-like SSA under-5. 2000->2024: ours %+.0f%% (%.0f->%.0fk), WHO %+.0f%% (%.0f->%.0fk)%s.",
-                pc(o0,o1), o0, o1, pc(w0,w1), w0, w1, sub_i)
 p <- ggplot(pl, aes(year, deaths/1000, colour = series, fill = series)) +
   geom_ribbon(aes(ymin = lo/1000, ymax = hi/1000), alpha = 0.10, colour = NA) +
   geom_line(aes(linetype = series), linewidth = 1) + geom_point(size = 1.1) +
   scale_colour_manual(values = cols, name = NULL) + scale_fill_manual(values = cols, guide = "none") +
   scale_linetype_manual(values = lty, name = NULL) +
   scale_x_continuous(breaks = seq(2000, 2025, 5)) + expand_limits(y = 0) +
-  labs(x = NULL, y = "Malaria-attributable child deaths (thousands/yr)",
-       title = "Malaria child deaths over time: Method 2 (primary) estimate vs WHO and IHME",
-       subtitle = subt,
-       caption = "Ours = AF(PfPR2-10) x all-cause child deaths (linear nb-GAM, PfPR2-10>=1%, AF vs 1% counterfactual); band = AF-coefficient uncertainty only. WHO/IHME bands = their reported 95% CI. WHO African Region & GBD SSA ~ our SSA.") +
-  theme_minimal(base_size = 11) + theme(panel.grid.minor = element_blank(), legend.position = "top")
+  labs(x = NULL, y = "Malaria-attributable child deaths (thousands/yr)") +
+  theme_minimal(base_size = 11) +
+  theme(panel.grid.minor = element_blank(), legend.position = "top",
+        axis.title = element_text(size = 14), axis.text = element_text(size = 12),
+        legend.text = element_text(size = 12))
 ggsave(file.path(RESULTS, "malaria_deaths_timeseries.png"), p, width = 11.5, height = 6.4, dpi = 300)
 if (!is.null(ihme)) cat(sprintf("IHME SSA U5: 2000=%.0f, 2024=%.0f (%+.0f%%)\n",
     ihme$point[ihme$year==2000], ihme$point[ihme$year==2024], 100*(ihme$point[ihme$year==2024]/ihme$point[ihme$year==2000]-1)))
