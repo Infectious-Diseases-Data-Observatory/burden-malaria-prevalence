@@ -164,3 +164,33 @@ fit_c2_lmm <- function(dat, outcome, covs = C2_COVS) {
                       control = lme4::lmerControl(optimizer = "bobyqa")),
        dd = dd)
 }
+
+# ---- Component 2 PRIMARY specification (M1: linear-in-prevalence nb-GAM) ------
+# Negative-binomial GAM (log link) for the region post-neonatal/U5 death count,
+# LINEAR in prevalence (pfpr10 = PfPR2-10/10), a smooth calendar-year term, a
+# log-exposure (births) offset, and country random intercept + prevalence slope.
+# Fitted on the analysis sample PfPR2-10 >= C2_MIN_PFPR (near-elimination regions,
+# where the exposure measure is least reliable and a no-malaria counterfactual is
+# ill-defined, are excluded). This is the study's primary Method-2 model; the
+# penalised-spline and log-scale variants are sensitivity analyses (see SText 1).
+C2_MIN_PFPR <- 1                                    # analysis floor (%) & AF reference
+fit_c2_primary <- function(dat, outcome, min_pfpr = C2_MIN_PFPR) {
+  need <- c(outcome, "pfpr10", "pfpr2_10", "dtp3", "log_gdp", "pct_urban",
+            "year_c", "country", "svkey", "exposure")
+  dd <- dat[complete.cases(dat[, need]) & is.finite(dat$exposure) &
+              dat$exposure > 0 & dat[[outcome]] > 0 & dat$pfpr2_10 >= min_pfpr, ]
+  dd$deaths  <- round(dd[[outcome]] / 1000 * dd$exposure)
+  dd$country <- factor(dd$country); dd$svkey <- factor(dd$svkey)
+  m <- mgcv::gam(deaths ~ pfpr10 + dtp3 + log_gdp + pct_urban + s(year_c) +
+                   s(country, bs = "re") + s(country, pfpr10, bs = "re") +
+                   offset(log(exposure)),
+                 family = mgcv::nb(), method = "REML", data = dd)
+  pt <- summary(m)$p.table["pfpr10", ]
+  list(m = m, dd = dd, beta = unname(pt["Estimate"]), se = unname(pt["Std. Error"]))
+}
+
+# Malaria-attributable fraction from the linear Method-2 model, referenced to a
+# counterfactual prevalence `ref`% (default 1%): AF(p) = 1 - exp(-beta*(p-ref)/10).
+# Covariates and country effects cancel in the rate ratio, so this closed form is
+# exact for the linear specification. Prevalences below `ref` are set to AF = 0.
+af_c2 <- function(beta, p, ref = C2_MIN_PFPR) ifelse(p < ref, 0, 1 - exp(-beta * (p - ref) / 10))

@@ -21,7 +21,7 @@
 # of independent variances.
 # =============================================================================
 source("R/00_utils.R")
-suppressMessages({library(terra); library(sf); library(malariaAtlas); library(lme4)})
+suppressMessages({library(terra); library(sf); library(malariaAtlas); library(mgcv)})
 
 ISOS <- c(NGA = "Nigeria", COD = "DR Congo")
 
@@ -36,11 +36,11 @@ m1  <- fit_c1_share(c1, "share_u5")
 b1  <- coef(m1); se_p1 <- summary(m1)$coefficients["pfpr_pct", "Std. Error"]
 share_hat <- function(p, lg, dt, bpf) (b1["(Intercept)"] + bpf * p + b1["log_gdp"] * lg + b1["dtp3"] * dt)
 
-## ---- Component 2 coefficient (pfpr10 fixed effect, U5MR LMM; shared spec) ----
+## ---- Component 2 coefficient (pfpr10, primary linear nb-GAM; shared spec) ----
 d2 <- read.csv(file.path(RESULTS, "component2_region_data.csv"), stringsAsFactors = FALSE)
-m2 <- fit_c2_lmm(d2, "u5mr")$m                       # no-stunting default (full country coverage)
-beta <- fixef(m2)["pfpr10"]; se_b2 <- sqrt(vcov(m2)["pfpr10", "pfpr10"])
-AF <- function(p, b) 1 - exp(-b * p / 10)
+f2 <- fit_c2_primary(d2, "u5mr")                     # M1: linear nb-GAM, PfPR2-10 >= 1%
+beta <- f2$beta; se_b2 <- f2$se
+AF <- function(p, b) af_c2(b, p)                     # referenced to 1% PfPR counterfactual
 
 cat(sprintf("C1 pfpr_pct slope = %.4f pp/PfPR-pt (SE %.4f)\n", b1["pfpr_pct"], se_p1))
 cat(sprintf("C2 pfpr10 beta    = %.4f (SE %.4f) => +%.1f%% U5MR per +10 PfPR pts\n\n",

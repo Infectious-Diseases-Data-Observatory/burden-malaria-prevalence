@@ -11,7 +11,7 @@
 # log-linear prediction here is an approximation over the 10-30% span.
 # =============================================================================
 source("R/00_utils.R")
-suppressMessages({library(lme4); library(ggplot2)})
+suppressMessages({library(mgcv); library(ggplot2)})
 
 c1 <- read.csv(file.path(RESULTS, "component1_country_data.csv"), stringsAsFactors = FALSE); c1$log_gdp <- log(c1$gdp_pc)
 c2 <- read.csv(file.path(RESULTS, "component2_region_data.csv"), stringsAsFactors = FALSE)
@@ -24,12 +24,13 @@ predict_outcome <- function(share_col, mort_col, label) {
   b1  <- coef(m1)["pfpr_pct"]; se1 <- summary(m1)$coefficients["pfpr_pct", "Std. Error"]
   s10 <- predict(m1, data.frame(pfpr_pct = 10, log_gdp = mean(c1$log_gdp), dtp3 = mean(c1$dtp3)))
   s30 <- predict(m1, data.frame(pfpr_pct = 30, log_gdp = mean(c1$log_gdp), dtp3 = mean(c1$dtp3)))
-  ## Component 2 — total-mortality model (shared LMM spec: 00_utils.R)
-  res2 <- fit_c2_lmm(c2, mort_col, covs); m2 <- res2$m; cc <- res2$dd
-  b2 <- fixef(m2)["pfpr10"]; se2 <- sqrt(vcov(m2)["pfpr10", "pfpr10"])
+  ## Component 2 — total-mortality model (primary linear nb-GAM: 00_utils.R)
+  res2 <- fit_c2_primary(c2, mort_col); m2 <- res2$m; cc <- res2$dd
+  b2 <- res2$beta; se2 <- res2$se
+  re_t <- grep("country", vapply(m2$smooth, function(s) s$label, ""), value = TRUE)
   ndm <- data.frame(pfpr10 = 1, dtp3 = mean(cc$dtp3), log_gdp = mean(cc$log_gdp),
-                    pct_urban = mean(cc$pct_urban), year_c = 0)
-  B  <- exp(predict(m2, ndm, re.form = NA))                       # common baseline at 10% PfPR
+                    pct_urban = mean(cc$pct_urban), year_c = 0, exposure = 1, country = cc$country[1])
+  B  <- 1000 * exp(as.numeric(predict(m2, ndm, exclude = re_t)))  # common baseline at 10% PfPR (per 1,000)
   ## curves over 10 -> 30
   c2f <- B * exp(b2 * (grid - 10) / 10)
   c1t <- function(sl) { sp <- s10 + sl * (grid - 10); B * (1 - s10/100) / (1 - sp/100) }

@@ -8,9 +8,9 @@
 # (Component 1's linear share model is unsuitable here: extrapolated per-arm to
 # these prevalences its fitted share exceeds 100%, so it is not used.)
 #
-# Because Component 2's exposure-response is NON-LINEAR, we age-standardise each
-# arm's parasite prevalence to PfPR2-10 and evaluate the model at BOTH the
-# counterfactual (control) and intervention levels — not a single slope.
+# The primary Component 2 model is LINEAR in PfPR2-10 (a per +10-point slope); we
+# age-standardise each arm's parasite prevalence to PfPR2-10 and predict the
+# mortality reduction from the prevalence drop between control and intervention.
 #
 # Data hand-extracted from the ORIGINAL papers (+ Cochrane where noted); see the
 # per-row provenance. Mortality is UNDER-5 (neonatal-excluded; the surveillance
@@ -69,7 +69,7 @@ dd$deaths <- round(dd$m1mo5y/1000 * dd$exposure); dd$country <- factor(dd$countr
 gam2 <- mgcv::gam(deaths ~ s(pfpr10, k = 4) + dtp3 + log_gdp + pct_urban + s(year_c) +
                     s(country, bs = "re") + s(country, pfpr10, bs = "re") + offset(log(exposure)),
                   family = mgcv::nb(), method = "REML", data = dd)
-beta_lin <- fixef(fit_c2_lmm(d2, "m1mo5y")$m)["pfpr10"]      # linear LMM slope (per +10 PfPR pts)
+beta_lin <- fit_c2_primary(d2, "m1mo5y")$beta               # primary M1 linear slope (per +10 PfPR pts)
 # evaluate the fitted s(pfpr10) smooth (partial, log scale) at arbitrary PfPR2-10 %
 # via lpmatrix, isolating the population prevalence-smooth basis columns.
 .cf <- coef(gam2); .idx <- grep("^s\\(pfpr10\\)", names(.cf))
@@ -82,10 +82,10 @@ sm_eval <- function(pfpr_pct) {
 }
 
 ## ---- per-trial predicted mortality reduction (%) ----------------------------
-# Component 2 spline (nonlinear, primary): RR = exp( s(P_treated) - s(P_control) )
-# Component 2 linear (LMM, reference):      RR = exp( beta * (P_treated - P_control)/10 )
-rct$pred_c2_spline <- (1 - exp(mapply(sm_eval, rct$pfpr_t) - mapply(sm_eval, rct$pfpr_c))) * 100
+# Component 2 linear (M1, primary):        RR = exp( beta * (P_treated - P_control)/10 )
+# Component 2 spline (secondary reference): RR = exp( s(P_treated) - s(P_control) )
 rct$pred_c2_linear <- (1 - exp(beta_lin * (rct$pfpr_t - rct$pfpr_c)/10)) * 100
+rct$pred_c2_spline <- (1 - exp(mapply(sm_eval, rct$pfpr_t) - mapply(sm_eval, rct$pfpr_c))) * 100
 
 d <- rct[rct$include, ]
 write.csv(rct, file.path(RESULTS, "triangulation_rct_data.csv"), row.names = FALSE)
@@ -96,7 +96,7 @@ cat(sprintf("Trials/zones in fit: %d\n", nrow(d)))
 cat(sprintf("WLS: mortality reduction per +1 PfPR2-10 pt reduced = %.3f%% (per +10 pts = %.1f%%); p=%.3f\n",
             (1-exp(coef(wls)["dPfPR"]))*100, (1-exp(coef(wls)["dPfPR"]*10))*100,
             summary(wls)$coefficients["dPfPR","Pr(>|t|)"]))
-cat(sprintf("Component 2 LMM slope: %.1f%% mortality change per +10 PfPR pts\n", (exp(beta_lin)-1)*100))
+cat(sprintf("Component 2 primary (M1 linear) slope: %.1f%% mortality change per +10 PfPR pts\n", (exp(beta_lin)-1)*100))
 print(d[, c("study","pfpr_c","pfpr_t","dPfPR","obs_red","pred_c2_spline","pred_c2_linear")],
       row.names = FALSE, digits = 3)
 
@@ -124,22 +124,22 @@ pA <- ggplot(d, aes(dPfPR, obs_red)) +
   theme_minimal(base_size = 11) + theme(panel.grid.minor = element_blank(), legend.position = "top")
 
 ## ---- figure B: Component 2 predicted vs observed ----------------------------
-# single series: Component 2 nonlinear spline (linear LMM retained in the CSV only)
-pv <- data.frame(study = d$study, lab = lab, pred = d$pred_c2_spline, obs = d$obs_red, comparison = d$comparison)
+# single series: Component 2 primary linear model (spline retained in the CSV only)
+pv <- data.frame(study = d$study, lab = lab, pred = d$pred_c2_linear, obs = d$obs_red, comparison = d$comparison)
 xr <- range(pv$pred, 0) + c(-4, 6)                          # x: predictions (tight)
 yr <- range(d$obs_lo, d$obs_hi, 0) + c(-6, 10)              # y: observed + 95% CI (wide)
 pB <- ggplot(pv, aes(pred, obs)) +
   geom_abline(slope = 1, intercept = 0, linetype = "dotted", colour = "grey50") +
   geom_hline(yintercept = 0, colour = "grey85") + geom_vline(xintercept = 0, colour = "grey85") +
-  geom_errorbar(data = d, aes(x = pred_c2_spline, ymin = obs_lo, ymax = obs_hi),
+  geom_errorbar(data = d, aes(x = pred_c2_linear, ymin = obs_lo, ymax = obs_hi),
                 width = 0.9, alpha = 0.35, inherit.aes = FALSE) +
   geom_point(aes(colour = comparison), size = 3) +
-  geom_text(data = d, aes(x = pred_c2_spline + nax_B, y = obs_red + nay_B, label = lab),
+  geom_text(data = d, aes(x = pred_c2_linear + nax_B, y = obs_red + nay_B, label = lab),
             size = 2.4, colour = "grey25", inherit.aes = FALSE) +
   scale_colour_manual(values = c("no net"="#08519c","no curtain"="#41ab5d","untreated net"="#d73027"), name = NULL) +
   coord_cartesian(xlim = xr, ylim = yr) +
   labs(x = "Component 2 predicted U5 mortality reduction (%)", y = "Observed U5 mortality reduction (%)",
-       title = "Predicted vs observed (Component 2, nonlinear spline)",
+       title = "Predicted vs observed (Component 2, primary linear model)",
        subtitle = "Dotted = identity (model matches trial). Error bars = 95% CI on observed (SE of log RR).") +
   theme_minimal(base_size = 11) + theme(panel.grid.minor = element_blank(), legend.position = "top")
 

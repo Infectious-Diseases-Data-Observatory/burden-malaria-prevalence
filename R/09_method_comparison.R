@@ -29,9 +29,8 @@ c1line <- do.call(rbind, lapply(names(OUT), function(o) {
   data.frame(pfpr = g$pfpr_pct, y = pr$fit, lo = pr$fit - 1.96*pr$se.fit, hi = pr$fit + 1.96*pr$se.fit,
              method = C1LAB, outcome = OUT[[o]]) }))
 
-## ---- Component 2: attributable-fraction spline (from script 06) -------------
+## ---- Component 2: attributable fraction (primary linear model, from script 06) ----
 af <- read.csv(file.path(RESULTS, "attributable_fraction.csv"), stringsAsFactors = FALSE)
-af <- af[grepl("spline", af$method), ]
 c2line <- data.frame(pfpr = af$pfpr, y = 100*af$af, lo = 100*af$lo, hi = 100*af$hi,
                      method = C2LAB, outcome = AFMAP[af$outcome])
 
@@ -51,7 +50,7 @@ p <- ggplot() +
   labs(x = expression(PfPR[2-10]*" (%)"), y = "Malaria as % of child deaths",
        title = "Two methods for malaria's share of child deaths vs prevalence",
        subtitle = "Grey points = Component 1 country shares. Lines at mean covariates, shaded = 95% CI. C1 drawn over its national-prevalence data range.",
-       caption = "C1: share ~ PfPR + log GDP + DTP3 (country level, IHME/IGME). C2: AF = 1 - exp(-(s(PfPR))) from the DHS log-rate model (script 06 spline).") +
+       caption = "C1: share ~ PfPR + log GDP + DTP3 (country level, IHME/IGME). C2: AF = 1 - exp(-β(PfPR-1)/10) from the primary DHS linear nb-GAM (script 06), referenced to 1% PfPR.") +
   theme_minimal(base_size = 11) + theme(panel.grid.minor = element_blank(), legend.position = "top")
 ggsave(file.path(RESULTS, "method_comparison.png"), p, width = 12, height = 5.8, dpi = 300)
 cat("saved: results/method_comparison.png\n")

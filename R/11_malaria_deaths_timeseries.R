@@ -62,22 +62,11 @@ pcy <- read.csv(PCY, stringsAsFactors = FALSE)
 
 ## ---- 3. Component 2 GAM attributable fraction AF(PfPR2-10), by outcome ------
 d2 <- read.csv(file.path(RESULTS, "component2_region_data.csv"), stringsAsFactors = FALSE)
-af_fun <- function(oc) {                                             # returns approx-interpolators for AF + CI
-  dg <- d2[complete.cases(d2[, c(oc, C2_COVS, "country")]) & is.finite(d2$exposure) & d2$exposure > 0, ]
-  dg$deaths <- round(dg[[oc]]/1000 * dg$exposure); dg$country <- factor(dg$country)
-  m <- mgcv::gam(deaths ~ s(pfpr10, k = 4) + dtp3 + log_gdp + pct_urban + s(year_c) +
-                   s(country, bs = "re") + s(country, pfpr10, bs = "re") + offset(log(exposure)),
-                 family = mgcv::nb(), method = "REML", data = dg)
-  g  <- seq(0, max(pcy$pfpr_pct, na.rm = TRUE) + 2, by = 0.25)
-  nd <- data.frame(pfpr10 = g/10, dtp3 = mean(dg$dtp3), log_gdp = mean(dg$log_gdp),
-                   pct_urban = mean(dg$pct_urban), year_c = 0, exposure = 1, country = dg$country[1])
-  X <- predict(m, nd, type = "lpmatrix"); bb <- coef(m); V <- vcov(m)
-  idx <- grep("^s\\(pfpr10\\)", colnames(X)); X0 <- X[1, ]
-  est <- se <- numeric(nrow(X))
-  for (i in seq_len(nrow(X))) { dv <- X[i, ] - X0; dv[-idx] <- 0; est[i] <- sum(dv*bb); se[i] <- sqrt(drop(t(dv)%*%V%*%dv)) }
-  list(af = approxfun(g, 1 - exp(-est), rule = 2),
-       lo = approxfun(g, 1 - exp(-(est - 1.96*se)), rule = 2),
-       hi = approxfun(g, 1 - exp(-(est + 1.96*se)), rule = 2)) }
+af_fun <- function(oc) {                                             # primary linear-model AF + coefficient CI
+  f <- fit_c2_primary(d2, oc); b <- f$beta; se <- f$se               # M1: linear nb-GAM, PfPR2-10 >= 1%
+  list(af = function(p) af_c2(b, p),                                 # AF referenced to 1% PfPR counterfactual
+       lo = function(p) af_c2(b - 1.96 * se, p),
+       hi = function(p) af_c2(b + 1.96 * se, p)) }
 AFU <- af_fun("u5mr"); AFP <- af_fun("m1mo5y")
 
 ## ---- 4. malaria deaths per country-year, both denominators ------------------
@@ -132,6 +121,16 @@ if (!is.null(ihme)) pl <- rbind(pl, data.frame(year = ihme$year, series = IHL, d
 lev <- c(OU5, OPN, WHOL, IHL); pl$series <- factor(pl$series, levels = lev)
 cols <- setNames(c("#08519c","#d73027","grey35","#238b45"), lev)
 lty  <- setNames(c("solid","solid","22","44"), lev)
+
+## dynamic subtitle: 2000->2024 change for each like-for-like SSA under-5 series
+pc <- function(v0, v1) 100 * (v1 / v0 - 1)
+o0 <- agg$mal_u5[agg$year == 2000]/1000; o1 <- agg$mal_u5[agg$year == 2024]/1000
+w0 <- who_af$point[who_af$year == 2000]*U5/1000; w1 <- who_af$point[who_af$year == 2024]*U5/1000
+sub_i <- if (!is.null(ihme)) sprintf(", IHME %+.0f%% (%.0f->%.0fk)",
+  pc(ihme$point[ihme$year==2000]/1000, ihme$point[ihme$year==2024]/1000),
+  ihme$point[ihme$year==2000]/1000, ihme$point[ihme$year==2024]/1000) else ""
+subt <- sprintf("Like-for-like SSA under-5. 2000->2024: ours %+.0f%% (%.0f->%.0fk), WHO %+.0f%% (%.0f->%.0fk)%s.",
+                pc(o0,o1), o0, o1, pc(w0,w1), w0, w1, sub_i)
 p <- ggplot(pl, aes(year, deaths/1000, colour = series, fill = series)) +
   geom_ribbon(aes(ymin = lo/1000, ymax = hi/1000), alpha = 0.10, colour = NA) +
   geom_line(aes(linetype = series), linewidth = 1) + geom_point(size = 1.1) +
@@ -139,9 +138,9 @@ p <- ggplot(pl, aes(year, deaths/1000, colour = series, fill = series)) +
   scale_linetype_manual(values = lty, name = NULL) +
   scale_x_continuous(breaks = seq(2000, 2025, 5)) + expand_limits(y = 0) +
   labs(x = NULL, y = "Malaria-attributable child deaths (thousands/yr)",
-       title = "Malaria child deaths over time: Component 2 estimate vs WHO and IHME",
-       subtitle = "Like-for-like SSA under-5. 2000->2024: ours -57% (879->375k), WHO -28% (603->434k), IHME -24% (564->428k).",
-       caption = "Ours = AF(PfPR2-10) x all-cause child deaths; band = AF-spline uncertainty only. WHO/IHME bands = their reported 95% CI. WHO African Region & GBD SSA ~ our SSA.") +
+       title = "Malaria child deaths over time: Method 2 (primary) estimate vs WHO and IHME",
+       subtitle = subt,
+       caption = "Ours = AF(PfPR2-10) x all-cause child deaths (linear nb-GAM, PfPR2-10>=1%, AF vs 1% counterfactual); band = AF-coefficient uncertainty only. WHO/IHME bands = their reported 95% CI. WHO African Region & GBD SSA ~ our SSA.") +
   theme_minimal(base_size = 11) + theme(panel.grid.minor = element_blank(), legend.position = "top")
 ggsave(file.path(RESULTS, "malaria_deaths_timeseries.png"), p, width = 11.5, height = 6.4, dpi = 300)
 if (!is.null(ihme)) cat(sprintf("IHME SSA U5: 2000=%.0f, 2024=%.0f (%+.0f%%)\n",

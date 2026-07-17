@@ -17,7 +17,7 @@
 # a POOLED total is the total re-evaluated at the coefficient's CI bounds.
 # =============================================================================
 source("R/00_utils.R")
-suppressMessages(library(lme4))
+suppressMessages(library(mgcv))
 
 ## ---- national inputs; keep PfPR2-10 > 10% -----------------------------------
 c1 <- read.csv(file.path(RESULTS, "component1_country_data.csv"), stringsAsFactors = FALSE)
@@ -34,12 +34,12 @@ fit_c1 <- function(y) { m <- fit_c1_share(c1, y)
 c1u <- fit_c1("share_u5"); c1p <- fit_c1("share_1mo5y")
 share_hat <- function(b, p, lg, dt, bpf) b["(Intercept)"] + bpf * p + b["log_gdp"] * lg + b["dtp3"] * dt
 
-## ---- Component 2 mixed models (per outcome; shared LMM spec 00_utils.R) ------
+## ---- Component 2 (per outcome; primary linear nb-GAM spec 00_utils.R) --------
 d2 <- read.csv(file.path(RESULTS, "component2_region_data.csv"), stringsAsFactors = FALSE)
-fit_c2 <- function(y) { m <- fit_c2_lmm(d2, y)$m       # no-stunting default (full coverage)
-  list(beta = fixef(m)["pfpr10"], se = sqrt(vcov(m)["pfpr10", "pfpr10"])) }
+fit_c2 <- function(y) { f <- fit_c2_primary(d2, y)     # M1: linear nb-GAM, PfPR2-10 >= 1%
+  list(beta = f$beta, se = f$se) }
 c2u <- fit_c2("u5mr"); c2p <- fit_c2("m1mo5y")
-AF <- function(p, b) 1 - exp(-b * p / 10)
+AF <- function(p, b) af_c2(b, p)                       # referenced to 1% PfPR counterfactual
 
 ## ---- per-country estimates (point + coefficient-only 95% CI) ----------------
 est_c1 <- function(mod, D) { s <- function(bpf) share_hat(mod$b, hi$pfpr_pct, hi$log_gdp, hi$dtp3, bpf) / 100 * D
