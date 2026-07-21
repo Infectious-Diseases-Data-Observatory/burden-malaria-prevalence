@@ -20,6 +20,23 @@ MAP_YEAR <- 2024                                                          # late
 # normalise a place name to a join key (lowercase, ASCII, alphanumeric only)
 rkey <- function(x) gsub("[^a-z0-9]", "", tolower(iconv(as.character(x), "", "ASCII//TRANSLIT")))
 
+# Pick the recode variable whose region labels match a target geography's keys.
+# DHS usually stores the survey region in v024, but for some countries (e.g.
+# Tanzania) v024 holds the 30 fine admin regions while the DHS boundary file is
+# at the 9-zone level, stored in a survey-specific variable (e.g. sreg1). We keep
+# v024 whenever it already covers the target, else scan all character/factor
+# columns for the one that best matches — recovering surveys the v024 merge drops.
+best_region_var <- function(br, target_keys, prefer = "v024") {
+  tk <- unique(target_keys)
+  covr <- function(v) mean(tk %in% rkey(unique(as.character(br[[v]]))))
+  if (prefer %in% names(br) && covr(prefer) >= 0.5) return(prefer)   # v024 works -> keep (stability)
+  cand <- names(br)[vapply(br, function(x) is.character(x) || is.factor(x), TRUE)]
+  if (!length(cand)) return(prefer)
+  sc <- vapply(cand, function(v) sum(tk %in% rkey(unique(as.character(br[[v]])))), 0L)
+  best <- cand[which.max(sc)]
+  if (max(sc) > 0 && covr(best) >= 0.6) best else prefer
+}
+
 ## ---- World Bank API (long format, with retries) ----------------------------
 wb_fetch <- function(indicator, date = "2000:2024") {
   u <- sprintf("https://api.worldbank.org/v2/country/all/indicator/%s?date=%s&format=json&per_page=20000",

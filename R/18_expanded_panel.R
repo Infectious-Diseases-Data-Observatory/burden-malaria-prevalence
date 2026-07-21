@@ -54,12 +54,13 @@ process <- function(i){
   s<-sv[i,]; cf<-file.path(PDIR,paste0(s$svkey,".rds")); if(file.exists(cf)) return(readRDS(cf))
   p<-paths[[sub("\\..*$","",s$FileName)]]; if(is.null(p)) return(NULL)   # get_datasets keys by name w/o extension
   br<-tryCatch(readRDS(p),error=function(e)NULL); if(is.null(br)||!"v024"%in%names(br)) return(NULL)
-  mo<-tryCatch(mort_by_region(br,"v024"),error=function(e)NULL); if(is.null(mo)||!nrow(mo)) return(NULL)
-  # % urban by region (v025 weighted by v005)
-  w<-as.numeric(br$v005)/1e6; reg<-as.character(br$v024); urb<-tolower(as.character(br$v025))=="urban"
+  bd<-get_bnd(s$SurveyId); if(is.null(bd)||!"DHSREGEN"%in%names(bd)) return(NULL)
+  rv<-best_region_var(br, rkey(bd$DHSREGEN))              # region var matching the boundary's granularity
+  mo<-tryCatch(mort_by_region(br,rv),error=function(e)NULL); if(is.null(mo)||!nrow(mo)) return(NULL)
+  # % urban by region (v025 weighted by v005), aggregated at the matched region level
+  w<-as.numeric(br$v005)/1e6; reg<-as.character(br[[rv]]); urb<-tolower(as.character(br$v025))=="urban"
   ok<-!is.na(reg); pu<-100*tapply(w[ok]*urb[ok],reg[ok],sum)/tapply(w[ok],reg[ok],sum)
   murb<-data.frame(regkey=rkey(names(pu)), pct_urban=as.numeric(pu))
-  bd<-get_bnd(s$SurveyId); if(is.null(bd)||!"DHSREGEN"%in%names(bd)) return(NULL)
   pf<-get_map(s$yr); if(is.null(pf)) return(NULL)
   v<-terra::makeValid(terra::vect(sf::st_make_valid(bd)))
   den<-terra::resample(terra::crop(den0,pf),pf,method="bilinear"); wt<-terra::mask(den,pf)
