@@ -122,13 +122,14 @@ if (!is.null(ihme)) pl <- rbind(pl, data.frame(year = ihme$year, series = IHL, d
 lev <- c(OPN, WHOL, IHL); pl$series <- factor(pl$series, levels = lev)
 cols <- setNames(c("#d73027","grey35","#238b45"), lev)
 lty  <- setNames(c("solid","22","44"), lev)
+pl <- pl[pl$year <= 2024, ]                              # stop the series at 2024 (drop any 2025 point)
 
-p <- ggplot(pl, aes(year, deaths/1000, colour = series, fill = series)) +
-  geom_ribbon(aes(ymin = lo/1000, ymax = hi/1000), alpha = 0.10, colour = NA) +
+p <- ggplot(pl, aes(year, deaths/1000, colour = series)) +
   geom_line(aes(linetype = series), linewidth = 1) + geom_point(size = 1.1) +
-  scale_colour_manual(values = cols, name = NULL) + scale_fill_manual(values = cols, guide = "none") +
+  scale_colour_manual(values = cols, name = NULL) +
   scale_linetype_manual(values = lty, name = NULL) +
-  scale_x_continuous(breaks = seq(2000, 2025, 5)) + expand_limits(y = 0) +
+  scale_x_continuous(breaks = c(2000, 2005, 2010, 2015, 2020, 2024),
+                     expand = expansion(mult = c(0.01, 0.02))) + expand_limits(y = 0) +
   labs(x = NULL, y = "Malaria-attributable child deaths (thousands/yr)") +
   theme_minimal(base_size = 11) +
   theme(panel.grid.minor = element_blank(), legend.position = "top",
