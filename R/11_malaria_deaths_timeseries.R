@@ -60,29 +60,51 @@ if (!file.exists(PCY)) {
 }
 pcy <- read.csv(PCY, stringsAsFactors = FALSE)
 
-## ---- 3. Component 2 GAM attributable fraction AF(PfPR2-10), by outcome ------
+## ---- 3. Country-year AF: country random slopes + slope changing over time ---
+# Primary Method-2 form WITH (i) a country random slope on prevalence and (ii) a
+# prevalence x calendar-year interaction. Referenced to a 1% counterfactual, the
+# AF depends only on the country-year SLOPE (intercepts/covariates cancel):
+#   AF_ct(p) = 1 - exp(-beta_ct*(p-1)/10),  beta_ct = beta_pop + b_country + gamma*year_c.
+# DHS surveys span 2009-2024; for years < 2009 the slope is held at its 2009 value.
 d2 <- read.csv(file.path(RESULTS, "component2_region_data.csv"), stringsAsFactors = FALSE)
-af_fun <- function(oc) {                                             # primary linear-model AF + coefficient CI
-  f <- fit_c2_primary(d2, oc); b <- f$beta; se <- f$se               # M1: linear nb-GAM, PfPR2-10 >= 1%
-  list(af = function(p) af_c2(b, p),                                 # AF referenced to 1% PfPR counterfactual
-       lo = function(p) af_c2(b - 1.96 * se, p),
-       hi = function(p) af_c2(b + 1.96 * se, p)) }
-AFU <- af_fun("u5mr"); AFP <- af_fun("m1mo5y")
+af_ct_fun <- function(oc) {
+  need <- c(oc, "pfpr10", "pfpr2_10", "dtp3", "log_gdp", "pct_urban", "year_c", "country", "svkey", "exposure")
+  dd <- d2[complete.cases(d2[, need]) & is.finite(d2$exposure) & d2$exposure > 0 & d2[[oc]] > 0 & d2$pfpr2_10 >= 1, ]
+  dd$deaths <- round(dd[[oc]] / 1000 * dd$exposure); dd$country <- factor(dd$country); dd$svkey <- factor(dd$svkey)
+  center <- round(mean(dd$year)); yc09 <- 2009 - center
+  m <- mgcv::gam(deaths ~ pfpr10 + pfpr10:year_c + dtp3 + log_gdp + pct_urban + s(year_c) +
+                   s(country, bs = "re") + s(country, pfpr10, bs = "re") + offset(log(exposure)),
+                 family = mgcv::nb(), method = "REML", data = dd)
+  cf <- coef(m); b_pop <- unname(cf["pfpr10"]); g_int <- unname(cf["pfpr10:year_c"])
+  sm  <- m$smooth[[which(vapply(m$smooth, function(s) s$label, "") == "s(country,pfpr10)")]]
+  bsl <- setNames(as.numeric(cf[sm$first.para:sm$last.para]),
+                  countrycode::countrycode(levels(dd$country), "country.name", "iso3c", warn = FALSE))
+  list(b_pop = b_pop, g_int = g_int, center = center,
+       af = function(iso3, year, pfpr) {
+         yc <- pmax(year - center, yc09)                    # hold slope at its 2009 value pre-2009
+         bc <- unname(bsl[iso3]); bc[is.na(bc)] <- 0        # country slope deviation (0 if not in DHS model)
+         pmax(ifelse(pfpr >= 1, 1 - exp(-(b_pop + bc + g_int * yc) * (pfpr - 1) / 10), 0), 0)
+       })
+}
+AFP <- af_ct_fun("m1mo5y"); AFU <- af_ct_fun("u5mr")
+sl <- function(y) (exp(AFP$b_pop + AFP$g_int * (y - AFP$center)) - 1) * 100
+cat(sprintf("Post-neonatal population slope over time: 2009=%+.1f%%, 2016=%+.1f%%, 2024=%+.1f%% per +10 PfPR pts (interaction %.4f/yr)\n",
+            sl(2009), sl(2016), sl(2024), AFP$g_int))
 
-## ---- 4. malaria deaths per country-year, both denominators ------------------
+## ---- 4. malaria deaths per country-year -------------------------------------
 d <- merge(ts[, c("iso3","year","allcause_u5","allcause_1mo5y")], pcy, by = c("iso3","year"))
-d$mal_u5    <- AFU$af(d$pfpr_pct)  * d$allcause_u5;    d$mal_u5_lo <- AFU$lo(d$pfpr_pct)*d$allcause_u5;    d$mal_u5_hi <- AFU$hi(d$pfpr_pct)*d$allcause_u5
-d$mal_1mo5y <- AFP$af(d$pfpr_pct)  * d$allcause_1mo5y; d$mal_pn_lo <- AFP$lo(d$pfpr_pct)*d$allcause_1mo5y; d$mal_pn_hi <- AFP$hi(d$pfpr_pct)*d$allcause_1mo5y
+d$mal_u5    <- AFU$af(d$iso3, d$year, d$pfpr_pct) * d$allcause_u5
+d$mal_1mo5y <- AFP$af(d$iso3, d$year, d$pfpr_pct) * d$allcause_1mo5y
 write.csv(d, file.path(RESULTS, "malaria_deaths_timeseries_by_country.csv"), row.names = FALSE)
-
-agg <- aggregate(cbind(mal_u5, mal_u5_lo, mal_u5_hi, mal_1mo5y, mal_pn_lo, mal_pn_hi) ~ year, d, sum)
+agg <- aggregate(cbind(mal_u5, mal_1mo5y) ~ year, d, sum)
 tot <- rbind(
-  data.frame(year = agg$year, outcome = "All under-5",             deaths = agg$mal_u5,    lo = agg$mal_u5_lo, hi = agg$mal_u5_hi),
-  data.frame(year = agg$year, outcome = "1mo-5y (neonatal excl.)", deaths = agg$mal_1mo5y, lo = agg$mal_pn_lo, hi = agg$mal_pn_hi))
+  data.frame(year = agg$year, outcome = "All under-5",             deaths = agg$mal_u5),
+  data.frame(year = agg$year, outcome = "1mo-5y (neonatal excl.)", deaths = agg$mal_1mo5y))
 write.csv(tot, file.path(RESULTS, "malaria_deaths_timeseries_total.csv"), row.names = FALSE)
 cat(sprintf("countries summed: %d | years %d-%d\n", length(unique(d$iso3)), min(d$year), max(d$year)))
-cat(sprintf("All-U5 malaria deaths: 2000=%.0f, 2024=%.0f (%+.0f%%)\n",
-    agg$mal_u5[agg$year==2000], agg$mal_u5[agg$year==2024], 100*(agg$mal_u5[agg$year==2024]/agg$mal_u5[agg$year==2000]-1)))
+pn <- function(y) agg$mal_1mo5y[agg$year == y]
+cat(sprintf("Post-neonatal malaria deaths: 2000=%.0f, 2009=%.0f, 2024=%.0f  (2000->2024 %+.0f%%)\n",
+            pn(2000), pn(2009), pn(2024), 100 * (pn(2024) / pn(2000) - 1)))
 
 ## ---- 5. WHO reference (WMR 2025) --------------------------------------------
 # Table 2.1 = GLOBAL, all-ages deaths (context, saved). Table 2.4 = WHO AFRICAN
@@ -116,9 +138,9 @@ OPN  <- "Prevalence/all-cause mortality method"          # our post-neonatal est
 WHOL <- "WHO — African-region under-5 (WMR 2025)"; IHL <- "IHME/GBD — SSA under-5"
 tot_pn <- tot[tot$outcome == "1mo-5y (neonatal excl.)", ]  # post-neonatal only (drop all-U5 series)
 pl <- rbind(
-  data.frame(year = tot_pn$year, series = OPN, deaths = tot_pn$deaths, lo = tot_pn$lo, hi = tot_pn$hi),
-  data.frame(year = who_af$year, series = WHOL, deaths = who_af$point*U5, lo = who_af$lo*U5, hi = who_af$hi*U5))
-if (!is.null(ihme)) pl <- rbind(pl, data.frame(year = ihme$year, series = IHL, deaths = ihme$point, lo = ihme$lo, hi = ihme$hi))
+  data.frame(year = tot_pn$year, series = OPN, deaths = tot_pn$deaths),
+  data.frame(year = who_af$year, series = WHOL, deaths = who_af$point*U5))
+if (!is.null(ihme)) pl <- rbind(pl, data.frame(year = ihme$year, series = IHL, deaths = ihme$point))
 lev <- c(OPN, WHOL, IHL); pl$series <- factor(pl$series, levels = lev)
 cols <- setNames(c("#d73027","grey35","#238b45"), lev)
 lty  <- setNames(c("solid","22","44"), lev)
