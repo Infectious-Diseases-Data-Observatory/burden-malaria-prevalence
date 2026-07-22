@@ -1,0 +1,17 @@
+"variable","n","post_neo","neonatal"
+"Facility delivery (%)",914,-0.54,-0.3
+"Electricity, DHS region (%)",936,-0.51,-0.14
+"Improved sanitation (%)",936,-0.48,-0.19
+"Stunting HAZ<-2 (%)",700,0.46,0.16
+"Maternal educ (years)",936,-0.45,-0.26
+"Age at first birth (yrs)",927,-0.45,-0.2
+"Health exp per cap (log USD)",936,-0.44,-0.27
+"DPT3 coverage (%)",914,-0.43,-0.15
+"Improved water (%)",936,-0.42,-0.15
+"Underweight WAZ<-2 (%)",679,0.39,0.2
+"Measles coverage (%)",914,-0.38,-0.14
+"Birth interval <24mo (%)",936,0.38,0.22
+"Wasting WHZ<-2 (%)",679,0.29,0.17
+"Wealth quintile (1-5)",884,-0.14,0.05
+"Exclusive BF <6mo (%)",923,0.04,0.11
+"Health exp (% GDP)",936,0.02,-0.04
