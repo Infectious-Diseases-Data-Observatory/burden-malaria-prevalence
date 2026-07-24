@@ -15,7 +15,7 @@ suppressMessages({library(mgcv); library(ggplot2); library(patchwork); library(m
 CM <- readRDS(file.path(RESULTS, "combined_models.rds")); m <- CM$m_comb
 EX <- c("s(country)", "s(country,pfpr10)")
 
-d <- read.csv(file.path(RESULTS, "component2_region_data_expanded_health.csv"), stringsAsFactors = FALSE)
+d <- read.csv(file.path(RESULTS, "component2_region_data_full.csv"), stringsAsFactors = FALSE)  # imputed panel (main analysis)
 d$nnmr <- d$u5mr - d$m1mo5y
 need <- c("m1mo5y","nnmr","u5mr","pfpr10","dtp3","dtp3_reg","facility","educ_yrs","wealth_q",
           "log_gdp","pct_urban","year_c","iso3","svkey")

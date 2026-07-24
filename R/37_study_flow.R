@@ -20,8 +20,8 @@ p <- ggplot() +
   box(xc, 12.2, "Enumerated: sub-Saharan Africa\nDHS/MIS/AIS Births Recodes 2000–2024\n128 surveys, 37 countries", MF, MB, 2.5, 0.9, 4.0) +
   box(xc,  9.5, "Panel: admin-1 child mortality +\nmalaria prevalence (MAP PfPR₂₋₁₀)\n106 surveys, 35 countries · 936 region-years", MF, MB, 2.5, 0.9, 4.0) +
   box(xc,  6.8, "Primary sample: PfPR₂₋₁₀ ≥ 1%\n921 region-years\n105 surveys, 34 countries", MF, MB, 2.5, 0.82, 4.0) +
-  box(xc,  3.0, "MAIN ANALYSIS\n847 region-years\n92 surveys · 34 countries\n(complete-case covariates)", MF, MB, 2.5, 1.0, 4.0) +
-  box(10.5, 3.0, "SENSITIVITY ANALYSES\n(malaria effect essentially unchanged)\n• include PfPR₂₋₁₀ < 1%: 862 region-years\n• impute incomplete covariates: all 921\n• expanded covariate set\n• alternative prevalence-response forms", SF, SB, 3.2, 1.05, 3.8) +
+  box(xc,  3.0, "MAIN ANALYSIS\n921 region-years\n105 surveys · 34 countries\n(missing covariates imputed)", MF, MB, 2.5, 1.0, 4.0) +
+  box(10.5, 3.0, "SENSITIVITY ANALYSES\n(malaria effect essentially unchanged)\n• complete-case covariates: 847 region-years\n• include PfPR₂₋₁₀ < 1%\n• expanded covariate set\n• alternative prevalence-response forms", SF, SB, 3.2, 1.05, 3.8) +
   box(8.5, 10.9, "Excluded: 22 surveys —\nno usable admin-1 boundary\nor region-key merge (older\nzone schemes, continuous-DHS\nfiles, malaria-free countries)", EF, EB, 2.15, 1.15, 4.0) +
   box(8.5,  7.9, "Excluded: 15 region-years\nwith PfPR₂₋₁₀ < 1%\n(retained in sensitivity)", EF, EB, 2.15, 0.82, 4.0) +
   arr(xc, 12.2-0.9, xc, 9.5+0.9) + arr(xc, 9.5-0.9, xc, 6.8+0.82) + arr(xc, 6.8-0.82, xc, 3.0+1.0) +

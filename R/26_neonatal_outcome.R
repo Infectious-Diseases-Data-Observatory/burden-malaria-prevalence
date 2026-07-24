@@ -13,7 +13,7 @@
 source("R/00_utils.R")
 suppressMessages({library(mgcv); library(ggplot2)})
 
-d <- read.csv(file.path(RESULTS, "component2_region_data_expanded_health.csv"), stringsAsFactors = FALSE)
+d <- read.csv(file.path(RESULTS, "component2_region_data_full.csv"), stringsAsFactors = FALSE)  # imputed panel (main analysis)
 d$nnmr <- d$u5mr - d$m1mo5y                                        # neonatal = U5MR - post-neonatal
 need <- c("m1mo5y","nnmr","pfpr10","dtp3","dtp3_reg","facility","educ_yrs","wealth_q",
           "log_gdp","pct_urban","year_c","iso3","svkey")

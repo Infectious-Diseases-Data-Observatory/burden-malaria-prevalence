@@ -14,7 +14,7 @@
 source("R/00_utils.R")
 suppressMessages({library(mgcv); library(ggplot2)})
 
-d <- read.csv(file.path(RESULTS, "component2_region_data_expanded_health.csv"), stringsAsFactors = FALSE)
+d <- read.csv(file.path(RESULTS, "component2_region_data_full.csv"), stringsAsFactors = FALSE)  # imputed panel: main analysis on all 921 region-years
 need <- c("m1mo5y","pfpr10","dtp3","dtp3_reg","facility","educ_yrs","wealth_q",
           "log_gdp","pct_urban","year_c","iso3","svkey")
 fitd <- d[complete.cases(d[, need]) & is.finite(d$exposure) & d$exposure > 0 & d$pfpr2_10 >= 1, ]
