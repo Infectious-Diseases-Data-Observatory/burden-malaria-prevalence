@@ -9,6 +9,7 @@ output:
 header-includes:
   - \usepackage{float}
   - \floatplacement{figure}{H}
+geometry: margin=0.9in
 ---
 
 ## Summary of main results
@@ -56,6 +57,13 @@ header-includes:
   [See sensitivity analyses](#sensitivity-results) and [interpretation and
   limitations.](#interpretation-limitations)
 
+- **Direct DHS measures of pentavalent, pneumococcal and rotavirus vaccination
+  are too sparse to affect the current results.** Each is missing for more than
+  half of the validation panel and is therefore retained and flagged but
+  excluded under the prespecified missingness rule. Re-running the model suite
+  leaves the selected model and headline results unchanged.
+  [See covariate processing.](#covariates)
+
 The sections below describe the data and methods underlying these claims,
 followed by the detailed results and sensitivity analyses.
 
@@ -89,7 +97,7 @@ the prevalence range to 5–40%.
 
 ### Covariate processing {#covariates}
 
-Twenty-one candidate covariates are evaluated before imputation. Variables
+Twenty-four candidate covariates are evaluated before imputation. Variables
 with at most 5% missingness are retained and singly imputed using the
 within-country median, with the overall median as a fallback. Variables with
 more than 5% missingness are flagged and excluded.
@@ -101,8 +109,29 @@ The 16 included covariates are:
 | Survey-region | Urban residence, regional DTP3 coverage, measles vaccination, facility delivery, maternal education, exclusive breastfeeding, birth interval under 24 months, maternal age at first birth, improved water, improved sanitation and household electricity |
 | National, nearest year | DTP3 coverage, log GDP per capita, health expenditure as a share of GDP, log health expenditure per capita and electricity access |
 
-The five excluded variables are household wealth (5.56% missing), stunting
-(25.2%), underweight (27.5%), wasting (27.5%) and political stability (100%).
+The eight excluded variables are direct regional pentavalent-dose-3 coverage
+(55.1% missing), PCV-dose-3 coverage (57.1%), completion of the
+survey-specific rotavirus schedule (59.0%), household wealth (5.56%),
+stunting (25.2%), underweight (27.5%), wasting (27.5%) and political stability
+(100%).
+
+The direct vaccine measures use standard DHS vaccination recodes:
+`h51`–`h53` for pentavalent, `h54`–`h56` for pneumococcal vaccine and
+`h57`–`h59` for rotavirus. They estimate weighted coverage among living
+children aged 12–23 months from vaccination-card or maternal-report data.
+These questions measure receipt, not the national introduction date, and are
+concentrated in newer surveys. Missing fields are not coded as zero. The model
+suite was rerun after adding them; because all three fail the missingness rule,
+the 16-variable ridge block, selected model and headline estimates are
+unchanged.
+
+For a future longitudinal extension, WHO/UNICEF WUENIC is the recommended
+country-year source for Hib3, PCV3 and final-dose rotavirus coverage. UNAIDS
+AIDSinfo provides country-year paediatric HIV estimates. Historical
+subnational SMC coverage is not currently available as one public
+machine-readable panel; WHO, the SMC Alliance and MAP provide complementary
+sources. The source choices and causal considerations are documented in
+[`R_dhs/COVARIATE_SOURCES.md`](R_dhs/COVARIATE_SOURCES.md).
 
 Proportions are logit transformed, continuous variables remain on their
 declared scale, and all included variables are standardised. They enter the
@@ -174,7 +203,7 @@ Country random effects are set to zero for these population-average
 predictions and for the national burden estimates.
 
 ![Attributable-fraction curves under the alternative time
-structures](results/dhs_rebuild/time_surface_af_comparison.png)
+structures](results/dhs_rebuild/time_surface_af_comparison.png){width=90%}
 
 ## Does the time interaction materially affect predictions? {#time-interaction-results}
 
@@ -283,6 +312,8 @@ malaria deaths in the African Region. Sources: [WMR 2025 Annex
 sheet](https://www.who.int/news-room/fact-sheets/detail/malaria%E2%9C%85), and
 the WHO GHO `MALARIA_EST_DEATHS` country indicator.
 
+\newpage
+
 ### Countries with the largest differences from IHME {#country-differences}
 
 The table below uses the AIC-selected `ti` model. “Very different” is defined in
@@ -330,10 +361,3 @@ post-neonatal mortality. We place less weight on the exact contemporary total
 and, especially, the estimated decline since 2000 because these depend
 materially on how the prevalence-mortality relationship is allowed to change
 over calendar time.
-
-## Reproducible outputs
-
-`R_dhs/10_time_surface_and_burden.R` fits the `te` sensitivity and produces the
-time-surface and national comparison tables.
-
-Key result tables are stored as CSV files under `results/dhs_rebuild/`.

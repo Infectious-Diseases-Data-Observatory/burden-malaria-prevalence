@@ -10,11 +10,12 @@
 # Standard run (from authorised DHS recodes and outputs of scripts 01-02):
 #   Rscript R_dhs/03_build_analysis_dataset.R
 #
-# Migration/verification run using the existing aggregate panel only:
+# Migration/verification run starting from the existing aggregate panel:
 #   Rscript R_dhs/03_build_analysis_dataset.R --from-legacy-aggregate
 #
-# The migration mode does not read individual-level DHS records and is only for
-# comparing the rebuilt analysis with the existing results before archiving.
+# When the survey registry is available, migration mode reads the locally
+# authorised recodes only to derive the three new vaccine aggregates. No
+# respondent-level records are written to the analysis outputs.
 # =============================================================================
 
 source("R_dhs/00_config.R")
@@ -24,19 +25,21 @@ legacy_mode <- "--from-legacy-aggregate" %in% args
 
 COVARIATE_CATALOG <- data.frame(
   variable = c(
-    "pct_urban", "dtp3_reg", "measles", "facility", "educ_yrs",
-    "wealth_q", "excl_bf", "stunting", "underweight", "wasting",
-    "birth_int", "mage1", "imp_water", "imp_sanit", "elec_dhs",
+    "pct_urban", "dtp3_reg", "measles", "pentavalent3_reg",
+    "pcv3_reg", "rotavirus_complete_reg", "facility", "educ_yrs", "wealth_q",
+    "excl_bf", "stunting", "underweight", "wasting", "birth_int",
+    "mage1", "imp_water", "imp_sanit", "elec_dhs",
     "dtp3", "log_gdp", "hexp_gdp", "log_hexp_pc", "polstab", "elec"
   ),
   level = c(
-    rep("survey-region", 15),
+    rep("survey-region", 18),
     rep("national-nearest-year", 6)
   ),
   type = c(
+    "proportion", "proportion", "proportion", "proportion", "proportion",
+    "proportion", "proportion", "continuous", "continuous", "proportion",
     "proportion", "proportion", "proportion", "proportion", "continuous",
-    "continuous", "proportion", "proportion", "proportion", "proportion",
-    "proportion", "continuous", "proportion", "proportion", "proportion",
+    "proportion", "proportion", "proportion",
     "proportion", "continuous", "proportion", "continuous", "continuous",
     "proportion"
   )
@@ -83,6 +86,44 @@ region_covariates <- function(br, region_var) {
   }
   dtp3_reg <- immunisation("h7")
   measles <- immunisation("h9")
+
+  immunisation_series <- function(variables, required_doses) {
+    available <- intersect(variables, names(br))
+    if (!length(available)) return(numeric(0))
+    labels <- lapply(available, function(variable) {
+      tolower(as.character(br[[variable]]))
+    })
+    observed <- lapply(labels, function(x) {
+      !is.na(x) & x != "missing" & nzchar(x)
+    })
+    received <- lapply(labels, yes_received)
+    observed_any <- Reduce(`|`, observed)
+    dose_count <- Reduce(`+`, lapply(received, as.integer))
+    eligible <- alive & is.finite(age_months) &
+      age_months >= 12 & age_months <= 23 & observed_any
+    100 * aggregate_value(
+      as.numeric(dose_count >= required_doses),
+      eligible
+    )
+  }
+  pentavalent3_reg <- immunisation_series(c("h51", "h52", "h53"), 3)
+  pcv3_reg <- immunisation_series(c("h54", "h55", "h56"), 3)
+
+  # DHS schedules contain either two or three rotavirus doses. Treat H59 as
+  # evidence of a three-dose schedule only when it has observed values for an
+  # eligible child; otherwise use completion of H57-H58.
+  rotavirus_doses <- 2L
+  if ("h59" %in% names(br)) {
+    h59_labels <- tolower(as.character(br$h59))
+    h59_observed <- alive & is.finite(age_months) &
+      age_months >= 12 & age_months <= 23 &
+      !is.na(h59_labels) & h59_labels != "missing" & nzchar(h59_labels)
+    if (any(h59_observed)) rotavirus_doses <- 3L
+  }
+  rotavirus_complete_reg <- immunisation_series(
+    c("h57", "h58", "h59"),
+    rotavirus_doses
+  )
 
   facility <- numeric(0)
   if ("m15" %in% names(br)) {
@@ -208,6 +249,9 @@ region_covariates <- function(br, region_var) {
     pct_urban = urban,
     dtp3_reg = dtp3_reg,
     measles = measles,
+    pentavalent3_reg = pentavalent3_reg,
+    pcv3_reg = pcv3_reg,
+    rotavirus_complete_reg = rotavirus_complete_reg,
     facility = facility,
     educ_yrs = educ_yrs,
     wealth_q = wealth_q,
@@ -278,6 +322,60 @@ build_from_raw <- function() {
   out
 }
 
+attach_regional_vaccine_covariates <- function(data) {
+  vaccine_variables <- c(
+    "pentavalent3_reg", "pcv3_reg", "rotavirus_complete_reg"
+  )
+  for (variable in vaccine_variables) data[[variable]] <- NA_real_
+
+  if (!file.exists(SURVEY_REGISTRY_CSV)) {
+    warning(
+      "Survey registry unavailable; new regional vaccine covariates remain ",
+      "missing. Run script 01 to inventory local DHS recodes."
+    )
+    return(data)
+  }
+
+  registry <- read.csv(SURVEY_REGISTRY_CSV, stringsAsFactors = FALSE)
+  rows <- list()
+  for (svkey in unique(data$svkey)) {
+    survey <- registry[
+      registry$svkey == svkey & registry$recode_available,
+      ,
+      drop = FALSE
+    ]
+    if (!nrow(survey)) next
+    recode <- survey$local_recode[1]
+    if (!is.character(recode) || is.na(recode) || !file.exists(recode)) next
+
+    br <- tryCatch(readRDS(recode), error = function(e) NULL)
+    if (is.null(br)) next
+    target_keys <- unique(data$regkey[data$svkey == svkey])
+    region_var <- best_region_var(br, target_keys)
+    covariates <- region_covariates(br, region_var)
+    if (is.null(covariates)) next
+
+    covariates$svkey <- svkey
+    rows[[svkey]] <- covariates[, c(
+      "svkey", "regkey", vaccine_variables
+    )]
+  }
+  if (!length(rows)) return(data)
+
+  vaccine_panel <- do.call(rbind, rows)
+  key <- paste(data$svkey, data$regkey)
+  vaccine_key <- paste(vaccine_panel$svkey, vaccine_panel$regkey)
+  matched <- match(key, vaccine_key)
+  for (variable in vaccine_variables) {
+    data[[variable]] <- vaccine_panel[[variable]][matched]
+  }
+  message(
+    "Attached direct DHS vaccine covariates from ",
+    length(unique(vaccine_panel$svkey)), " surveys."
+  )
+  data
+}
+
 build_from_legacy_aggregate <- function() {
   path <- file.path(REPO_ROOT, "results", "component2_region_data_full.csv")
   if (!file.exists(path)) stop("Legacy aggregate panel not found: ", path)
@@ -295,7 +393,7 @@ build_from_legacy_aggregate <- function() {
       out[[variable]][as.logical(out[[flag]])] <- NA_real_
     }
   }
-  out
+  attach_regional_vaccine_covariates(out)
 }
 
 attach_national_covariates <- function(data) {

@@ -19,6 +19,10 @@ that should be updated in the current manuscript after the rebuild is accepted.
 - Primary row flag: regional PfPR2-10 at least 1%, positive outcomes/exposure,
   and country mean PfPR2-10 greater than 1%. Both component flags are retained.
 - Covariates: DHS survey-region and nearest-year national predictors.
+- Direct vaccine candidates: regional pentavalent-dose-3, PCV-dose-3 and
+  completion of the survey-specific rotavirus schedule. See
+  `COVARIATE_SOURCES.md` for their recodes, availability and recommended
+  external longitudinal sources.
 - Missingness: variables with at most 5% missingness receive single imputation
   by country median with overall-median fallback; variables above 5% are flagged
   and excluded.
@@ -68,6 +72,10 @@ Rscript R_dhs/run_all.R --from-legacy-aggregate
 Raw DHS records remain under `data/` and must never be committed. Aggregate model
 outputs and plots are written under `results/dhs_rebuild/`. Nothing is copied to
 Overleaf automatically.
+
+`COVARIATE_SOURCES.md` documents the implemented vaccine variables and candidate
+UNAIDS/UNICEF and SMC sources. HIV and SMC are not yet included in the current
+model outputs.
 
 When the two saved legacy headline artifacts are present, `run_all.R` also writes
 `reproduction_check.csv` and `reproduction_summary.txt`. These test substantive

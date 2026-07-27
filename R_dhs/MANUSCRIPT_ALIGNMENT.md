@@ -45,8 +45,15 @@ IHME/WHO comparisons and trial triangulation are outside this rebuild.
   age at first birth, improved water, improved sanitation and electricity; and
   national DTP3, log GDP per capita, health expenditure as a share of GDP, log
   health expenditure per capita and electricity access.
-- **Excluded covariates:** wealth (5.56% missing), stunting (25.2%),
-  underweight (27.5%), wasting (27.5%) and political stability (100%) are
+- **Direct vaccine measures:** the candidate set now also includes regional
+  pentavalent-dose-3 (`h51`–`h53`), PCV-dose-3 (`h54`–`h56`) and completion of
+  the survey-specific rotavirus schedule (`h57`–`h59`). These fields are
+  concentrated in recent DHS recodes. Their missingness in the validation
+  panel is 55.1%, 57.1% and 59.0%, respectively, so all three are flagged and
+  excluded rather than imputed. Re-running the model suite therefore leaves
+  the model comparison and headline estimates unchanged.
+- **Other excluded covariates:** wealth (5.56% missing), stunting (25.2%),
+  underweight (27.5%), wasting (27.5%) and political stability (100%) are also
   flagged and excluded rather than imputed.
 - **Date range:** the scripts request/support 2000–2025 and explicitly flag a
   missing 2025 MAP surface rather than substitute 2024. The reproduced analysis
