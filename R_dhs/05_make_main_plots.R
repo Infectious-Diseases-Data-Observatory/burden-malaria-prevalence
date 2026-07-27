@@ -281,6 +281,108 @@ ggplot2::ggsave(
   dpi = 300
 )
 
+covariate_labels <- c(
+  pct_urban = "Urban residence",
+  dtp3_reg = "DTP3 coverage (DHS region)",
+  measles = "Measles vaccination",
+  facility = "Facility delivery",
+  educ_yrs = "Maternal education",
+  excl_bf = "Exclusive breastfeeding",
+  birth_int = "Birth interval <24 months",
+  mage1 = "Maternal age at first birth",
+  imp_water = "Improved water",
+  imp_sanit = "Improved sanitation",
+  elec_dhs = "Household electricity",
+  hib3_wuenic = "Hib3 coverage (WUENIC)",
+  pcv3_wuenic = "PCV completion (WUENIC)",
+  rotac_wuenic = "Rotavirus completion (WUENIC)",
+  dtp3 = "DTP3 coverage (national)",
+  log_gdp = "GDP per capita",
+  hexp_gdp = "Health expenditure, % GDP",
+  log_hexp_pc = "Health expenditure per capita",
+  elec = "Electricity access (national)"
+)
+post_table <- summary(post_model)$p.table
+ridge_rows <- grep("^G", rownames(post_table), value = TRUE)
+ridge_effects <- data.frame(
+  variable = sub("^G", "", ridge_rows),
+  estimate = post_table[ridge_rows, "Estimate"],
+  std_error = post_table[ridge_rows, "Std. Error"],
+  p_value = post_table[
+    ridge_rows,
+    grep("^Pr\\(", colnames(post_table), value = TRUE)[1]
+  ],
+  stringsAsFactors = FALSE
+)
+ridge_effects$lo_log <- ridge_effects$estimate - 1.96 * ridge_effects$std_error
+ridge_effects$hi_log <- ridge_effects$estimate + 1.96 * ridge_effects$std_error
+ridge_effects$pct_change <- 100 * (exp(ridge_effects$estimate) - 1)
+ridge_effects$pct_change_lo <- 100 * (exp(ridge_effects$lo_log) - 1)
+ridge_effects$pct_change_hi <- 100 * (exp(ridge_effects$hi_log) - 1)
+ridge_effects$label <- unname(covariate_labels[ridge_effects$variable])
+ridge_effects$label[is.na(ridge_effects$label)] <-
+  ridge_effects$variable[is.na(ridge_effects$label)]
+ridge_effects$level <- bundle$catalog$level[
+  match(ridge_effects$variable, bundle$catalog$variable)
+]
+ridge_effects$level_label <- ifelse(
+  ridge_effects$level == "survey-region",
+  "Survey-region covariate",
+  "National covariate"
+)
+ridge_effects$label <- reorder(
+  ridge_effects$label,
+  ridge_effects$pct_change
+)
+
+figure_covariates <- ggplot2::ggplot(
+  ridge_effects,
+  ggplot2::aes(
+    label,
+    pct_change,
+    ymin = pct_change_lo,
+    ymax = pct_change_hi,
+    colour = level_label
+  )
+) +
+  ggplot2::geom_hline(
+    yintercept = 0,
+    linetype = "dashed",
+    colour = "grey55"
+  ) +
+  ggplot2::geom_errorbar(width = 0.18, linewidth = 0.55) +
+  ggplot2::geom_point(size = 2.4) +
+  ggplot2::coord_flip() +
+  ggplot2::scale_colour_manual(
+    values = c(
+      "Survey-region covariate" = "#2c7fb8",
+      "National covariate" = "#d95f0e"
+    ),
+    name = NULL
+  ) +
+  ggplot2::labs(
+    title = "Ridge-standardized conditional associations",
+    subtitle = paste(
+      "Best-fitting post-neonatal model;",
+      "conditional 95% intervals for a 1 SD increase after transformation"
+    ),
+    x = NULL,
+    y = "Change in post-neonatal mortality (%)"
+  ) +
+  ggplot2::theme_minimal(base_size = 11.5) +
+  ggplot2::theme(
+    panel.grid.minor = ggplot2::element_blank(),
+    legend.position = "top",
+    plot.title.position = "plot"
+  )
+ggplot2::ggsave(
+  file.path(RESULTS_DIR, "figure5_covariate_forest.png"),
+  figure_covariates,
+  width = 9.2,
+  height = 8.2,
+  dpi = 320
+)
+
 write.csv(
   grid,
   file.path(RESULTS_DIR, "main_postneonatal_prediction_curve.csv"),
@@ -291,5 +393,13 @@ write.csv(
   file.path(RESULTS_DIR, "main_outcome_relative_curves.csv"),
   row.names = FALSE
 )
+write.csv(
+  ridge_effects[, c(
+    "variable", "label", "level", "estimate", "std_error",
+    "pct_change", "pct_change_lo", "pct_change_hi", "p_value"
+  )],
+  file.path(RESULTS_DIR, "ridge_covariate_effects.csv"),
+  row.names = FALSE
+)
 
-message("Saved four main figures and their prediction tables under ", RESULTS_DIR)
+message("Saved five main figures and their prediction tables under ", RESULTS_DIR)

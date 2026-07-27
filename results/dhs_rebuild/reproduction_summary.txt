@@ -7,5 +7,5 @@ Rebuilt reference year for AF estimates: 2014
 
 Interpretation:
 - This confirms reproduction of the main findings, not identical coefficients from identical code.
-- The rebuilt pipeline harmonises covariate eligibility/imputation and compares all four prespecified PfPR/time models on one sample.
+- The rebuilt pipeline harmonises covariate eligibility/imputation and compares all five prespecified PfPR/time models on one sample.
 - Legacy R files should be archived only after the generated data, plots, and validation table have been reviewed.

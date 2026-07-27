@@ -333,10 +333,11 @@ MODEL_SPECS <- data.frame(
     "linear_no_interaction",
     "spline_no_interaction",
     "linear_time_interaction",
-    "spline_time_interaction"
+    "spline_time_interaction",
+    "full_te_surface"
   ),
-  prevalence_form = c("linear", "spline", "linear", "spline"),
-  time_interaction = c(FALSE, FALSE, TRUE, TRUE)
+  prevalence_form = c("linear", "spline", "linear", "spline", "tensor"),
+  time_interaction = c(FALSE, FALSE, TRUE, TRUE, TRUE)
 )
 
 model_formula <- function(
@@ -353,6 +354,10 @@ model_formula <- function(
       "s(pfpr10, k=%d) + ti(pfpr10, year_c, k=c(%d,%d))",
       spline_k, spline_k, min(year_k, 6)
     ),
+    full_te_surface = sprintf(
+      "te(pfpr10, year_c, k=c(%d,%d))",
+      spline_k, min(year_k, 6)
+    ),
     stop("Unknown model specification: ", specification)
   )
   random_terms <- c(
@@ -362,7 +367,9 @@ model_formula <- function(
   terms <- c(
     prevalence,
     "G",
-    sprintf("s(year_c, k=%d)", year_k),
+    if (!identical(specification, "full_te_surface")) {
+      sprintf("s(year_c, k=%d)", year_k)
+    },
     random_terms,
     "offset(log(exposure))"
   )
@@ -430,9 +437,15 @@ model_summary_row <- function(fit) {
     rownames(summary_model$s.table),
     value = TRUE
   )
+  full_tensor_row <- grep(
+    "^te\\(pfpr10,year_c\\)",
+    rownames(summary_model$s.table),
+    value = TRUE
+  )
   interaction_linear <- "pfpr10:year_c" %in% rownames(summary_model$p.table)
   beta <- se <- p <- edf <- interaction_beta <- interaction_se <-
-    interaction_edf <- interaction_p <- NA_real_
+    interaction_edf <- interaction_p <- full_surface_edf <-
+    full_surface_p <- NA_real_
   if (linear) {
     beta <- summary_model$p.table["pfpr10", "Estimate"]
     se <- summary_model$p.table["pfpr10", "Std. Error"]
@@ -455,6 +468,10 @@ model_summary_row <- function(fit) {
     interaction_edf <- summary_model$s.table[tensor_row[1], "edf"]
     interaction_p <- summary_model$s.table[tensor_row[1], "p-value"]
   }
+  if (length(full_tensor_row)) {
+    full_surface_edf <- summary_model$s.table[full_tensor_row[1], "edf"]
+    full_surface_p <- summary_model$s.table[full_tensor_row[1], "p-value"]
+  }
   data.frame(
     specification = fit$specification,
     outcome = fit$outcome,
@@ -472,7 +489,9 @@ model_summary_row <- function(fit) {
     time_interaction_beta = interaction_beta,
     time_interaction_se = interaction_se,
     time_interaction_edf = interaction_edf,
-    time_interaction_p = interaction_p
+    time_interaction_p = interaction_p,
+    full_surface_edf = full_surface_edf,
+    full_surface_p = full_surface_p
   )
 }
 

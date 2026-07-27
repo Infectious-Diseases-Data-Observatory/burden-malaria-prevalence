@@ -35,10 +35,16 @@ that should be updated in the current manuscript after the rebuild is accepted.
   variables remain on their declared scale, all are standardised, and the full
   eligible block is ridge penalised.
 - Model comparison: linear versus spline PfPR, each with versus without a
-  PfPR-by-calendar-time interaction. All include country random intercepts and
-  random linear PfPR slopes, a smooth calendar-year term, and a log-exposure
-  offset.
+  PfPR-by-calendar-time interaction, plus a full `te(PfPR, year)` surface. All
+  include country random intercepts, random linear PfPR slopes and a
+  log-exposure offset. The four decomposed specifications include a separate
+  smooth calendar-year term; the full tensor surface contains the year main
+  effect.
 - Model selection: ML/AIC on one shared sample, followed by REML refitting.
+- Outcomes: the five-model AIC comparison is run separately for post-neonatal
+  and neonatal mortality. The post-neonatal winner remains the prespecified
+  structure for the primary negative-control comparison; the independently
+  selected neonatal winner is retained as a diagnostic.
 
 ## Script order
 
@@ -48,8 +54,10 @@ that should be updated in the current manuscript after the rebuild is accepted.
 4. `02b_extract_unicef_immunisation.R` — compact country-year WUENIC Hib3,
    PCV-completion and rotavirus-completion panel.
 5. `03_build_analysis_dataset.R` — outcomes, covariates, missingness and flags.
-6. `04_fit_main_models.R` — 2×2 model comparison and outcome refits.
-7. `05_make_main_plots.R` — figures from saved models only.
+6. `04_fit_main_models.R` — five-model post-neonatal and neonatal comparisons,
+   outcome-specific AIC table and outcome refits.
+7. `05_make_main_plots.R` — figures from saved models only, including a forest
+   plot of ridge-standardized conditional covariate associations.
 8. `06_sensitivity_samples.R` — prevalence and complete-case samples.
 9. `07_sensitivity_model_structure.R` — random slopes, covariate levels and
    spline basis dimensions.
@@ -84,8 +92,9 @@ The UNICEF source file
 `data/fusion_GLOBAL_DATAFLOW_UNICEF_1.0_all.csv` and its compact derived panel
 remain ignored under `data/`. `run_all.R` refreshes the compact panel when the
 source file is newer. `COVARIATE_SOURCES.md` documents the implemented vaccine
-variables and candidate UNAIDS and SMC sources. HIV and SMC are not yet included
-in the current model outputs.
+variables and candidate UNAIDS and SMC sources. The UNICEF file does not contain
+a usable country-year child HIV prevalence measure, so HIV and SMC are not yet
+included in the current model outputs.
 
 When the two saved legacy headline artifacts are present, `run_all.R` also writes
 `reproduction_check.csv` and `reproduction_summary.txt`. These test substantive

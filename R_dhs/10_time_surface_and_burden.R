@@ -31,41 +31,16 @@ analysis <- analysis[as.logical(analysis$main_sample), , drop = FALSE]
 catalog <- bundle$catalog
 catalog$included_in_main <- as.logical(catalog$included_in_main)
 
-prepare_model_data <- function(data) {
-  keep <- is.finite(data$postneonatal_mortality) &
-    data$postneonatal_mortality > 0 &
-    is.finite(data$exposure) & data$exposure > 0 &
-    is.finite(data$pfpr10) & is.finite(data$year_c) &
-    !is.na(data$iso3)
-  dd <- data[keep, , drop = FALSE]
-  dd$country <- factor(dd$iso3)
-  dd$deaths <- round(dd$postneonatal_mortality / 1000 * dd$exposure)
-  ridge <- make_ridge_matrix(dd, catalog, bundle$preprocessing)
-  dd$G <- ridge$matrix
-  dd
-}
-
-fit_full_te <- function(data, method) {
-  penalty <- list(G = list(diag(ncol(data$G))))
-  model <- mgcv::gam(
-    deaths ~
-      te(pfpr10, year_c, k = c(6, 6)) +
-      G +
-      s(country, bs = "re") +
-      s(country, pfpr10, bs = "re") +
-      offset(log(exposure)),
-    family = mgcv::nb(),
-    method = method,
-    paraPen = penalty,
-    data = data
-  )
-  model
-}
-
-model_data <- prepare_model_data(analysis)
-message("Fitting full te(PfPR, year) model using ML and REML.")
-te_ml <- fit_full_te(model_data, "ML")
-te_reml <- fit_full_te(model_data, "REML")
+message("Using the saved full te(PfPR, year) ML comparison and refitting REML.")
+te_ml <- bundle$comparison_fits$full_te_surface$model
+te_reml <- fit_ridge_gam(
+  analysis,
+  outcome = "postneonatal_mortality",
+  catalog = catalog,
+  specification = "full_te_surface",
+  method = "REML",
+  preprocessing = bundle$preprocessing
+)$model
 
 additive_reml <- fit_ridge_gam(
   analysis,
@@ -92,27 +67,15 @@ te_row <- grep(
 )
 if (!length(te_row)) stop("Could not find the te(PfPR, year) summary row.")
 
-surface_comparison <- rbind(
-  data.frame(
-    model = bundle$comparison$specification,
-    AIC = bundle$comparison$AIC,
-    prevalence_edf = bundle$comparison$pfpr_smooth_edf,
-    prevalence_p = bundle$comparison$pfpr_p,
-    interaction_edf = bundle$comparison$time_interaction_edf,
-    interaction_p = bundle$comparison$time_interaction_p,
-    full_surface_edf = NA_real_,
-    full_surface_p = NA_real_
-  ),
-  data.frame(
-    model = "full_te_surface",
-    AIC = AIC(te_ml),
-    prevalence_edf = NA_real_,
-    prevalence_p = NA_real_,
-    interaction_edf = NA_real_,
-    interaction_p = NA_real_,
-    full_surface_edf = te_table[te_row[1], "edf"],
-    full_surface_p = te_table[te_row[1], "p-value"]
-  )
+surface_comparison <- data.frame(
+  model = bundle$comparison$specification,
+  AIC = bundle$comparison$AIC,
+  prevalence_edf = bundle$comparison$pfpr_smooth_edf,
+  prevalence_p = bundle$comparison$pfpr_p,
+  interaction_edf = bundle$comparison$time_interaction_edf,
+  interaction_p = bundle$comparison$time_interaction_p,
+  full_surface_edf = bundle$comparison$full_surface_edf,
+  full_surface_p = bundle$comparison$full_surface_p
 )
 surface_comparison$dAIC <- surface_comparison$AIC -
   min(surface_comparison$AIC)

@@ -1,11 +1,12 @@
 # =============================================================================
 # 04_fit_main_models.R
-# Compare four ridge-penalised negative-binomial GAM specifications on one
+# Compare five ridge-penalised negative-binomial GAM specifications on one
 # shared post-neonatal analysis sample:
 #   1. linear PfPR, no PfPR-by-time interaction
 #   2. spline PfPR, no interaction
 #   3. linear PfPR with linear PfPR-by-time interaction
 #   4. spline PfPR with tensor PfPR-by-time interaction
+#   5. full tensor-product te(PfPR, year) surface
 #
 # Every model includes:
 #   * ridge-penalised transformed/standardised eligible covariates
@@ -14,10 +15,12 @@
 #   * country random linear PfPR slope
 #   * log-exposure offset
 #
-# Models are compared using ML on an identical sample. The lowest-AIC
-# specification is then refitted using REML for post-neonatal, all-U5 and
-# neonatal outcomes. A linear no-interaction model is also refitted for each
-# outcome to provide a directly comparable per-10-point negative-control table.
+# Models are compared using ML on an identical sample for both post-neonatal
+# and neonatal mortality. The post-neonatal winner is refitted using REML for
+# post-neonatal, all-U5 and neonatal outcomes so that the negative control uses
+# the same prespecified structure. The independently selected neonatal winner
+# is also retained as a diagnostic. A linear no-interaction model is refitted
+# for each outcome to provide a comparable per-10-point summary.
 # =============================================================================
 
 source("R_dhs/00_config.R")
@@ -67,6 +70,46 @@ print(
 
 selected_preprocessing <- comparison_fits[[selected_specification]]$preprocessing
 
+neonatal_comparison_fits <- setNames(
+  lapply(MODEL_SPECS$specification, function(specification) {
+    message("Fitting neonatal comparison model: ", specification)
+    fit_ridge_gam(
+      analysis,
+      outcome = "nnmr",
+      catalog = catalog,
+      specification = specification,
+      method = "ML",
+      preprocessing = selected_preprocessing
+    )
+  }),
+  MODEL_SPECS$specification
+)
+neonatal_comparison <- do.call(
+  rbind,
+  lapply(neonatal_comparison_fits, model_summary_row)
+)
+neonatal_comparison$dAIC <- neonatal_comparison$AIC -
+  min(neonatal_comparison$AIC)
+neonatal_comparison <- neonatal_comparison[
+  order(neonatal_comparison$AIC),
+  ,
+  drop = FALSE
+]
+neonatal_selected_specification <- neonatal_comparison$specification[1]
+message(
+  "Selected neonatal specification by AIC: ",
+  neonatal_selected_specification
+)
+print(
+  neonatal_comparison[, c(
+    "specification", "n", "countries", "AIC", "dAIC",
+    "pfpr_smooth_edf", "pct_change_per_10", "pfpr_p",
+    "time_interaction_edf", "time_interaction_p",
+    "full_surface_edf", "full_surface_p"
+  )],
+  row.names = FALSE
+)
+
 OUTCOMES <- c(
   postneonatal = "postneonatal_mortality",
   all_under_5 = "u5mr",
@@ -101,6 +144,15 @@ linear_fits <- setNames(
   names(OUTCOMES)
 )
 
+neonatal_selected_fit <- fit_ridge_gam(
+  analysis,
+  outcome = "nnmr",
+  catalog = catalog,
+  specification = neonatal_selected_specification,
+  method = "REML",
+  preprocessing = selected_preprocessing
+)
+
 primary_summary <- do.call(rbind, lapply(primary_fits, model_summary_row))
 primary_summary$role <- "selected specification, REML"
 linear_summary <- do.call(rbind, lapply(linear_fits, model_summary_row))
@@ -129,10 +181,41 @@ comparison$formula <- vapply(
   },
   character(1)
 )
+neonatal_comparison$formula <- vapply(
+  neonatal_comparison$specification,
+  function(specification) {
+    paste(deparse(model_formula(specification)), collapse = " ")
+  },
+  character(1)
+)
+outcome_specific_aic <- rbind(
+  comparison[, c(
+    "outcome", "specification", "n", "countries", "AIC", "dAIC"
+  )],
+  neonatal_comparison[, c(
+    "outcome", "specification", "n", "countries", "AIC", "dAIC"
+  )]
+)
+outcome_specific_aic$selected <- outcome_specific_aic$dAIC == 0
+outcome_specific_aic <- outcome_specific_aic[
+  order(outcome_specific_aic$outcome, outcome_specific_aic$AIC),
+  ,
+  drop = FALSE
+]
 
 write.csv(
   comparison,
   file.path(RESULTS_DIR, "main_model_comparison.csv"),
+  row.names = FALSE
+)
+write.csv(
+  neonatal_comparison,
+  file.path(RESULTS_DIR, "neonatal_model_comparison.csv"),
+  row.names = FALSE
+)
+write.csv(
+  outcome_specific_aic,
+  file.path(RESULTS_DIR, "outcome_specific_aic.csv"),
   row.names = FALSE
 )
 write.csv(
@@ -156,6 +239,10 @@ bundle <- list(
   selected_specification = selected_specification,
   comparison = comparison,
   comparison_fits = comparison_fits,
+  neonatal_selected_specification = neonatal_selected_specification,
+  neonatal_comparison = neonatal_comparison,
+  neonatal_comparison_fits = neonatal_comparison_fits,
+  neonatal_selected_fit = neonatal_selected_fit,
   primary_fits = primary_fits,
   linear_fits = linear_fits,
   preprocessing = selected_preprocessing,

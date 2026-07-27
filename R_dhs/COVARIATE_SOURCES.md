@@ -66,6 +66,14 @@ Source: [UNICEF immunization resources and WUENIC downloads](https://data.unicef
 
 ## Paediatric HIV
 
+The local UNICEF global dataflow file was checked for a country-year child HIV
+prevalence series. It does not contain one. Its only HIV epidemiology series,
+`HVA_EPI_LHIV`, reports the **number** of people aged 10–19 living with HIV for
+2010–2024, not prevalence and not an under-five or 0–14 age group. The file
+also contains an AIDS-orphan count (`HVA_PED_LOST_AIDS`), which is not an HIV
+prevalence measure. Neither variable is merged into the analysis under a
+different label.
+
 The preferred primary source is the [UNAIDS AIDSinfo estimates
 dataset](https://aidsinfo.unaids.org/dataset), which provides annual
 country-level Spectrum estimates. UNAIDS recommends the unrounded estimates

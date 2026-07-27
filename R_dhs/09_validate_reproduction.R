@@ -4,7 +4,7 @@
 #
 # This is a migration check, not an assertion of bit-for-bit identity. The
 # rebuilt analysis applies a coherent missingness rule and formally selects
-# among four PfPR/time specifications. It should nevertheless preserve:
+# among five PfPR/time specifications. It should nevertheless preserve:
 #   * the primary analysis sample size and country count;
 #   * the direction and significance classification of the three outcomes;
 #   * closely matching ridge-linear effects and nonlinear AF anchors.
@@ -209,7 +209,7 @@ summary_lines <- c(
   ),
   paste0(
     "- The rebuilt pipeline harmonises covariate eligibility/imputation and ",
-    "compares all four prespecified PfPR/time models on one sample."
+    "compares all five prespecified PfPR/time models on one sample."
   ),
   paste0(
     "- Legacy R files should be archived only after the generated data, plots, ",

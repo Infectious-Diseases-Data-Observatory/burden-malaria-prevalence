@@ -14,6 +14,10 @@ IHME/WHO comparisons and trial triangulation are outside this rebuild.
   percentage-point increase in PfPR2-10 (95% CI 5.77% to 11.83%).
 - The neonatal negative-control estimate remains null in the ridge-linear model:
   0.98% (95% CI -1.16% to 3.17%; p=0.373).
+- An independent five-model neonatal comparison also selects the additive
+  spline without a time interaction, narrowly ahead of the linear
+  no-interaction model (delta AIC 0.97). Its REML prevalence smooth has edf
+  1.00 and p=0.374.
 - All primary models use a negative-binomial likelihood, log-exposure offset,
   smooth calendar year, country random intercepts and country random linear
   PfPR slopes.
@@ -56,6 +60,11 @@ IHME/WHO comparisons and trial triangulation are outside this rebuild.
   these three ridge covariates changes the AIC-selected model from the spline
   interaction to the spline without interaction, while changing the
   cross-sectional effect and attributable-fraction estimates only modestly.
+- **Paediatric HIV:** the local UNICEF global dataflow does not contain child
+  HIV prevalence. `HVA_EPI_LHIV` is a count of 10–19-year-olds living with HIV
+  for 2010–2024, not prevalence or an under-five measure, so it has not been
+  merged under a different label. A separate UNAIDS prevalence series is still
+  required.
 - **Other excluded covariates:** wealth (5.56% missing), stunting (25.2%),
   underweight (27.5%), wasting (27.5%) and political stability (100%) are also
   flagged and excluded rather than imputed.

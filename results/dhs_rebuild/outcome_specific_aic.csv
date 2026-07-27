@@ -1,0 +1,11 @@
+"outcome","specification","n","countries","AIC","dAIC","selected"
+"nnmr","spline_no_interaction",921,34,6008.67601522493,0,TRUE
+"nnmr","linear_no_interaction",921,34,6009.6440170296,0.968001804669257,FALSE
+"nnmr","linear_time_interaction",921,34,6010.91793423643,2.24191901150243,FALSE
+"nnmr","full_te_surface",921,34,6012.40895930171,3.73294407677986,FALSE
+"nnmr","spline_time_interaction",921,34,6016.71048533145,8.03447010652053,FALSE
+"postneonatal_mortality","spline_no_interaction",921,34,7112.12372320479,0,TRUE
+"postneonatal_mortality","spline_time_interaction",921,34,7113.93480551236,1.81108230756217,FALSE
+"postneonatal_mortality","linear_no_interaction",921,34,7120.28331610958,8.15959290478531,FALSE
+"postneonatal_mortality","full_te_surface",921,34,7123.77882225113,11.6550990463402,FALSE
+"postneonatal_mortality","linear_time_interaction",921,34,7128.3208919996,16.1971687948098,FALSE

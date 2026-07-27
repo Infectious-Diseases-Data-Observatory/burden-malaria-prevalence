@@ -19,7 +19,8 @@ geometry: margin=0.9in
   PfPR2-10 is associated with 8.8% higher post-neonatal mortality (95% CI:
   5.8%–11.8%). The estimate for neonatal mortality, our negative-control
   outcome, is small and statistically consistent with no association.
-  [See association results.](#association-results)
+  [See association results](#association-results) and
+  [neonatal model selection.](#neonatal-selection)
 
 - **After adding national vaccine coverage, a time-stable nonlinear
   prevalence-mortality relationship fits best.** The additive spline has lower
@@ -133,11 +134,12 @@ separate status flag. Gaps after a series starts remain missing. All 936 rows
 have values for the three national series, so they enter the ridge block
 without imputation.
 
-UNAIDS AIDSinfo provides country-year paediatric HIV estimates. Historical
-subnational SMC coverage is not currently available as one public
-machine-readable panel; WHO, the SMC Alliance and MAP provide complementary
-sources. The extraction rules, source choices and causal considerations are
-documented in
+The local UNICEF dataflow does not contain child HIV prevalence. Its only HIV
+epidemiology series is a count of 10–19-year-olds living with HIV for
+2010–2024, so it is not relabelled or merged as under-five prevalence. UNAIDS
+AIDSinfo remains the appropriate source for country-year paediatric prevalence.
+Historical subnational SMC coverage is not currently available as one public
+machine-readable panel. The source choices are documented in
 [`R_dhs/COVARIATE_SOURCES.md`](R_dhs/COVARIATE_SOURCES.md).
 
 Proportions are logit transformed, continuous variables remain on their
@@ -156,8 +158,8 @@ count using the DHS birth exposure. Models use:
 - country random intercepts;
 - country-specific random linear PfPR slopes.
 
-The four prespecified models and the full `te(PfPR, year)` sensitivity are
-compared using maximum likelihood and AIC on the same 921 observations:
+Five models are compared using maximum likelihood and AIC on the same 921
+observations:
 
 | Model | Prevalence and time specification | AIC | ΔAIC |
 |---|---|---:|---:|
@@ -177,6 +179,11 @@ all-under-five mortality and neonatal mortality. The linear no-interaction
 model is also refitted for all three outcomes to give an interpretable
 percentage change per 10 PfPR percentage points.
 
+The same five-model comparison is also run independently for neonatal mortality
+as a diagnostic. The primary negative-control comparison nevertheless retains
+the post-neonatal-selected specification to avoid choosing a different
+functional form based on the negative-control outcome.
+
 ## Main results
 
 ### DHS/MIS association {#association-results}
@@ -193,6 +200,34 @@ PfPR2-10 is associated with:
 The neonatal result reduces, but does not eliminate, concern that the main
 association reflects broad differences in child survival between
 higher-prevalence and lower-prevalence settings.
+
+### Neonatal model selection {#neonatal-selection}
+
+The additive spline without a time interaction also has the lowest neonatal
+AIC, although the preference over the linear no-interaction model is weak:
+
+| Neonatal specification | AIC | ΔAIC |
+|---|---:|---:|
+| Spline without interaction | 6008.68 | 0.00 |
+| Linear without interaction | 6009.64 | 0.97 |
+| Linear with interaction | 6010.92 | 2.24 |
+| Full tensor surface | 6012.41 | 3.73 |
+| Spline with `ti` interaction | 6016.71 | 8.03 |
+
+In the REML refit, the selected neonatal prevalence smooth is effectively
+linear (edf 1.00) and remains consistent with no association (`p=0.374`). The
+complete post-neonatal and neonatal comparison is in
+`results/dhs_rebuild/outcome_specific_aic.csv`.
+
+### Covariate associations
+
+![Ridge-standardized conditional associations for the 19 covariates in the
+best-fitting post-neonatal model.](results/dhs_rebuild/figure5_covariate_forest.png){width=92%}
+
+The forest plot reports the percentage change in post-neonatal mortality for a
+one-standard-deviation increase in each transformed covariate, conditional on
+the complete model. The coefficients and intervals are ridge-shrunk and should
+not be interpreted as independent causal effects.
 
 ### Attributable fraction {#attributable-fraction}
 
@@ -364,6 +399,8 @@ The comparison is not a validation against a common estimand:
   latest estimates are for 2024;
 - the WHO country under-five comparison applies a regional 75% age-share
   assumption to every country.
+
+\enlargethispage{2\baselineskip}
 
 Our current interpretation is that the data provide fairly robust evidence of
 a positive cross-sectional association between malaria prevalence and
