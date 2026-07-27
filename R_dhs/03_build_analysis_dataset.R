@@ -1,0 +1,426 @@
+# =============================================================================
+# 03_build_analysis_dataset.R
+# Build one aggregate survey-region analysis dataset containing:
+#   * MAP PfPR2-10
+#   * DHS all-under-5, neonatal and post-neonatal mortality + exposure
+#   * DHS survey-region covariates
+#   * nearest-year national World Bank covariates
+#   * transparent missingness, eligibility and single-imputation fields
+#
+# Standard run (from authorised DHS recodes and outputs of scripts 01-02):
+#   Rscript R_dhs/03_build_analysis_dataset.R
+#
+# Migration/verification run using the existing aggregate panel only:
+#   Rscript R_dhs/03_build_analysis_dataset.R --from-legacy-aggregate
+#
+# The migration mode does not read individual-level DHS records and is only for
+# comparing the rebuilt analysis with the existing results before archiving.
+# =============================================================================
+
+source("R_dhs/00_config.R")
+
+args <- commandArgs(trailingOnly = TRUE)
+legacy_mode <- "--from-legacy-aggregate" %in% args
+
+COVARIATE_CATALOG <- data.frame(
+  variable = c(
+    "pct_urban", "dtp3_reg", "measles", "facility", "educ_yrs",
+    "wealth_q", "excl_bf", "stunting", "underweight", "wasting",
+    "birth_int", "mage1", "imp_water", "imp_sanit", "elec_dhs",
+    "dtp3", "log_gdp", "hexp_gdp", "log_hexp_pc", "polstab", "elec"
+  ),
+  level = c(
+    rep("survey-region", 15),
+    rep("national-nearest-year", 6)
+  ),
+  type = c(
+    "proportion", "proportion", "proportion", "proportion", "continuous",
+    "continuous", "proportion", "proportion", "proportion", "proportion",
+    "proportion", "continuous", "proportion", "proportion", "proportion",
+    "proportion", "continuous", "proportion", "continuous", "continuous",
+    "proportion"
+  )
+)
+
+yes_received <- function(x) {
+  grepl(
+    "yes|received|reported|card|marked|mother",
+    tolower(as.character(x))
+  )
+}
+
+region_covariates <- function(br, region_var) {
+  if (!region_var %in% names(br)) return(NULL)
+  weight <- suppressWarnings(as.numeric(br$v005)) / 1e6
+  region <- rkey(as.character(br[[region_var]]))
+  aggregate_value <- function(value, eligible) {
+    weighted_mean_by_region(value, weight, region, eligible)
+  }
+
+  age_months <- suppressWarnings(
+    as.numeric(br$v008) - as.numeric(br$b3)
+  )
+  alive <- if ("b5" %in% names(br)) {
+    tolower(as.character(br$b5)) == "yes"
+  } else {
+    rep(TRUE, nrow(br))
+  }
+
+  urban <- if ("v025" %in% names(br)) {
+    100 * aggregate_value(
+      as.numeric(tolower(as.character(br$v025)) == "urban"),
+      !is.na(br$v025)
+    )
+  } else numeric(0)
+
+  immunisation <- function(variable) {
+    if (!variable %in% names(br)) return(numeric(0))
+    labels <- tolower(as.character(br[[variable]]))
+    eligible <- alive & is.finite(age_months) &
+      age_months >= 12 & age_months <= 23 &
+      !is.na(labels) & labels != "missing"
+    100 * aggregate_value(as.numeric(yes_received(labels)), eligible)
+  }
+  dtp3_reg <- immunisation("h7")
+  measles <- immunisation("h9")
+
+  facility <- numeric(0)
+  if ("m15" %in% names(br)) {
+    labels <- tolower(as.character(br$m15))
+    usable <- !is.na(labels) & labels != "missing" & nzchar(labels)
+    facility_pattern <- paste(
+      "hospital|clinic|health|dispensary|maternit|cms|pmi|hut|post|doctor",
+      "nursing|centre|center|sector|infirmary|polyclin|hopital|hôpital",
+      "clinique|sante|santé|cabinet",
+      sep = "|"
+    )
+    home_pattern <- "home|house|domicile|maison|parent"
+    in_facility <- !grepl(home_pattern, labels) &
+      grepl(facility_pattern, labels)
+    facility <- 100 * aggregate_value(as.numeric(in_facility), usable)
+  }
+
+  mother_id <- if ("caseid" %in% names(br)) {
+    as.character(br$caseid)
+  } else {
+    paste(br$v001, br$v002, br$v003)
+  }
+  first_mother <- !duplicated(mother_id)
+  household_id <- paste(br$v001, br$v002)
+  first_household <- !duplicated(household_id)
+
+  education <- suppressWarnings(as.numeric(as.character(br$v133)))
+  education[education < 0 | education > 25] <- NA_real_
+  educ_yrs <- aggregate_value(
+    education,
+    first_mother & is.finite(education)
+  )
+
+  wealth <- match(
+    tolower(as.character(br$v190)),
+    c("poorest", "poorer", "middle", "richer", "richest")
+  )
+  wealth_q <- aggregate_value(
+    as.numeric(wealth),
+    first_mother & is.finite(wealth)
+  )
+
+  excl_bf <- numeric(0)
+  if ("v404" %in% names(br)) {
+    under_six_months <- alive & is.finite(age_months) & age_months < 6
+    breastfeeding <- grepl(
+      "yes|breast", tolower(as.character(br$v404))
+    )
+    other_food_vars <- intersect(
+      c(
+        "v409", "v410", "v411", "v411a", "v412", "v412a", "v413",
+        "v414a", "v414b", "v414c", "v414e", "v414f", "v414g",
+        "v414h", "v414i", "v414j", "v414k", "v414l", "v414m",
+        "v414n", "v414o", "v414p", "v414v"
+      ),
+      names(br)
+    )
+    other_food <- if (length(other_food_vars)) {
+      Reduce(
+        `|`,
+        lapply(other_food_vars, function(v) yes_received(br[[v]]))
+      )
+    } else {
+      rep(FALSE, nrow(br))
+    }
+    excl_bf <- 100 * aggregate_value(
+      as.numeric(breastfeeding & !other_food),
+      under_six_months & !is.na(br$v404)
+    )
+  }
+
+  anthropometry <- function(variable) {
+    if (!variable %in% names(br)) return(numeric(0))
+    z <- suppressWarnings(as.numeric(br[[variable]]))
+    z[z >= 9990 | z <= -600] <- NA_real_
+    100 * aggregate_value(as.numeric(z < -200), alive & is.finite(z))
+  }
+  stunting <- anthropometry("hw5")
+  underweight <- anthropometry("hw8")
+  wasting <- anthropometry("hw11")
+
+  birth_int <- if ("b11" %in% names(br)) {
+    interval <- suppressWarnings(as.numeric(br$b11))
+    100 * aggregate_value(
+      as.numeric(interval < 24),
+      is.finite(interval)
+    )
+  } else numeric(0)
+
+  maternal_age <- suppressWarnings(as.numeric(br$v212))
+  maternal_age[maternal_age < 8 | maternal_age > 45] <- NA_real_
+  mage1 <- if ("v212" %in% names(br)) {
+    aggregate_value(
+      maternal_age,
+      first_mother & is.finite(maternal_age)
+    )
+  } else numeric(0)
+
+  household_fraction <- function(variable, include_pattern, exclude_pattern = NULL) {
+    if (!variable %in% names(br)) return(numeric(0))
+    labels <- tolower(as.character(br[[variable]]))
+    usable <- first_household & !is.na(labels) &
+      labels != "missing" & nzchar(labels)
+    included <- grepl(include_pattern, labels)
+    if (!is.null(exclude_pattern)) {
+      included <- included & !grepl(exclude_pattern, labels)
+    }
+    100 * aggregate_value(as.numeric(included), usable)
+  }
+  imp_water <- household_fraction(
+    "v113",
+    "pipe|tap|standpipe|borehole|tube ?well|protected|rain|bottled|sachet",
+    "unprotected"
+  )
+  imp_sanit <- household_fraction(
+    "v116",
+    "flush|septic|sewer|ventilated|vip|slab|composting",
+    "without slab|open pit|no facil|bush|field|hanging|bucket|somewhere"
+  )
+  elec_dhs <- household_fraction("v119", "yes")
+
+  values <- list(
+    pct_urban = urban,
+    dtp3_reg = dtp3_reg,
+    measles = measles,
+    facility = facility,
+    educ_yrs = educ_yrs,
+    wealth_q = wealth_q,
+    excl_bf = excl_bf,
+    stunting = stunting,
+    underweight = underweight,
+    wasting = wasting,
+    birth_int = birth_int,
+    mage1 = mage1,
+    imp_water = imp_water,
+    imp_sanit = imp_sanit,
+    elec_dhs = elec_dhs
+  )
+  region_keys <- Reduce(union, lapply(values, names))
+  if (!length(region_keys)) return(NULL)
+
+  out <- data.frame(regkey = region_keys)
+  for (variable in names(values)) {
+    out[[variable]] <- pick_named(values[[variable]], region_keys)
+  }
+  out
+}
+
+build_from_raw <- function() {
+  if (!file.exists(SURVEY_REGISTRY_CSV)) {
+    stop("Survey registry missing. Run script 01.")
+  }
+  if (!file.exists(MAP_REGION_CSV)) {
+    stop("MAP survey-region estimates missing. Run script 02.")
+  }
+  registry <- read.csv(SURVEY_REGISTRY_CSV, stringsAsFactors = FALSE)
+  map <- read.csv(MAP_REGION_CSV, stringsAsFactors = FALSE)
+
+  rows <- list()
+  for (i in seq_len(nrow(registry))) {
+    survey <- registry[i, , drop = FALSE]
+    survey_map <- map[map$svkey == survey$svkey, , drop = FALSE]
+    recode <- survey$local_recode
+    if (!is.character(recode) || is.na(recode) || !file.exists(recode) ||
+        !nrow(survey_map)) next
+
+    br <- tryCatch(readRDS(recode), error = function(e) NULL)
+    if (is.null(br)) next
+    region_var <- best_region_var(br, survey_map$regkey)
+    mortality <- mortality_by_region(br, region_var)
+    covariates <- region_covariates(br, region_var)
+    if (is.null(mortality) || is.null(covariates)) next
+
+    region <- merge(mortality, covariates, by = "regkey", all = TRUE)
+    region <- merge(
+      region,
+      unique(survey_map[, c(
+        "svkey", "iso3", "year", "regkey", "region",
+        "pfpr2_10", "population_weight"
+      )]),
+      by = "regkey"
+    )
+    if (!nrow(region)) next
+    rows[[survey$svkey]] <- region
+    message(
+      "Aggregated ", survey$svkey, ": ", nrow(region),
+      " matched survey-regions."
+    )
+  }
+  if (!length(rows)) stop("No survey-regions could be assembled.")
+  out <- do.call(rbind, rows)
+  rownames(out) <- NULL
+  out
+}
+
+build_from_legacy_aggregate <- function() {
+  path <- file.path(REPO_ROOT, "results", "component2_region_data_full.csv")
+  if (!file.exists(path)) stop("Legacy aggregate panel not found: ", path)
+  out <- read.csv(path, stringsAsFactors = FALSE)
+  if ("m1mo5y" %in% names(out)) {
+    out$postneonatal_mortality <- out$m1mo5y
+  }
+  out$nnmr <- out$u5mr - out$postneonatal_mortality
+
+  # Restore original missing values using the legacy imputation flags so the
+  # new <=5% eligibility rule is evaluated on pre-imputation data.
+  for (variable in COVARIATE_CATALOG$variable) {
+    flag <- paste0(variable, "_imp")
+    if (variable %in% names(out) && flag %in% names(out)) {
+      out[[variable]][as.logical(out[[flag]])] <- NA_real_
+    }
+  }
+  out
+}
+
+attach_national_covariates <- function(data) {
+  panels <- list(
+    dtp3 = read_or_fetch_wb("wb_dtp3.csv", "SH.IMM.IDPT", "dtp3"),
+    gdp_pc = read_or_fetch_wb(
+      "wb_gdp_pc.csv", "NY.GDP.PCAP.CD", "gdp_pc"
+    ),
+    hexp_gdp = read_or_fetch_wb(
+      "wb_hexp_gdp.csv", "SH.XPD.CHEX.GD.ZS", "hexp_gdp"
+    ),
+    hexp_pc = read_or_fetch_wb(
+      "wb_hexp_pc.csv", "SH.XPD.CHEX.PC.CD", "hexp_pc"
+    ),
+    polstab = read_or_fetch_wb("wb_polstab.csv", "PV.EST", "polstab"),
+    elec = read_or_fetch_wb("wb_elec.csv", "EG.ELC.ACCS.ZS", "elec")
+  )
+  for (name in names(panels)) {
+    data[[name]] <- mapply(
+      function(iso3, year) {
+        nearest_panel_value(panels[[name]], iso3, year, name)
+      },
+      data$iso3,
+      data$year
+    )
+  }
+  data$log_gdp <- log(data$gdp_pc)
+  data$log_hexp_pc <- log(data$hexp_pc)
+  data
+}
+
+if (legacy_mode) {
+  message("Building from the existing aggregate panel for migration validation.")
+  analysis <- build_from_legacy_aggregate()
+} else {
+  required_packages(c("DHS.rates", "countrycode"))
+  analysis <- build_from_raw()
+  analysis <- attach_national_covariates(analysis)
+}
+
+analysis$pfpr10 <- analysis$pfpr2_10 / 10
+analysis$nnmr <- if ("nnmr" %in% names(analysis)) {
+  analysis$nnmr
+} else {
+  analysis$u5mr - analysis$postneonatal_mortality
+}
+
+missingness <- apply_missingness_rule(
+  analysis,
+  COVARIATE_CATALOG,
+  threshold = MAX_MISSING
+)
+analysis <- missingness$data
+catalog <- missingness$catalog
+
+country_mean <- tapply(
+  analysis$pfpr2_10,
+  analysis$iso3,
+  mean,
+  na.rm = TRUE
+)
+analysis$country_mean_pfpr <- unname(country_mean[analysis$iso3])
+analysis$country_mean_pfpr_gt_1 <- analysis$country_mean_pfpr > PFPR_FLOOR
+analysis$pfpr_region_ge_1 <- is.finite(analysis$pfpr2_10) &
+  analysis$pfpr2_10 >= PFPR_FLOOR
+
+included_covariates <- catalog$variable[catalog$included_in_main]
+analysis$complete_case_eligible <- if (length(included_covariates)) {
+  rowSums(vapply(
+    included_covariates,
+    function(variable) analysis[[paste0(variable, "_imputed")]],
+    logical(nrow(analysis))
+  )) == 0
+} else {
+  TRUE
+}
+
+analysis$main_sample <- analysis$country_mean_pfpr_gt_1 &
+  analysis$pfpr_region_ge_1 &
+  is.finite(analysis$exposure) & analysis$exposure > 0 &
+  is.finite(analysis$u5mr) & analysis$u5mr > 0 &
+  is.finite(analysis$nnmr) & analysis$nnmr > 0 &
+  is.finite(analysis$postneonatal_mortality) &
+  analysis$postneonatal_mortality > 0
+
+year_center <- round(mean(analysis$year[analysis$main_sample], na.rm = TRUE))
+analysis$year_c <- analysis$year - year_center
+
+write.csv(catalog, COVARIATE_CSV, row.names = FALSE)
+write.csv(analysis, ANALYSIS_CSV, row.names = FALSE)
+saveRDS(analysis, ANALYSIS_RDS)
+
+inclusion <- data.frame(
+  stage = c(
+    "assembled survey-region panel",
+    "country mean PfPR >1%",
+    "region PfPR >=1%",
+    "main shared-outcome sample",
+    "complete-case eligible-covariate sensitivity"
+  ),
+  region_years = c(
+    nrow(analysis),
+    sum(analysis$country_mean_pfpr_gt_1),
+    sum(analysis$pfpr_region_ge_1),
+    sum(analysis$main_sample),
+    sum(analysis$main_sample & analysis$complete_case_eligible)
+  )
+)
+write.csv(
+  inclusion,
+  file.path(RESULTS_DIR, "analysis_inclusion_counts.csv"),
+  row.names = FALSE
+)
+
+message(
+  "Analysis dataset: ", nrow(analysis), " survey-region-years; ",
+  length(unique(analysis$svkey)), " surveys; ",
+  length(unique(analysis$iso3)), " countries."
+)
+message(
+  "Main sample: ", sum(analysis$main_sample), " region-years; ",
+  length(unique(analysis$iso3[analysis$main_sample])),
+  " countries; year centered at ", year_center, "."
+)
+message(
+  sum(catalog$included_in_main), " of ", nrow(catalog),
+  " candidate covariates passed the <=5% missingness rule."
+)
