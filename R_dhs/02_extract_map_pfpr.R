@@ -162,3 +162,24 @@ if (any(!status$success & status$year == 2025)) {
     MAP_STATUS_CSV, ". No 2024 substitution was made."
   )
 }
+# Do not let a partial extraction pass as a complete one: a dropped in-scope
+# survey shrinks the assembled panel below its validated size and silently
+# reduces every downstream sample count. A 2025 survey lacking a 2025 MAP
+# surface is an intended, separately-messaged non-substitution (above) and is
+# not part of the validated 2000-2024 panel, so it is excluded here. This flags
+# only whole-survey drops; a survey can still lose individual regions via the
+# finiteness filter above (e.g. a region polygon with no raster/population
+# overlap), which is recorded per survey in MAP_STATUS_CSV.
+n_dropped_in_scope <- sum(!status$success & status$year <= 2024L)
+if (n_dropped_in_scope > 0) {
+  n_in_scope <- sum(status$year <= 2024L)
+  warning(
+    n_dropped_in_scope, " of ", n_in_scope, " in-scope (2000-2024) surveys ",
+    "produced no MAP survey-region estimates and were dropped (reasons in ",
+    MAP_STATUS_CSV, "). The assembled panel is INCOMPLETE relative to the ",
+    "validated 936-row panel and downstream sample counts will be smaller. ",
+    "Cache the missing boundary/raster inputs, or use ",
+    "'03_build_analysis_dataset.R --from-legacy-aggregate' for an exact rebuild.",
+    call. = FALSE, immediate. = TRUE
+  )
+}

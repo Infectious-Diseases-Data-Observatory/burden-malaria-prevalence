@@ -65,10 +65,22 @@ that should be updated in the current manuscript after the rebuild is accepted.
    ridge block and primary random-effects/PfPR structure.
 11. `09_validate_reproduction.R` — aggregate migration checks against the saved
    legacy headline models and results.
-12. `10_time_surface_and_burden.R` — optional comparison of additive, `ti`, and
-   full `te` time/prevalence surfaces, followed by latest-year national burden
-   comparisons with IHME and WHO. This is downstream of the DHS/MIS-only model
-   rebuild and is not called by `run_all.R`.
+12. `10_time_surface_and_burden.R` — comparison of additive, `ti`, and full
+   `te` time/prevalence surfaces, followed by latest-year national burden
+   comparisons with IHME and WHO. It is downstream of the DHS/MIS-only model
+   rebuild but produces the burden/temporal/IHME-WHO numbers, so `run_all.R`
+   runs it whenever its national-burden inputs are present (and it can also be
+   run standalone).
+13. `11_study_flow.R` — analysis-flow diagram (survey-inclusion funnel plus the
+   external MAP/UNICEF/UNAIDS/World Bank data inflows). Self-contained.
+14. `12_triangulation_rct.R` — RCT triangulation of the prevalence→mortality
+   link: predicts each ITN/curtain trial's mortality reduction from its
+   age-standardised prevalence drop using the fitted model bundle, and compares
+   with the observed trial effects (manuscript figure fig3_rct).
+15. `13_ihme_share.R` — Method-1 comparison figure: IHME/GBD malaria share of
+   post-neonatal deaths versus national PfPR2-10 (manuscript figure
+   fig_ihme_share_spline). Reads the Method-1 country panel from
+   `R/02_component1_country.R`; skips itself if that panel is absent.
 
 ## Commands
 
@@ -92,9 +104,16 @@ The UNICEF source file
 `data/fusion_GLOBAL_DATAFLOW_UNICEF_1.0_all.csv` and its compact derived panel
 remain ignored under `data/`. `run_all.R` refreshes the compact panel when the
 source file is newer. `COVARIATE_SOURCES.md` documents the implemented vaccine
-variables and candidate UNAIDS and SMC sources. The UNICEF file does not contain
-a usable country-year child HIV prevalence measure, so HIV and SMC are not yet
-included in the current model outputs.
+and paediatric-HIV variables and candidate SMC sources.
+
+Child (0-14) HIV prevalence is now included. It is derived in
+`03_build_analysis_dataset.R` from the UNAIDS 2025 estimates workbook
+`data/HIV_Epidemiology_Children_Adolescents_2025.xlsx` (estimated number of
+children 0-14 living with HIV) divided by the World Bank 0-14 population
+(`SP.POP.0014.TO`), joined by ISO3 and exact survey year and entered on the log
+scale as `log_hiv_prev`. Nigeria and Comoros publish only a 15-19 UNAIDS series,
+so they stay missing and fall under the standard <=5% imputation rule with a
+status flag. SMC is still not included; see `COVARIATE_SOURCES.md`.
 
 When the two saved legacy headline artifacts are present, `run_all.R` also writes
 `reproduction_check.csv` and `reproduction_summary.txt`. These test substantive

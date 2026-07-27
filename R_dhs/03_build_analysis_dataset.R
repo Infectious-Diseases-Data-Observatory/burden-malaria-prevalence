@@ -29,22 +29,21 @@ COVARIATE_CATALOG <- data.frame(
     "pcv3_reg", "rotavirus_complete_reg", "facility", "educ_yrs", "wealth_q",
     "excl_bf", "stunting", "underweight", "wasting", "birth_int",
     "mage1", "imp_water", "imp_sanit", "elec_dhs",
-    "hib3_wuenic", "pcv3_wuenic", "rotac_wuenic",
-    "dtp3", "log_gdp", "hexp_gdp", "log_hexp_pc", "polstab", "elec"
+    "hib3_wuenic", "pcv3_wuenic", "rotac_wuenic", "log_hiv_prev",
+    "log_gdp", "log_hexp_pc", "polstab"
   ),
   level = c(
     rep("survey-region", 18),
-    rep("national-exact-year", 3),
-    rep("national-nearest-year", 6)
+    rep("national-exact-year", 4),
+    rep("national-nearest-year", 3)
   ),
   type = c(
     "proportion", "proportion", "proportion", "proportion", "proportion",
     "proportion", "proportion", "continuous", "continuous", "proportion",
     "proportion", "proportion", "proportion", "proportion", "continuous",
     "proportion", "proportion", "proportion",
-    "proportion", "proportion", "proportion",
-    "proportion", "continuous", "proportion", "continuous", "continuous",
-    "proportion"
+    "proportion", "proportion", "proportion", "continuous",
+    "continuous", "continuous", "continuous"
   )
 )
 
@@ -472,6 +471,101 @@ attach_unicef_immunisation <- function(data) {
   data
 }
 
+# Derived child (0-14) HIV prevalence from UNAIDS 2025 estimates (via UNICEF).
+# The workbook reports no prevalence rate, so it is derived as the estimated
+# number of children 0-14 living with HIV divided by the World Bank 0-14
+# population (SP.POP.0014.TO), joined by ISO3 and exact survey year. The
+# prevalence spans ~3 orders of magnitude and is entered on the log scale, so
+# the analysis covariate is log_hiv_prev. Countries whose UNAIDS child series
+# is absent (only 15-19 published) stay missing and fall under the standard
+# <=5% imputation rule with an explicit status flag.
+attach_hiv_prevalence <- function(data) {
+  data$hiv_prev <- NA_real_
+  data$log_hiv_prev <- NA_real_
+  data$hiv_prev_status <- "no_under15_series"
+  if (!file.exists(HIV_XLSX)) {
+    warning(
+      "HIV epidemiology workbook not found: ", HIV_XLSX,
+      "; child HIV prevalence remains missing."
+    )
+    return(data)
+  }
+  required_packages("readxl")
+
+  raw <- as.data.frame(suppressMessages(readxl::read_excel(
+    HIV_XLSX, sheet = "Data", skip = 1, guess_max = 100000
+  )))
+  parse_estimate <- function(x) {
+    x <- gsub(",", "", trimws(as.character(x)))
+    below <- grepl("^<", x)
+    x <- gsub("[<>]", "", x)
+    value <- suppressWarnings(as.numeric(x))
+    value[below] <- value[below] / 2   # e.g. "<500" -> 250 midpoint
+    value
+  }
+  plhiv <- raw[
+    raw$Sex == "Both" & raw$Age == "Age 0-14" &
+      raw$Indicator == "Estimated number of people living with HIV",
+    c("ISO3", "Year", "Value"),
+    drop = FALSE
+  ]
+  plhiv$iso3 <- toupper(plhiv$ISO3)
+  plhiv$year <- suppressWarnings(as.integer(plhiv$Year))
+  plhiv$plhiv <- parse_estimate(plhiv$Value)
+  plhiv <- plhiv[
+    nchar(plhiv$iso3) == 3L & is.finite(plhiv$year) &
+      is.finite(plhiv$plhiv) & plhiv$plhiv > 0,
+    ,
+    drop = FALSE
+  ]
+  plhiv <- plhiv[!duplicated(paste(plhiv$iso3, plhiv$year, sep = "|")), , drop = FALSE]
+
+  population <- read_or_fetch_wb("wb_pop_0_14.csv", "SP.POP.0014.TO", "pop_0_14")
+  matched_pop <- match(
+    paste(plhiv$iso3, plhiv$year, sep = "|"),
+    paste(population$iso3, population$year, sep = "|")
+  )
+  plhiv$pop_0_14 <- population$pop_0_14[matched_pop]
+  plhiv$hiv_prev <- 100 * plhiv$plhiv / plhiv$pop_0_14
+  panel <- plhiv[
+    is.finite(plhiv$hiv_prev) & plhiv$hiv_prev > 0,
+    c("iso3", "year", "plhiv", "pop_0_14", "hiv_prev"),
+    drop = FALSE
+  ]
+  write.csv(panel, HIV_PANEL_CSV, row.names = FALSE)
+
+  matched <- match(
+    paste(data$iso3, data$year, sep = "|"),
+    paste(panel$iso3, panel$year, sep = "|")
+  )
+  data$hiv_prev <- panel$hiv_prev[matched]
+  data$log_hiv_prev <- log(data$hiv_prev)
+  data$hiv_prev_status[is.finite(matched)] <- "unaids_2025_estimate"
+
+  covered_countries <- sort(unique(panel$iso3))
+  summary_panel <- data.frame(
+    variable = "log_hiv_prev",
+    source = "UNAIDS 2025 estimates (0-14 PLHIV) / World Bank SP.POP.0014.TO",
+    matched_region_years = sum(is.finite(matched)),
+    total_region_years = nrow(data),
+    countries_with_series = length(covered_countries),
+    countries_without_series = paste(
+      sort(setdiff(unique(data$iso3), covered_countries)), collapse = " "
+    ),
+    min_prevalence_pct = min(panel$hiv_prev),
+    max_prevalence_pct = max(panel$hiv_prev)
+  )
+  write.csv(summary_panel, HIV_SUMMARY_CSV, row.names = FALSE)
+
+  message(
+    "Matched child HIV prevalence to ", sum(is.finite(matched)), " of ",
+    nrow(data), " survey-region-years (no under-15 UNAIDS series: ",
+    paste(sort(setdiff(unique(data$iso3), covered_countries)), collapse = " "),
+    ")."
+  )
+  data
+}
+
 if (legacy_mode) {
   message("Building from the existing aggregate panel for migration validation.")
   analysis <- build_from_legacy_aggregate()
@@ -481,6 +575,7 @@ if (legacy_mode) {
   analysis <- attach_national_covariates(analysis)
 }
 analysis <- attach_unicef_immunisation(analysis)
+analysis <- attach_hiv_prevalence(analysis)
 
 analysis$pfpr10 <- analysis$pfpr2_10 / 10
 analysis$nnmr <- if ("nnmr" %in% names(analysis)) {

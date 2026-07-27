@@ -31,6 +31,15 @@ UNICEF_IMMUNISATION_CSV <- file.path(
 UNICEF_IMMUNISATION_SUMMARY_CSV <- file.path(
   RESULTS_DIR, "unicef_immunisation_extraction_summary.csv"
 )
+HIV_XLSX <- file.path(
+  DATA_DIR, "HIV_Epidemiology_Children_Adolescents_2025.xlsx"
+)
+HIV_PANEL_CSV <- file.path(
+  DERIVED_DIR, "hiv_prevalence_country_year.csv"
+)
+HIV_SUMMARY_CSV <- file.path(
+  RESULTS_DIR, "hiv_prevalence_extraction_summary.csv"
+)
 
 for (d in c(DERIVED_DIR, RESULTS_DIR, BOUNDARY_DIR, MAP_RASTER_DIR, MAP_REGION_DIR)) {
   dir.create(d, recursive = TRUE, showWarnings = FALSE)

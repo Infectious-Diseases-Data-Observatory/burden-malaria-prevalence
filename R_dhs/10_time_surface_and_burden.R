@@ -42,14 +42,20 @@ te_reml <- fit_ridge_gam(
   preprocessing = bundle$preprocessing
 )$model
 
-additive_reml <- fit_ridge_gam(
-  analysis,
-  outcome = "postneonatal_mortality",
-  catalog = catalog,
-  specification = "spline_no_interaction",
-  method = "REML",
-  preprocessing = bundle$preprocessing
-)$model
+# Reuse the saved REML post-neonatal fit when it already is the additive spline
+# (the usual case); only refit if a different specification was selected.
+additive_reml <- if (identical(bundle$selected_specification, "spline_no_interaction")) {
+  bundle$primary_fits$postneonatal$model
+} else {
+  fit_ridge_gam(
+    analysis,
+    outcome = "postneonatal_mortality",
+    catalog = catalog,
+    specification = "spline_no_interaction",
+    method = "REML",
+    preprocessing = bundle$preprocessing
+  )$model
+}
 ti_reml <- fit_ridge_gam(
   analysis,
   outcome = "postneonatal_mortality",
@@ -420,14 +426,23 @@ country_comparison$who_u5_proxy_lo_2024 <-
 country_comparison$who_u5_proxy_hi_2024 <-
   0.75 * country_comparison$who_all_age_hi_2024
 
-best_surface <- surface_comparison$model[1]
-best_column <- switch(
-  best_surface,
-  spline_no_interaction = "deaths_spline_no_time_interaction_2025",
-  spline_time_interaction = "deaths_spline_ti_interaction_2025",
-  full_te_surface = "deaths_full_te_surface_2025",
-  stop("The AIC-best model is not a spline surface model: ", best_surface)
+# Choose the burden reference among the three refit time-surface models only,
+# by the ML AIC used for selection throughout. This maps directly onto the
+# surface_models names (and hence the deaths_<name>_2025 columns), so a linear
+# AIC-best specification can never select a non-existent surface column.
+surface_spec_of <- c(
+  spline_no_time_interaction = "spline_no_interaction",
+  spline_ti_interaction = "spline_time_interaction",
+  full_te_surface = "full_te_surface"
 )
+surface_ml_aic <- bundle$comparison$AIC[
+  match(surface_spec_of, bundle$comparison$specification)
+]
+best_surface <- names(surface_spec_of)[which.min(surface_ml_aic)]
+best_column <- paste0("deaths_", best_surface, "_2025")
+if (!best_column %in% names(country_comparison)) {
+  stop("Expected burden column is missing: ", best_column)
+}
 country_comparison$best_model <- best_surface
 country_comparison$best_model_deaths <- country_comparison[[best_column]]
 country_comparison$ratio_vs_ihme <-

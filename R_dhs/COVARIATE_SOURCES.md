@@ -66,34 +66,54 @@ Source: [UNICEF immunization resources and WUENIC downloads](https://data.unicef
 
 ## Paediatric HIV
 
-The local UNICEF global dataflow file was checked for a country-year child HIV
-prevalence series. It does not contain one. Its only HIV epidemiology series,
-`HVA_EPI_LHIV`, reports the **number** of people aged 10–19 living with HIV for
-2010–2024, not prevalence and not an under-five or 0–14 age group. The file
-also contains an AIDS-orphan count (`HVA_PED_LOST_AIDS`), which is not an HIV
-prevalence measure. Neither variable is merged into the analysis under a
-different label.
+### Derived child HIV prevalence implemented
 
-The preferred primary source is the [UNAIDS AIDSinfo estimates
-dataset](https://aidsinfo.unaids.org/dataset), which provides annual
-country-level Spectrum estimates. UNAIDS recommends the unrounded estimates
-for calculations and derived indicators. The [UNICEF HIV/AIDS data
+Child (0-14) HIV prevalence is now a national ridge covariate. The source is the
+UNAIDS 2025 estimates workbook distributed by UNICEF,
+`data/HIV_Epidemiology_Children_Adolescents_2025.xlsx`. That workbook does not
+publish a prevalence rate; its child series are counts and rates (people living
+with HIV, annual AIDS deaths and new infections, AIDS-death and incidence
+rates, and mother-to-child transmission). Prevalence is therefore derived:
+
+| Component | Source | Age / sex |
+|---|---|---|
+| Numerator | Estimated number of people living with HIV | 0-14, both sexes |
+| Denominator | World Bank `SP.POP.0014.TO` population | 0-14, total |
+
+`R_dhs/03_build_analysis_dataset.R` (`attach_hiv_prevalence`) computes
+`hiv_prev = 100 * PLHIV(0-14) / population(0-14)`, joined by ISO3 and exact
+survey year, and writes the compact panel
+`data/derived_dhs/hiv_prevalence_country_year.csv`. The values in the workbook
+that read `"<500"` are parsed at their midpoint (250); every derived prevalence
+is strictly positive.
+
+Derived child prevalence spans roughly three orders of magnitude across
+sub-Saharan Africa (about 0.02% in Madagascar to about 3.8% in Eswatini), so it
+enters the model on the log scale as `log_hiv_prev`, alongside the other
+log-scaled national continuous covariates. It is standardised inside the same
+ridge block as the other covariates.
+
+Nigeria and Comoros publish only a 15-19 UNAIDS series in this workbook, so they
+have no derived child prevalence and stay missing. That is about 4% of the
+primary sample, below the 5% threshold, so `log_hiv_prev` is retained and singly
+imputed (country median, then overall median) with the `hiv_prev_status` flag
+(`unaids_2025_estimate` versus `no_under15_series`) preserved for audit.
+
+Source: [UNICEF HIV/AIDS data
 page](https://data.unicef.org/resources/dataset/hiv-aids-statistical-tables/)
-provides a convenient child-focused download and country dashboard.
+and the underlying [UNAIDS AIDSinfo estimates
+dataset](https://aidsinfo.unaids.org/dataset).
 
-Candidate country-year variables are:
-
-- HIV prevalence among children aged 0–14;
-- AIDS-related mortality among children aged 0–14;
-- paediatric ART coverage and PMTCT coverage.
+### Alternatives and caveats
 
 Child prevalence alone does not fully track the mortality effect of HIV:
 effective ART can increase survival and therefore leave prevalence stable even
-as AIDS mortality falls. For the child-mortality model, AIDS-related mortality
-is the closest single measure of the changing mortality burden; a prespecified
-alternative is child prevalence plus paediatric ART coverage. Annual values
-should be joined to survey year, with interpolation only across short internal
-gaps and with the UNAIDS uncertainty intervals retained for sensitivity work.
+as AIDS mortality falls. The same workbook also carries an AIDS-related death
+rate per 100,000 (0-14) for the same 33 countries, which is the closest single
+measure of the changing paediatric mortality burden and is the recommended
+alternative or companion covariate; a further option is child prevalence plus
+paediatric ART/PMTCT coverage. UNAIDS uncertainty intervals (`Lower`/`Upper` in
+the workbook) are available for sensitivity work.
 
 ## Seasonal malaria chemoprevention
 

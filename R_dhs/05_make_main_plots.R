@@ -296,6 +296,7 @@ covariate_labels <- c(
   hib3_wuenic = "Hib3 coverage (WUENIC)",
   pcv3_wuenic = "PCV completion (WUENIC)",
   rotac_wuenic = "Rotavirus completion (WUENIC)",
+  log_hiv_prev = "Child HIV prevalence (log, UNAIDS)",
   dtp3 = "DTP3 coverage (national)",
   log_gdp = "GDP per capita",
   hexp_gdp = "Health expenditure, % GDP",

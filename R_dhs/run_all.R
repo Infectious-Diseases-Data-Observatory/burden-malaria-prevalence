@@ -64,4 +64,39 @@ if (all(file.exists(legacy_validation_inputs))) {
   )
 }
 
+# National burden / time-surface comparison. It is downstream of the DHS/MIS
+# model rebuild but produces all of the burden, temporal-trend and IHME/WHO
+# numbers, so it is run here whenever its (local) inputs are present. Guarded
+# like the script-09 migration check so a partial checkout skips gracefully.
+burden_inputs <- c(
+  file.path(DATA_DIR, "wb_mortality_timeseries.csv"),
+  file.path(DATA_DIR, "pfpr_by_country_year.csv"),
+  file.path(DATA_DIR, "pfpr_by_country_2024.csv"),
+  file.path(DATA_DIR, "igme_mortality_by_country.csv"),
+  file.path(DATA_DIR, "wb_livebirths_by_country.csv"),
+  file.path(DATA_DIR, "ihme_malaria_u5_deaths_by_country.csv"),
+  file.path(REPO_ROOT, "results", "ihme_u5_deaths_ssa_timeseries.csv"),
+  file.path(REPO_ROOT, "results", "who_wmr2025_africa_deaths.csv")
+)
+if (all(file.exists(burden_inputs))) {
+  run_script("10_time_surface_and_burden.R")
+} else {
+  message(
+    "\nNational-burden inputs are absent; skipping script 10. Missing: ",
+    paste(basename(burden_inputs[!file.exists(burden_inputs)]), collapse = ", ")
+  )
+}
+
+# Manuscript figures kept in R_dhs: the study-flow diagram (11, self-contained),
+# the RCT triangulation of the prevalence->mortality link (12, uses the fitted
+# model bundle), and the Method-1 IHME attributable-share comparison (13, which
+# skips itself if the Method-1 country panel from R/02 is absent).
+run_script("11_study_flow.R")
+if (file.exists(MODEL_BUNDLE_RDS)) {
+  run_script("12_triangulation_rct.R")
+} else {
+  message("\nModel bundle absent; skipping script 12 (RCT triangulation).")
+}
+run_script("13_ihme_share.R")
+
 message("\nRebuilt DHS/MIS analysis complete. Outputs: ", RESULTS_DIR)
