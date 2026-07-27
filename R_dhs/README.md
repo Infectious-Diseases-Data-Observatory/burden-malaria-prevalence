@@ -46,6 +46,10 @@ that should be updated in the current manuscript after the rebuild is accepted.
    ridge block and primary random-effects/PfPR structure.
 10. `09_validate_reproduction.R` — aggregate migration checks against the saved
    legacy headline models and results.
+11. `10_time_surface_and_burden.R` — optional comparison of additive, `ti`, and
+   full `te` time/prevalence surfaces, followed by latest-year national burden
+   comparisons with IHME and WHO. This is downstream of the DHS/MIS-only model
+   rebuild and is not called by `run_all.R`.
 
 ## Commands
 
