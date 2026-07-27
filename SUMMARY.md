@@ -10,46 +10,57 @@ output:
 
 # DHS/MIS malaria prevalence and child mortality analysis
 
-## Executive summary
+## Summary of main results
 
-The rebuilt analysis uses 921 DHS/MIS survey-region-years from 105 surveys in
-34 countries. The primary negative-binomial ridge-GAM finds a strong positive
-association between MAP PfPR2-10 and all-cause post-neonatal mortality, with no
-corresponding association in the neonatal negative control.
+- **Higher malaria prevalence is associated with higher post-neonatal
+  mortality.** In the ridge-linear model, a 10 percentage-point increase in
+  PfPR2-10 is associated with 9.0% higher post-neonatal mortality (95% CI:
+  6.0%–12.2%). The estimate for neonatal mortality, our negative-control
+  outcome, is small and statistically consistent with no association.
+  [See association results.](#association-results)
 
-The best-fitting specification is:
+- **A model that allows the prevalence-mortality relationship to change over
+  time fits best, but the evidence for this interaction is not decisive.** The
+  selected spline model has lower AIC than the model without an interaction
+  (ΔAIC 3.30) and a full `te(PfPR, year)` surface (ΔAIC 5.91); the nonlinear
+  interaction has `p=0.057`. [See model comparison.](#model-comparison)
 
-```text
-deaths ~ s(PfPR) + ti(PfPR, calendar year) + s(calendar year)
-       + ridge-penalised covariates
-       + country random intercept
-       + country random PfPR slope
-       + offset(log birth exposure))
-```
+- **Allowing a time interaction has little effect on the estimated
+  cross-sectional relationship, but materially changes the estimated decline
+  in malaria-attributable mortality.** From 2000 to 2024, estimated deaths fall
+  by 52% with no time interaction, 20% with the selected `ti` interaction and
+  34% with the full `te` surface. [See time-interaction
+  results.](#time-interaction-results)
 
-This ANOVA-style `ti` model has lower AIC than the full `te(PfPR, year)` surface
-(ΔAIC 5.91) and the spline model without a time interaction (ΔAIC 3.30).
-However, the evidence for the nonlinear `ti` interaction itself is borderline
-(`p=0.057`). The model-selection result therefore supports allowing the
-prevalence-mortality relationship to vary over time, but it does not establish
-the exact form of that change with high confidence.
+- **Our preferred model estimates about 611,000 malaria-attributable
+  post-neonatal deaths for the latest period, but this estimate is uncertain
+  and is not directly comparable to IHME or WHO.** The model-parameter 95%
+  interval is 441,000–749,000. The point estimate is 30% higher than the
+  IHME/GBD 2025 estimate and 41% higher than an approximate WHO under-five
+  estimate; the interval overlaps both. The calculation evaluates the 2025
+  model surface using 2024 prevalence, mortality and birth inputs.
+  [See aggregate burden comparison.](#aggregate-burden)
 
-The downstream 2025-surface estimate is approximately **611,000
-malaria-attributable post-neonatal deaths** across 43 matched sub-Saharan
-African countries (model-parameter 95% interval 441,000–749,000). This estimate
-uses 2024 MAP prevalence, IGME mortality and live-birth inputs because 2025
-values are not yet available for those inputs. It is approximately:
+- **Nigeria and DR Congo account for most of the aggregate difference from
+  IHME and the WHO proxy, while the model gives lower estimates for several
+  other countries.** This heterogeneity cautions against interpreting the
+  aggregate difference as a uniform adjustment to existing estimates.
+  [See country-level comparison.](#country-differences)
 
-- 30% higher than the IHME/GBD 2025 SSA estimate of 470,000 under-five malaria
-  deaths;
-- 41% higher than the approximate WHO under-five total of 434,000, obtained by
-  multiplying the WHO African-region 2024 all-age total of 579,000 by 75%.
+- **Our current bottom line is that the cross-sectional association is fairly
+  robust, while the latest burden and especially the change since 2000 are
+  less certain.** Alternative samples and covariate structures produce similar
+  attributable fractions, but the time specification and alternative
+  likelihood affect the temporal interpretation and precision.
+  [See sensitivity analyses](#sensitivity-results) and [interpretation and
+  limitations.](#interpretation-limitations)
 
-The model interval overlaps both comparators. It covers uncertainty in the
-fitted DHS/MIS relationship, but not uncertainty in MAP prevalence, IGME
-all-cause mortality or live births.
+The sections below describe the data and methods underlying these claims,
+followed by the detailed results and sensitivity analyses.
 
 ## Analysis structure
+
+<a id="data-and-sample"></a>
 
 ### Data selection
 
@@ -77,6 +88,8 @@ Both the country-level and region-level prevalence flags remain in the analysis
 dataset. Sensitivity analyses separately include sub-1% regions and restrict
 the prevalence range to 5–40%.
 
+<a id="covariates"></a>
+
 ### Covariate processing
 
 Twenty-one candidate covariates are evaluated before imputation. Variables
@@ -98,6 +111,8 @@ Proportions are logit transformed, continuous variables remain on their
 declared scale, and all included variables are standardised. They enter the
 model as one ridge-penalised matrix block; the amount of shrinkage is estimated
 from the data.
+
+<a id="model-comparison"></a>
 
 ### Main outcome model
 
@@ -144,6 +159,8 @@ parsimonious `s(PfPR) + s(year) + ti(PfPR, year)` decomposition.
 
 ## Main results
 
+<a id="association-results"></a>
+
 ### DHS/MIS association
 
 From the ridge-linear summary models, each 10 percentage-point increase in
@@ -155,9 +172,11 @@ PfPR2-10 is associated with:
 | All under-five | +6.63% | +4.27% to +9.04% | <0.001 |
 | Neonatal negative control | +0.95% | −1.19% to +3.14% | 0.388 |
 
-The neonatal result supports the interpretation that the main association is
-not simply a marker of uniformly worse child survival in higher-prevalence
-settings.
+The neonatal result reduces, but does not eliminate, concern that the main
+association reflects broad differences in child survival between
+higher-prevalence and lower-prevalence settings.
+
+<a id="attributable-fraction"></a>
 
 ### Attributable fraction
 
@@ -176,6 +195,8 @@ predictions and for the national burden estimates.
 
 ![Attributable-fraction curves under the alternative time
 structures](results/dhs_rebuild/time_surface_af_comparison.png)
+
+<a id="time-interaction-results"></a>
 
 ## Does the time interaction materially affect predictions?
 
@@ -219,6 +240,8 @@ Thus the selected interaction raises the latest point estimate by about
 108,000 deaths, or 21%, compared with no interaction. The full `te` estimate is
 about 60,000 lower than the selected `ti` estimate.
 
+<a id="sensitivity-results"></a>
+
 ## Other sensitivity analyses
 
 ### Alternative samples
@@ -259,6 +282,8 @@ but the point estimate remains positive.
 
 ## Latest national burden comparison
 
+<a id="aggregate-burden"></a>
+
 ### Aggregate bottom line
 
 The closest available comparison is not perfectly contemporaneous:
@@ -283,6 +308,8 @@ malaria deaths in the African Region. Sources: [WMR 2025 Annex
 [WHO malaria fact
 sheet](https://www.who.int/news-room/fact-sheets/detail/malaria%E2%9C%85), and
 the WHO GHO `MALARIA_EST_DEATHS` country indicator.
+
+<a id="country-differences"></a>
 
 ### Countries with the largest differences from IHME
 
@@ -311,7 +338,9 @@ two-fold discrepancies are:
 Nigeria and DR Congo together account for most of the model's aggregate excess
 over both IHME and the WHO proxy.
 
-### Interpretation
+<a id="interpretation-limitations"></a>
+
+### Interpretation and limitations
 
 The comparison is not a validation against a common estimand:
 
@@ -325,10 +354,12 @@ The comparison is not a validation against a common estimand:
 - the WHO country under-five comparison applies a regional 75% age-share
   assumption to every country.
 
-The robust conclusion is that malaria prevalence predicts post-neonatal
-mortality and implies a large contemporary burden. The exact total and,
-especially, the amount of decline since 2000 depend materially on whether the
-prevalence-mortality relationship is allowed to change over calendar time.
+Our current interpretation is that the data provide fairly robust evidence of
+a positive cross-sectional association between malaria prevalence and
+post-neonatal mortality. We place less weight on the exact contemporary total
+and, especially, the estimated decline since 2000 because these depend
+materially on how the prevalence-mortality relationship is allowed to change
+over calendar time.
 
 ## Reproducible outputs
 
