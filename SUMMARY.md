@@ -8,8 +8,6 @@ output:
   word_document: default
 ---
 
-# DHS/MIS malaria prevalence and child mortality analysis
-
 ## Summary of main results
 
 - **Higher malaria prevalence is associated with higher post-neonatal
@@ -60,9 +58,7 @@ followed by the detailed results and sensitivity analyses.
 
 ## Analysis structure
 
-<a id="data-and-sample"></a>
-
-### Data selection
+### Data selection {#data-and-sample}
 
 The unit of analysis is a DHS/MIS survey-region-year.
 
@@ -88,9 +84,7 @@ Both the country-level and region-level prevalence flags remain in the analysis
 dataset. Sensitivity analyses separately include sub-1% regions and restrict
 the prevalence range to 5–40%.
 
-<a id="covariates"></a>
-
-### Covariate processing
+### Covariate processing {#covariates}
 
 Twenty-one candidate covariates are evaluated before imputation. Variables
 with at most 5% missingness are retained and singly imputed using the
@@ -112,9 +106,7 @@ declared scale, and all included variables are standardised. They enter the
 model as one ridge-penalised matrix block; the amount of shrinkage is estimated
 from the data.
 
-<a id="model-comparison"></a>
-
-### Main outcome model
+### Main outcome model {#model-comparison}
 
 For each survey region, the mortality rate is converted to an approximate death
 count using the DHS birth exposure. Models use:
@@ -159,9 +151,7 @@ parsimonious `s(PfPR) + s(year) + ti(PfPR, year)` decomposition.
 
 ## Main results
 
-<a id="association-results"></a>
-
-### DHS/MIS association
+### DHS/MIS association {#association-results}
 
 From the ridge-linear summary models, each 10 percentage-point increase in
 PfPR2-10 is associated with:
@@ -176,9 +166,7 @@ The neonatal result reduces, but does not eliminate, concern that the main
 association reflects broad differences in child survival between
 higher-prevalence and lower-prevalence settings.
 
-<a id="attributable-fraction"></a>
-
-### Attributable fraction
+### Attributable fraction {#attributable-fraction}
 
 The selected `ti` model estimates the following population-average fractions
 of post-neonatal mortality attributable to malaria relative to a 1% PfPR
@@ -196,9 +184,7 @@ predictions and for the national burden estimates.
 ![Attributable-fraction curves under the alternative time
 structures](results/dhs_rebuild/time_surface_af_comparison.png)
 
-<a id="time-interaction-results"></a>
-
-## Does the time interaction materially affect predictions?
+## Does the time interaction materially affect predictions? {#time-interaction-results}
 
 Yes, particularly for historical trends and the latest aggregate burden, but
 the alternatives remain within overlapping uncertainty intervals.
@@ -240,9 +226,7 @@ Thus the selected interaction raises the latest point estimate by about
 108,000 deaths, or 21%, compared with no interaction. The full `te` estimate is
 about 60,000 lower than the selected `ti` estimate.
 
-<a id="sensitivity-results"></a>
-
-## Other sensitivity analyses
+## Other sensitivity analyses {#sensitivity-results}
 
 ### Alternative samples
 
@@ -282,9 +266,7 @@ but the point estimate remains positive.
 
 ## Latest national burden comparison
 
-<a id="aggregate-burden"></a>
-
-### Aggregate bottom line
+### Aggregate bottom line {#aggregate-burden}
 
 The closest available comparison is not perfectly contemporaneous:
 
@@ -309,9 +291,7 @@ malaria deaths in the African Region. Sources: [WMR 2025 Annex
 sheet](https://www.who.int/news-room/fact-sheets/detail/malaria%E2%9C%85), and
 the WHO GHO `MALARIA_EST_DEATHS` country indicator.
 
-<a id="country-differences"></a>
-
-### Countries with the largest differences from IHME
+### Countries with the largest differences from IHME {#country-differences}
 
 The table below uses the AIC-selected `ti` model. “Very different” is defined in
 the generated results as at least a two-fold difference and an absolute
@@ -338,9 +318,7 @@ two-fold discrepancies are:
 Nigeria and DR Congo together account for most of the model's aggregate excess
 over both IHME and the WHO proxy.
 
-<a id="interpretation-limitations"></a>
-
-### Interpretation and limitations
+### Interpretation and limitations {#interpretation-limitations}
 
 The comparison is not a validation against a common estimand:
 
@@ -363,12 +341,7 @@ over calendar time.
 
 ## Reproducible outputs
 
-- `R_dhs/10_time_surface_and_burden.R` fits the `te` sensitivity and produces
-  all time-surface and national comparison tables.
-- `results/dhs_rebuild/time_surface_model_comparison.csv` contains the AIC
-  comparison.
-- `results/dhs_rebuild/time_surface_af_anchors.csv` and
-  `time_surface_burden_timeseries.csv` contain the time-interaction comparisons.
-- `results/dhs_rebuild/latest_burden_totals.csv` contains aggregate results.
-- `results/dhs_rebuild/latest_country_burden_comparison.csv` contains the
-  country-level model, IHME and WHO comparisons.
+`R_dhs/10_time_surface_and_burden.R` fits the `te` sensitivity and produces the
+time-surface and national comparison tables.
+
+Key result tables are stored as CSV files under `results/dhs_rebuild/`.
