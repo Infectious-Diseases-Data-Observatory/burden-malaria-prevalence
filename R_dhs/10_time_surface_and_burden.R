@@ -75,7 +75,14 @@ additive_reml <- fit_ridge_gam(
   method = "REML",
   preprocessing = bundle$preprocessing
 )$model
-ti_reml <- bundle$primary_fits$postneonatal$model
+ti_reml <- fit_ridge_gam(
+  analysis,
+  outcome = "postneonatal_mortality",
+  catalog = catalog,
+  specification = "spline_time_interaction",
+  method = "REML",
+  preprocessing = bundle$preprocessing
+)$model
 
 te_table <- summary(te_ml)$s.table
 te_row <- grep(

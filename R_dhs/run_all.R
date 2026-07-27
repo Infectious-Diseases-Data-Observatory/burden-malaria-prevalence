@@ -8,8 +8,8 @@
 # Skip data-access and MAP extraction when their outputs already exist:
 #   Rscript R_dhs/run_all.R --analysis-only
 #
-# Validate models against the pre-existing aggregate panel without reading
-# individual DHS records:
+# Validate models against the pre-existing aggregate panel, reading local DHS
+# recodes only to reconstruct the three direct regional vaccine measures:
 #   Rscript R_dhs/run_all.R --from-legacy-aggregate
 # =============================================================================
 
@@ -24,6 +24,15 @@ run_script <- function(script, trailing = character(0)) {
   message("\n=== Running ", path, " ", paste(trailing, collapse = " "), " ===")
   status <- system2("Rscript", c(path, trailing))
   if (!identical(status, 0L)) stop(path, " failed with status ", status)
+}
+
+if (file.exists(UNICEF_GLOBAL_CSV)) {
+  panel_outdated <- !file.exists(UNICEF_IMMUNISATION_CSV) ||
+    file.info(UNICEF_GLOBAL_CSV)$mtime >
+      file.info(UNICEF_IMMUNISATION_CSV)$mtime
+  if (panel_outdated) {
+    run_script("02b_extract_unicef_immunisation.R")
+  }
 }
 
 if (legacy_mode) {

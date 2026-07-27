@@ -2,7 +2,7 @@ DHS/MIS rebuild reproduction check
 Status: PASS
 Checks passed: 11/11
 Legacy headline specification: ridge spline without PfPR-time interaction
-Rebuilt AIC-selected specification: spline_time_interaction
+Rebuilt AIC-selected specification: spline_no_interaction
 Rebuilt reference year for AF estimates: 2014
 
 Interpretation:

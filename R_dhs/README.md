@@ -18,11 +18,16 @@ that should be updated in the current manuscript after the rebuild is accepted.
   region and year.
 - Primary row flag: regional PfPR2-10 at least 1%, positive outcomes/exposure,
   and country mean PfPR2-10 greater than 1%. Both component flags are retained.
-- Covariates: DHS survey-region and nearest-year national predictors.
+- Covariates: DHS survey-region, exact-year national WUENIC vaccine coverage
+  and nearest-year national predictors.
 - Direct vaccine candidates: regional pentavalent-dose-3, PCV-dose-3 and
   completion of the survey-specific rotavirus schedule. See
   `COVARIATE_SOURCES.md` for their recodes, availability and recommended
-  external longitudinal sources.
+  longitudinal sources.
+- National vaccine candidates: exact-year WUENIC Hib3, PCV-completion and
+  final-dose rotavirus coverage extracted from the local UNICEF global
+  dataflow file. Structural pre-introduction years are set to zero and
+  provenance flags are retained.
 - Missingness: variables with at most 5% missingness receive single imputation
   by country median with overall-median fallback; variables above 5% are flagged
   and excluded.
@@ -40,17 +45,19 @@ that should be updated in the current manuscript after the rebuild is accepted.
 1. `00_config.R` — configuration and shared functions.
 2. `01_access_dhs_data.R` — survey registry and optional authorised downloads.
 3. `02_extract_map_pfpr.R` — annual MAP PfPR by survey-region.
-4. `03_build_analysis_dataset.R` — outcomes, covariates, missingness and flags.
-5. `04_fit_main_models.R` — 2×2 model comparison and outcome refits.
-6. `05_make_main_plots.R` — figures from saved models only.
-7. `06_sensitivity_samples.R` — prevalence and complete-case samples.
-8. `07_sensitivity_model_structure.R` — random slopes, covariate levels and
+4. `02b_extract_unicef_immunisation.R` — compact country-year WUENIC Hib3,
+   PCV-completion and rotavirus-completion panel.
+5. `03_build_analysis_dataset.R` — outcomes, covariates, missingness and flags.
+6. `04_fit_main_models.R` — 2×2 model comparison and outcome refits.
+7. `05_make_main_plots.R` — figures from saved models only.
+8. `06_sensitivity_samples.R` — prevalence and complete-case samples.
+9. `07_sensitivity_model_structure.R` — random slopes, covariate levels and
    spline basis dimensions.
-9. `08_sensitivity_likelihood.R` — log-Gaussian rate sensitivity retaining the
+10. `08_sensitivity_likelihood.R` — log-Gaussian rate sensitivity retaining the
    ridge block and primary random-effects/PfPR structure.
-10. `09_validate_reproduction.R` — aggregate migration checks against the saved
+11. `09_validate_reproduction.R` — aggregate migration checks against the saved
    legacy headline models and results.
-11. `10_time_surface_and_burden.R` — optional comparison of additive, `ti`, and
+12. `10_time_surface_and_burden.R` — optional comparison of additive, `ti`, and
    full `te` time/prevalence surfaces, followed by latest-year national burden
    comparisons with IHME and WHO. This is downstream of the DHS/MIS-only model
    rebuild and is not called by `run_all.R`.
@@ -73,9 +80,12 @@ Raw DHS records remain under `data/` and must never be committed. Aggregate mode
 outputs and plots are written under `results/dhs_rebuild/`. Nothing is copied to
 Overleaf automatically.
 
-`COVARIATE_SOURCES.md` documents the implemented vaccine variables and candidate
-UNAIDS/UNICEF and SMC sources. HIV and SMC are not yet included in the current
-model outputs.
+The UNICEF source file
+`data/fusion_GLOBAL_DATAFLOW_UNICEF_1.0_all.csv` and its compact derived panel
+remain ignored under `data/`. `run_all.R` refreshes the compact panel when the
+source file is newer. `COVARIATE_SOURCES.md` documents the implemented vaccine
+variables and candidate UNAIDS and SMC sources. HIV and SMC are not yet included
+in the current model outputs.
 
 When the two saved legacy headline artifacts are present, `run_all.R` also writes
 `reproduction_check.csv` and `reproduction_summary.txt`. These test substantive

@@ -1,8 +1,7 @@
 # Vaccine, paediatric HIV and SMC covariate sources
 
 This note separates variables already implemented in the DHS/MIS rebuild from
-external series that would require a subsequent data-access and modelling
-decision.
+external series that still require a data-access and modelling decision.
 
 ## Vaccination
 
@@ -35,20 +34,33 @@ introduced.
 
 Source: [DHS Guide to Statistics: Vaccination](https://dhsprogram.com/data/Guide-to-DHS-Statistics/Vaccination.htm).
 
-### Recommended longitudinal source
+### National WUENIC series implemented
 
-For adjustment across the full 2000–2025 study period, the preferable source
-is the WHO/UNICEF Estimates of National Immunization Coverage (WUENIC)
-country-year series:
+The pipeline now extracts the WHO/UNICEF Estimates of National Immunization
+Coverage (WUENIC) country-year series from
+`data/fusion_GLOBAL_DATAFLOW_UNICEF_1.0_all.csv`:
 
-- `HIB3`: third dose of a Hib-containing vaccine;
-- `PCV3`: third dose of pneumococcal conjugate vaccine;
-- `ROTAC`: final recommended dose of rotavirus vaccine.
+| UNICEF indicator | Analysis variable | Interpretation |
+|---|---|---|
+| `IM_HIB3` | `hib3_wuenic` | Third dose of a Hib-containing vaccine |
+| `IM_PCVC` | `pcv3_wuenic` | Completion of the national PCV schedule |
+| `IM_ROTAC` | `rotac_wuenic` | Final recommended rotavirus dose |
 
 These series are better suited to tracking national rollout over time than the
-sparse direct DHS fields. Before merging, the current release's metadata should
-be used to distinguish a true zero before introduction from a missing estimate.
-The current analysis does not yet include WUENIC.
+sparse direct DHS fields. `R_dhs/02b_extract_unicef_immunisation.R` retains
+total-sex, age-12–23-month, percentage WUENIC estimates and writes a compact
+country-year panel. `R_dhs/03_build_analysis_dataset.R` joins the panel by ISO3
+and exact survey year.
+
+Reported zeros are preserved. Years before a country's first WUENIC estimate,
+and countries with no series for an antigen, are assigned zero as
+not-yet-introduced; gaps after a series begins remain missing. Separate status
+columns distinguish `wuenic_estimate`,
+`pre_series_assumed_not_introduced`,
+`no_series_assumed_not_introduced`, and
+`missing_after_series_start`. In the validation analysis, all 936
+survey-region-years have values for all three national series, so the variables
+pass the missingness rule and enter the ridge block.
 
 Source: [UNICEF immunization resources and WUENIC downloads](https://data.unicef.org/resources/immunization/).
 

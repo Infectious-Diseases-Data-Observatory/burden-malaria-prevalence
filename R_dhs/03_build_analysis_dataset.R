@@ -29,16 +29,19 @@ COVARIATE_CATALOG <- data.frame(
     "pcv3_reg", "rotavirus_complete_reg", "facility", "educ_yrs", "wealth_q",
     "excl_bf", "stunting", "underweight", "wasting", "birth_int",
     "mage1", "imp_water", "imp_sanit", "elec_dhs",
+    "hib3_wuenic", "pcv3_wuenic", "rotac_wuenic",
     "dtp3", "log_gdp", "hexp_gdp", "log_hexp_pc", "polstab", "elec"
   ),
   level = c(
     rep("survey-region", 18),
+    rep("national-exact-year", 3),
     rep("national-nearest-year", 6)
   ),
   type = c(
     "proportion", "proportion", "proportion", "proportion", "proportion",
     "proportion", "proportion", "continuous", "continuous", "proportion",
     "proportion", "proportion", "proportion", "proportion", "continuous",
+    "proportion", "proportion", "proportion",
     "proportion", "proportion", "proportion",
     "proportion", "continuous", "proportion", "continuous", "continuous",
     "proportion"
@@ -425,6 +428,50 @@ attach_national_covariates <- function(data) {
   data
 }
 
+attach_unicef_immunisation <- function(data) {
+  vaccine_variables <- c(
+    "hib3_wuenic", "pcv3_wuenic", "rotac_wuenic"
+  )
+  status_variables <- paste0(vaccine_variables, "_status")
+  if (!file.exists(UNICEF_IMMUNISATION_CSV)) {
+    for (variable in vaccine_variables) data[[variable]] <- NA_real_
+    for (variable in status_variables) data[[variable]] <- "panel_unavailable"
+    warning(
+      "Compact UNICEF immunisation panel unavailable; run ",
+      "R_dhs/02b_extract_unicef_immunisation.R."
+    )
+    return(data)
+  }
+
+  panel <- read.csv(
+    UNICEF_IMMUNISATION_CSV,
+    stringsAsFactors = FALSE
+  )
+  required <- c("iso3", "year", vaccine_variables, status_variables)
+  missing_columns <- setdiff(required, names(panel))
+  if (length(missing_columns)) {
+    stop(
+      "Compact UNICEF panel is missing columns: ",
+      paste(missing_columns, collapse = ", ")
+    )
+  }
+  panel_key <- paste(panel$iso3, panel$year, sep = "|")
+  if (anyDuplicated(panel_key)) {
+    stop("Compact UNICEF panel has duplicate country-year rows.")
+  }
+
+  data_key <- paste(data$iso3, data$year, sep = "|")
+  matched <- match(data_key, panel_key)
+  for (variable in c(vaccine_variables, status_variables)) {
+    data[[variable]] <- panel[[variable]][matched]
+  }
+  message(
+    "Matched UNICEF immunisation estimates to ",
+    sum(is.finite(matched)), " of ", nrow(data), " survey-region-years."
+  )
+  data
+}
+
 if (legacy_mode) {
   message("Building from the existing aggregate panel for migration validation.")
   analysis <- build_from_legacy_aggregate()
@@ -433,6 +480,7 @@ if (legacy_mode) {
   analysis <- build_from_raw()
   analysis <- attach_national_covariates(analysis)
 }
+analysis <- attach_unicef_immunisation(analysis)
 
 analysis$pfpr10 <- analysis$pfpr2_10 / 10
 analysis$nnmr <- if ("nnmr" %in% names(analysis)) {

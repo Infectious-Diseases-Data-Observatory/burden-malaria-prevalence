@@ -38,7 +38,7 @@ regional_catalog <- catalog[
   drop = FALSE
 ]
 national_catalog <- catalog[
-  catalog$included_in_main & catalog$level == "national-nearest-year",
+  catalog$included_in_main & grepl("^national-", catalog$level),
   ,
   drop = FALSE
 ]

@@ -22,6 +22,15 @@ DHS_CACHE_DIR  <- path.expand("~/.rdhs_cache/datasets_reformatted")
 BOUNDARY_DIR   <- file.path(DATA_DIR, "dhs_boundaries")
 MAP_RASTER_DIR <- file.path(DATA_DIR, "map_annual")
 MAP_REGION_DIR <- file.path(DATA_DIR, "map_region_cache")
+UNICEF_GLOBAL_CSV <- file.path(
+  DATA_DIR, "fusion_GLOBAL_DATAFLOW_UNICEF_1.0_all.csv"
+)
+UNICEF_IMMUNISATION_CSV <- file.path(
+  DERIVED_DIR, "unicef_immunisation_country_year.csv"
+)
+UNICEF_IMMUNISATION_SUMMARY_CSV <- file.path(
+  RESULTS_DIR, "unicef_immunisation_extraction_summary.csv"
+)
 
 for (d in c(DERIVED_DIR, RESULTS_DIR, BOUNDARY_DIR, MAP_RASTER_DIR, MAP_REGION_DIR)) {
   dir.create(d, recursive = TRUE, showWarnings = FALSE)

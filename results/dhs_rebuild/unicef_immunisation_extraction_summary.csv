@@ -1,0 +1,4 @@
+"variable","source_indicator","countries","country_years","wuenic_estimates","assumed_pre_introduction_zeros","missing_after_series_start","min_coverage","max_coverage"
+"hib3_wuenic","IM_HIB3",194,5044,4008,1031,5,0,99
+"pcv3_wuenic","IM_PCVC",194,5044,2041,3003,0,0,99
+"rotac_wuenic","IM_ROTAC",194,5044,1437,3597,10,0,99
