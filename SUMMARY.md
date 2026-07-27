@@ -6,6 +6,9 @@ output:
   pdf_document:
     latex_engine: xelatex
   word_document: default
+header-includes:
+  - \usepackage{float}
+  - \floatplacement{figure}{H}
 ---
 
 ## Summary of main results
@@ -114,40 +117,29 @@ count using the DHS birth exposure. Models use:
 - a negative-binomial likelihood with log link;
 - `offset(log(exposure))`;
 - a ridge penalty on the full eligible covariate block;
-- a smooth calendar-year term;
 - country random intercepts;
 - country-specific random linear PfPR slopes.
 
-Four prespecified models are compared using maximum likelihood and AIC on the
-same 921 observations:
+The four prespecified models and the full `te(PfPR, year)` sensitivity are
+compared using maximum likelihood and AIC on the same 921 observations:
 
 | Model | Prevalence and time specification | AIC | ΔAIC |
 |---|---|---:|---:|
 | Spline with `ti` interaction | `s(PfPR) + s(year) + ti(PfPR, year)` | 7137.68 | 0.00 |
 | Linear with interaction | `PfPR + PfPR × year + s(year)` | 7139.85 | 2.17 |
 | Spline without interaction | `s(PfPR) + s(year)` | 7140.98 | 3.30 |
+| Full tensor surface | `te(PfPR, year)` | 7143.59 | 5.91 |
 | Linear without interaction | `PfPR + s(year)` | 7149.66 | 11.99 |
+
+The full tensor surface incorporates the PfPR main effect, year main effect and
+their interaction in one term and uses 11.46 effective degrees of freedom. It
+is more flexible than the selected `s(PfPR) + s(year) + ti(PfPR, year)`
+decomposition but fits less well by AIC.
 
 The selected specification is refitted with REML for post-neonatal mortality,
 all-under-five mortality and neonatal mortality. The linear no-interaction
 model is also refitted for all three outcomes to give an interpretable
 percentage change per 10 PfPR percentage points.
-
-### Full `te(PfPR, year)` check
-
-A fifth model was fitted as a sensitivity analysis:
-
-```text
-deaths ~ te(PfPR, year)
-       + ridge covariates
-       + country random intercept and PfPR slope
-       + offset(log exposure))
-```
-
-The full tensor includes the PfPR main effect, year main effect and their
-interaction in one surface. It has AIC 7143.59 (ΔAIC 5.91) with 11.46 effective
-degrees of freedom. It is more flexible but is not preferred to the more
-parsimonious `s(PfPR) + s(year) + ti(PfPR, year)` decomposition.
 
 ## Main results
 
