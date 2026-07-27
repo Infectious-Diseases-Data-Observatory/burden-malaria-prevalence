@@ -37,10 +37,14 @@ geometry: margin=0.9in
   at 10%, 30% and 50% PfPR2-10 (versus a 1% counterfactual).
 
 - **The preferred model estimates about 482,000 malaria-attributable
-  post-neonatal deaths for the latest period — close to IHME.** The
-  model-parameter 95% interval is 348,000–606,000. The point estimate is about
-  3% higher than the IHME/GBD 2025 estimate and about 11% higher than an
-  approximate WHO under-five figure; the intervals overlap. This is not a
+  post-neonatal deaths in 2024 — the same order as IHME and WHO.** The 95%
+  uncertainty interval is 326,000–652,000, propagating both the fitted
+  attributable-fraction (model-parameter) uncertainty and the all-cause
+  post-neonatal mortality uncertainty (from the IHME/GBD relative interval); the
+  2000 estimate is 1,012,000 (767,000–1,232,000). The point estimate is about
+  13% higher than the IHME/GBD 2024 estimate (about 428,000) and about 8% higher
+  than an approximate WHO under-five figure (about 446,000); the intervals
+  overlap. This is not a
   validation against a common estimand: the model captures direct and indirect
   malaria-associated post-neonatal mortality, whereas IHME and WHO assign deaths
   specifically to malaria.
@@ -221,25 +225,29 @@ time structures.](results/dhs_rebuild/time_surface_burden_timeseries.png){width=
 
 ### Country differences from IHME {#country-differences}
 
-The aggregate agreement with IHME masks large country-level differences (AIC-selected
-time-stable spline; "very different" = at least two-fold and ≥1,000 deaths):
+The broad aggregate similarity with IHME (model ≈482,000 vs IHME ≈428,000 in
+2024, a ratio of 1.12) masks large country-level differences (AIC-selected
+time-stable spline; ten countries with the largest absolute difference from
+IHME/GBD, all for 2024):
 
-| Country | Model | IHME 2025 | Model/IHME |
+| Country | Model | IHME 2024 | Model/IHME |
 |---|---:|---:|---:|
-| DR Congo | 110,000 | 68,300 | 1.61 |
-| Nigeria | 178,000 | 150,500 | 1.18 |
-| Chad | 12,300 | 5,500 | 2.23 |
-| Sudan | 3,900 | 1,400 | 2.89 |
-| Uganda | 13,400 | 28,500 | 0.47 |
-| Burundi | 3,900 | 15,700 | 0.25 |
-| Tanzania | 5,100 | 10,700 | 0.47 |
-| Ethiopia | 4,000 | 9,300 | 0.42 |
-| Ghana | 3,500 | 7,300 | 0.49 |
-| Rwanda | 300 | 2,500 | 0.11 |
+| DR Congo | 110,000 | 61,800 | 1.78 |
+| Nigeria | 178,000 | 138,100 | 1.29 |
+| Uganda | 13,400 | 26,100 | 0.51 |
+| Burundi | 3,900 | 14,400 | 0.27 |
+| Chad | 12,300 | 4,900 | 2.51 |
+| Ethiopia | 4,000 | 8,900 | 0.44 |
+| Tanzania | 5,100 | 9,900 | 0.51 |
+| Cameroon | 12,100 | 16,300 | 0.74 |
+| Ghana | 3,500 | 6,700 | 0.52 |
+| Angola | 11,700 | 14,700 | 0.80 |
 
 DR Congo and Nigeria account for most of the model's upward difference from
-IHME, offset by lower estimates elsewhere; this is why the aggregate totals are
-close despite the country-level spread.
+IHME, offset by lower estimates elsewhere; this is why the aggregate totals stay
+relatively close despite the country-level spread. (IHME/GBD malaria estimates
+are unavailable for Sudan and South Africa, so the IHME total covers 41 of the
+43 countries; both contribute negligibly.)
 
 ## Interpretation and limitations
 

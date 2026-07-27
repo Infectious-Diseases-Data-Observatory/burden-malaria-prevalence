@@ -26,7 +26,7 @@ EB <- "#a50f15"; EF <- "#fee0d2"      # excluded
 GB <- "#238b45"; GF <- "#e5f5e0"      # burden
 SB <- "#525252"; SF <- "#f0f0f0"      # sensitivity
 
-box <- function(xc, yc, label, fill, border, hw, hh, size = 3.5)
+box <- function(xc, yc, label, fill, border, hw, hh, size = 4.3)
   list(geom_rect(aes(xmin = xc - hw, xmax = xc + hw, ymin = yc - hh, ymax = yc + hh),
                  fill = fill, colour = border, linewidth = 0.6),
        annotate("text", x = xc, y = yc, label = label, size = size, lineheight = 0.95))
@@ -45,33 +45,33 @@ p <- ggplot() +
       OF, OB, 2.6, 1.0) +
   box(16.7, 13.2,
       "National series (country–year)\nUNICEF WUENIC vaccines ·\nUNAIDS 0–14 HIV ÷ World Bank 0–14 pop ·\nWorld Bank GDP & health expenditure",
-      OF, OB, 3.1, 1.0, size = 3.2) +
+      OF, OB, 3.1, 1.0, size = 4.0) +
 
   # ---- inclusion funnel ----
   box(6.7, 9.6,
-      "Assembled survey-region panel\nadmin-1 child mortality (DHS synthetic-cohort life table)\n+ population-weighted regional PfPR₂₋₁₀ + regional & national covariates\n936 region-years · 106 surveys · 35 countries",
+      "Assembled survey-region panel\nadmin-1 child mortality (DHS synthetic-cohort life table)\npopulation-weighted regional PfPR₂₋₁₀ + covariates\n936 region-years · 106 surveys · 35 countries",
       MF, MB, 4.5, 1.15) +
   box(15.3, 9.6,
       "Excluded: 18 surveys\nno usable admin-1 boundary\nor region-key merge",
-      EF, EB, 2.4, 0.85, size = 3.2) +
+      EF, EB, 2.4, 0.85, size = 4.0) +
 
   box(6.7, 6.5,
       "Primary sample: PfPR₂₋₁₀ ≥ 1% (country mean > 1%)\n921 region-years · 105 surveys · 34 countries",
       MF, MB, 4.5, 0.85) +
   box(15.3, 6.5,
       "Excluded: 15 region-years\nPfPR₂₋₁₀ < 1%\n(retained in sensitivity)",
-      EF, EB, 2.4, 0.8, size = 3.2) +
+      EF, EB, 2.4, 0.8, size = 4.0) +
 
   box(6.7, 3.3,
-      "MAIN ANALYSIS — ridge-penalised negative-binomial GAM\n17 covariates (regional DHS + national WUENIC, child HIV, World Bank)\ncountry random intercept & random PfPR slope · log-exposure offset",
+      "MAIN ANALYSIS: ridge-penalised NB-GAM\n17 covariates (regional DHS, WUENIC, HIV, World Bank)\ncountry random intercept + PfPR slope · offset",
       MF, MB, 4.5, 1.05) +
   box(15.3, 3.3,
-      "National burden extrapolation\nselected model × national MAP PfPR (2024)\n× IGME all-cause mortality × live births\n→ compare with IHME (GBD 2025) & WHO (WMR 2025)",
-      GF, GB, 3.3, 1.05, size = 3.1) +
+      "National burden extrapolation\nselected model × national MAP PfPR (2024)\n× IGME all-cause mortality × live births\n→ vs IHME (GBD 2025) & WHO (WMR 2025)",
+      GF, GB, 3.3, 1.05, size = 4.0) +
 
-  box(6.7, 0.8,
-      "Sensitivity analyses (malaria–mortality association essentially unchanged):\ncomplete-case covariates (859) · include PfPR₂₋₁₀ < 1% · restrict 5–40% ·\nremove HIV/vaccine blocks · log-Gaussian likelihood · alternative response forms",
-      SF, SB, 4.5, 0.85, size = 3.1) +
+  box(6.7, 0.7,
+      "Sensitivity analyses — association essentially unchanged:\ncomplete cases (859) · include PfPR₂₋₁₀ < 1% ·\nrestrict 5–40% · remove HIV/vaccine blocks ·\nlog-Gaussian likelihood",
+      SF, SB, 4.5, 1.0, size = 4.0) +
 
   # ---- arrows: sources into the panel ----
   arr(3.3, 13.2 - 1.0, 4.6, 9.6 + 1.15) +
@@ -80,15 +80,15 @@ p <- ggplot() +
   # ---- funnel arrows ----
   arr(6.7, 9.6 - 1.15, 6.7, 6.5 + 0.85) +
   arr(6.7, 6.5 - 0.85, 6.7, 3.3 + 1.05) +
-  arr(6.7, 3.3 - 1.05, 6.7, 0.8 + 0.85) +
+  arr(6.7, 3.3 - 1.05, 6.7, 0.7 + 1.0) +
   # ---- exclusions + burden branch ----
   arr(6.7 + 4.5, 9.6, 15.3 - 2.4, 9.6) +
   arr(6.7 + 4.5, 6.5, 15.3 - 2.4, 6.5) +
   arr(6.7 + 4.5, 3.3, 15.3 - 3.3, 3.3) +
 
-  coord_cartesian(xlim = c(0, 20), ylim = c(-0.3, 14.5)) +
+  coord_cartesian(xlim = c(0, 20), ylim = c(-0.6, 14.5)) +
   theme_void()
 
 ggsave(file.path(OUT_DIR, "study_flow_diagram.png"), p,
-       width = 14, height = 9.2, dpi = 300, bg = "white")
+       width = 12, height = 7.9, dpi = 320, bg = "white")
 cat("saved:", file.path(OUT_DIR, "study_flow_diagram.png"), "\n")

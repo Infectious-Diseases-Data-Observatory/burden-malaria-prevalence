@@ -7,7 +7,7 @@
 #
 # Then apply population-average attributable fractions (country random effects
 # set to zero) to national all-cause post-neonatal deaths. The latest country
-# comparison evaluates the mortality surface at 2025 but necessarily uses the
+# comparison evaluates the mortality surface at 2024 but necessarily uses the
 # latest available MAP PfPR, IGME mortality, and live-birth inputs from 2024.
 #
 # WHO supplies all-age malaria deaths through 2024. The comparison reports both
@@ -377,20 +377,20 @@ for (model_name in names(surface_models)) {
   af <- af_from_model(
     surface_models[[model_name]],
     prevalence = latest$pfpr_pct,
-    year_c = 2025 - bundle$year_center
+    year_c = 2024 - bundle$year_center
   )$af
-  latest[[paste0("af_", model_name, "_2025")]] <- af
-  latest[[paste0("deaths_", model_name, "_2025")]] <-
+  latest[[paste0("af_", model_name, "_2024")]] <- af
+  latest[[paste0("deaths_", model_name, "_2024")]] <-
     af * latest$allcause_postneonatal_2024
 }
 
 ihme <- read.csv(
-  file.path(DATA_DIR, "ihme_malaria_u5_deaths_by_country.csv"),
+  file.path(DATA_DIR, "ihme_malaria_u5_deaths_by_country_year.csv"),
   stringsAsFactors = FALSE,
   check.names = FALSE
 )
 ihme <- ihme[
-  ihme$Year == 2025 &
+  ihme$Year == 2024 &
     ihme$Measure == "Deaths" &
     ihme$Age == "Under 5" &
     ihme$Unit == "Number",
@@ -406,9 +406,9 @@ ihme$iso3 <- countrycode::countrycode(
 ihme <- ihme[!is.na(ihme$iso3), , drop = FALSE]
 ihme <- ihme[, c("iso3", "Value", "Lower", "Upper")]
 names(ihme)[2:4] <- c(
-  "ihme_u5_2025",
-  "ihme_u5_lo_2025",
-  "ihme_u5_hi_2025"
+  "ihme_u5_2024",
+  "ihme_u5_lo_2024",
+  "ihme_u5_hi_2024"
 )
 
 who <- read_who_country_estimates()
@@ -428,7 +428,7 @@ country_comparison$who_u5_proxy_hi_2024 <-
 
 # Choose the burden reference among the three refit time-surface models only,
 # by the ML AIC used for selection throughout. This maps directly onto the
-# surface_models names (and hence the deaths_<name>_2025 columns), so a linear
+# surface_models names (and hence the deaths_<name>_2024 columns), so a linear
 # AIC-best specification can never select a non-existent surface column.
 surface_spec_of <- c(
   spline_no_time_interaction = "spline_no_interaction",
@@ -439,7 +439,7 @@ surface_ml_aic <- bundle$comparison$AIC[
   match(surface_spec_of, bundle$comparison$specification)
 ]
 best_surface <- names(surface_spec_of)[which.min(surface_ml_aic)]
-best_column <- paste0("deaths_", best_surface, "_2025")
+best_column <- paste0("deaths_", best_surface, "_2024")
 if (!best_column %in% names(country_comparison)) {
   stop("Expected burden column is missing: ", best_column)
 }
@@ -447,13 +447,13 @@ country_comparison$best_model <- best_surface
 country_comparison$best_model_deaths <- country_comparison[[best_column]]
 country_comparison$ratio_vs_ihme <-
   country_comparison$best_model_deaths /
-  country_comparison$ihme_u5_2025
+  country_comparison$ihme_u5_2024
 country_comparison$ratio_vs_who_u5_proxy <-
   country_comparison$best_model_deaths /
   country_comparison$who_u5_proxy_2024
 country_comparison$absolute_difference_vs_ihme <-
   country_comparison$best_model_deaths -
-  country_comparison$ihme_u5_2025
+  country_comparison$ihme_u5_2024
 country_comparison$absolute_difference_vs_who_u5_proxy <-
   country_comparison$best_model_deaths -
   country_comparison$who_u5_proxy_2024
@@ -488,12 +488,12 @@ simulate_total <- function(model, data, simulations = 4000) {
   high <- newdata_at_mean(
     model,
     data$pfpr_pct / 10,
-    year_c = 2025 - bundle$year_center
+    year_c = 2024 - bundle$year_center
   )
   low <- newdata_at_mean(
     model,
     rep(AF_REFERENCE / 10, nrow(data)),
-    year_c = 2025 - bundle$year_center
+    year_c = 2024 - bundle$year_center
   )
   dX <- population_lpmatrix(model, high) -
     population_lpmatrix(model, low)
@@ -521,14 +521,14 @@ model_total_rows <- lapply(names(surface_models), function(model_name) {
   estimate <- simulate_total(surface_models[[model_name]], latest)
   data.frame(
     source = model_name,
-    estimate_year = 2025,
+    estimate_year = 2024,
     exposure_denominator_year = 2024,
     deaths = estimate["point"],
     lo = estimate["lo"],
     hi = estimate["hi"],
     note = paste(
-      "Model surface evaluated at 2025; MAP PfPR, IGME mortality",
-      "and live births are latest available 2024 values"
+      "Model surface evaluated at 2024; MAP PfPR, IGME mortality",
+      "and live births are the latest available 2024 values"
     )
   )
 })
@@ -537,7 +537,7 @@ ihme_ssa <- read.csv(
   file.path(REPO_ROOT, "results", "ihme_u5_deaths_ssa_timeseries.csv"),
   stringsAsFactors = FALSE
 )
-ihme_ssa <- ihme_ssa[ihme_ssa$year == 2025, , drop = FALSE]
+ihme_ssa <- ihme_ssa[ihme_ssa$year == 2024, , drop = FALSE]
 who_africa <- read.csv(
   file.path(REPO_ROOT, "results", "who_wmr2025_africa_deaths.csv"),
   stringsAsFactors = FALSE
@@ -546,8 +546,8 @@ who_africa <- who_africa[who_africa$year == 2024, , drop = FALSE]
 reference_totals <- rbind(
   data.frame(
     source = "IHME_GBD_SSA_aggregate_under5",
-    estimate_year = 2025,
-    exposure_denominator_year = 2025,
+    estimate_year = 2024,
+    exposure_denominator_year = 2024,
     deaths = ihme_ssa$point,
     lo = ihme_ssa$lo,
     hi = ihme_ssa$hi,
@@ -555,11 +555,11 @@ reference_totals <- rbind(
   ),
   data.frame(
     source = "IHME_GBD_matched_countries_under5",
-    estimate_year = 2025,
-    exposure_denominator_year = 2025,
-    deaths = sum(country_comparison$ihme_u5_2025, na.rm = TRUE),
-    lo = sum(country_comparison$ihme_u5_lo_2025, na.rm = TRUE),
-    hi = sum(country_comparison$ihme_u5_hi_2025, na.rm = TRUE),
+    estimate_year = 2024,
+    exposure_denominator_year = 2024,
+    deaths = sum(country_comparison$ihme_u5_2024, na.rm = TRUE),
+    lo = sum(country_comparison$ihme_u5_lo_2024, na.rm = TRUE),
+    hi = sum(country_comparison$ihme_u5_hi_2024, na.rm = TRUE),
     note = "Sum of IHME/GBD under-five estimates for the 43 model countries"
   ),
   data.frame(
@@ -622,7 +622,7 @@ print(
     country_comparison$very_different_vs_ihme,
     c(
       "iso3", "country", "pfpr_pct", "best_model_deaths",
-      "ihme_u5_2025", "ratio_vs_ihme",
+      "ihme_u5_2024", "ratio_vs_ihme",
       "absolute_difference_vs_ihme"
     )
   ],
