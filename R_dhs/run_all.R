@@ -52,6 +52,10 @@ run_script("07_sensitivity_model_structure.R")
 run_script("08_sensitivity_likelihood.R")
 run_script("15_specification_forest.R")
 run_script("16_sensitivity_random_effects.R")
+# Timing sensitivity: needs the cached annual MAP rasters, DHS boundaries and raw
+# Births Recodes to build its two intermediates; both are cached per survey and
+# the script exits cleanly when those inputs are unavailable.
+run_script("17_sensitivity_timing.R")
 
 legacy_validation_inputs <- c(
   file.path(REPO_ROOT, "results", "penalized_models.rds"),
