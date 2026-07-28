@@ -50,6 +50,7 @@ run_script("05_make_main_plots.R")
 run_script("06_sensitivity_samples.R")
 run_script("07_sensitivity_model_structure.R")
 run_script("08_sensitivity_likelihood.R")
+run_script("15_specification_forest.R")
 
 legacy_validation_inputs <- c(
   file.path(REPO_ROOT, "results", "penalized_models.rds"),
