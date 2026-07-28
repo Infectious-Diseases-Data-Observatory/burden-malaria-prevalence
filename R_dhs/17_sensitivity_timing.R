@@ -20,8 +20,12 @@
 # CENTRE-MATCHING. A P-month mortality window is centred P/24 years before the
 # interview; averaging annual prevalence over lags 0..L is centred L/2 years
 # before. Matching the two therefore requires L = P/12:
-#   Period 60 -> lags 0-5 (0-4 used; MAP starts in 2000), Period 36 -> lags 0-3,
-#   Period 24 -> lags 0-2. Pairing a short mortality window with a long
+#   Period 60 -> lags 0-5 (lags 0-4 are used here, leaving it under-matched by
+#   half a year), Period 36 -> lags 0-3 (exact), Period 24 -> lags 0-2 (exact;
+#   note this is THREE calendar years, because a 24-month span ending mid-year
+#   overlaps three of them with weights 0.25/0.50/0.25 -- a two-year mean would
+#   sit at 0.5 years and correct only half the gap).
+#   Pairing a short mortality window with a long
 #   prevalence window (or vice versa) re-introduces a mismatch in the opposite
 #   direction and is reported here only to show the bracket.
 #
@@ -54,7 +58,13 @@ PFPR_LONG_CSV <- file.path(DERIVED_DIR, "map_pfpr_lagged_long.csv")
 MORT_LONG_CSV <- file.path(DERIVED_DIR, "mortality_by_period_long.csv")
 PFPR_LAG_CACHE <- file.path(DATA_DIR, "map_lag_cache")
 MORT_CACHE     <- file.path(DATA_DIR, "mort_period_cache")
-MAX_LAG <- 4L                       # MAP has no pre-2000 surfaces
+# Exact centre-matching for Period 60 needs lags 0-5 (centre 2.5 years); lags 0-4
+# give a centre of 2.0 years, so the Period-60 pairing below is under-matched by
+# half a year and is labelled "approximately matched" throughout. Lag 5 is
+# available for surveys from 2005 onwards but not for earlier ones (MAP surfaces
+# start in 2000), and extending the window would deepen the truncation already
+# affecting the earliest surveys, so the window is capped at 4.
+MAX_LAG <- 4L
 PERIODS <- c(24L, 36L, 60L)         # chmort reference periods, months
 
 analysis_surveys <- function() {
