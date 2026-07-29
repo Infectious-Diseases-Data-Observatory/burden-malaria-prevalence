@@ -41,6 +41,8 @@
 #   period_stratified_splines.png            overlaid dose-response and AF
 #   period_stratified_scatter.png            four-panel prevalence vs mortality
 #   period_stratified_prevalence_by_year.png prevalence over calendar time
+#   prevalence_by_year_subregion.png         prevalence by sub-region and country
+#   mortality_by_year_subregion.png          birth-history mortality, same layout
 #   period_stratified_covariate_forest.png   covariate effects by period
 # =============================================================================
 source("R_dhs/00_config.R")
@@ -305,6 +307,103 @@ ggplot2::ggsave(file.path(RESULTS_DIR, "period_stratified_prevalence_by_year.png
 cat(sprintf("\nbirths-weighted mean PfPR2-10: %.1f%% in %d -> %.1f%% in %d\n",
             annual$weighted_mean[1], annual$year[1],
             annual$weighted_mean[nrow(annual)], annual$year[nrow(annual)]))
+
+## ---- by sub-region and country: prevalence and mortality over time ---------
+# The pooled view above hides which countries drive each year. Splitting into
+# West / Central / East & Southern Africa and colouring by country shows the
+# country trajectories directly, and makes plain that most countries contribute
+# only a handful of survey-years.
+required_packages("countrycode")
+# explicit mapping (UN M49 groupings, with Eastern and Southern Africa combined):
+# countrycode's sub-region destinations are not available in every version, and an
+# unnoticed all-NA lookup would silently empty every panel
+SUBREGION_MAP <- c(
+  # Western Africa
+  BEN = "West Africa", BFA = "West Africa", CIV = "West Africa", CPV = "West Africa",
+  GHA = "West Africa", GIN = "West Africa", GMB = "West Africa", GNB = "West Africa",
+  LBR = "West Africa", MLI = "West Africa", MRT = "West Africa", NER = "West Africa",
+  NGA = "West Africa", SEN = "West Africa", SLE = "West Africa", TGO = "West Africa",
+  # Middle (Central) Africa
+  AGO = "Central Africa", CAF = "Central Africa", CMR = "Central Africa",
+  COD = "Central Africa", COG = "Central Africa", GAB = "Central Africa",
+  GNQ = "Central Africa", STP = "Central Africa", TCD = "Central Africa",
+  # Eastern and Southern Africa
+  BDI = "East & Southern Africa", BWA = "East & Southern Africa",
+  COM = "East & Southern Africa", DJI = "East & Southern Africa",
+  ERI = "East & Southern Africa", ETH = "East & Southern Africa",
+  KEN = "East & Southern Africa", LSO = "East & Southern Africa",
+  MDG = "East & Southern Africa", MOZ = "East & Southern Africa",
+  MWI = "East & Southern Africa", NAM = "East & Southern Africa",
+  RWA = "East & Southern Africa", SDN = "East & Southern Africa",
+  SOM = "East & Southern Africa", SSD = "East & Southern Africa",
+  SWZ = "East & Southern Africa", TZA = "East & Southern Africa",
+  UGA = "East & Southern Africa", ZAF = "East & Southern Africa",
+  ZMB = "East & Southern Africa", ZWE = "East & Southern Africa")
+subregion_of <- function(iso3) unname(SUBREGION_MAP[iso3])
+d$subregion <- subregion_of(d$iso3)
+d$country_name <- countrycode::countrycode(d$iso3, "iso3c", "country.name", warn = FALSE)
+d$country_name[is.na(d$country_name)] <- d$iso3[is.na(d$country_name)]
+SUBREGIONS <- c("West Africa", "Central Africa", "East & Southern Africa")
+cat("\nsub-region coverage (region-years / countries):\n")
+for (s in SUBREGIONS) {
+  z <- d[!is.na(d$subregion) & d$subregion == s, ]
+  cat(sprintf("  %-24s %3d / %2d\n", s, nrow(z), length(unique(z$iso3))))
+}
+if (any(is.na(d$subregion))) {
+  cat("  unassigned:", paste(sort(unique(d$iso3[is.na(d$subregion)])), collapse = ", "), "\n")
+}
+
+# one panel per sub-region, with its own colour scale so that countries stay
+# distinguishable (a single 33-colour legend would not be readable)
+subregion_panel <- function(sub, yvar, ylab, y_breaks) {
+  z <- d[!is.na(d$subregion) & d$subregion == sub, , drop = FALSE]
+  countries <- sort(unique(z$country_name))
+  palette <- setNames(grDevices::hcl.colors(max(3, length(countries)), "Dark 3")[seq_along(countries)],
+                      countries)
+  # births-weighted country mean per survey year, to show each trajectory
+  trend <- do.call(rbind, lapply(split(z, list(z$country_name, z$year), drop = TRUE), function(g)
+    data.frame(country_name = g$country_name[1], year = g$year[1],
+               value = sum(g[[yvar]] * g$exposure) / sum(g$exposure))))
+  ggplot2::ggplot(z, ggplot2::aes(year, .data[[yvar]], colour = country_name)) +
+    ggplot2::geom_vline(xintercept = c(2006.5, 2012.5, 2018.5),
+                        linetype = "dashed", colour = "grey85") +
+    ggplot2::geom_point(alpha = 0.5, size = 1.5) +
+    ggplot2::geom_line(data = trend, ggplot2::aes(year, value, colour = country_name),
+                       linewidth = 0.6, alpha = 0.85) +
+    ggplot2::scale_colour_manual(values = palette, name = NULL,
+      guide = ggplot2::guide_legend(ncol = 2, override.aes = list(size = 2.4, alpha = 1))) +
+    ggplot2::scale_y_log10(breaks = y_breaks) +
+    ggplot2::scale_x_continuous(breaks = seq(2000, 2024, 4), limits = c(1999, 2025)) +
+    ggplot2::labs(x = NULL, y = ylab, title = sub) +
+    base_theme +
+    ggplot2::theme(legend.position = "right",
+                   legend.key.height = ggplot2::unit(9, "pt"),
+                   legend.text = ggplot2::element_text(size = 7.5),
+                   plot.title = ggplot2::element_text(face = "bold", size = 11))
+}
+subregion_figure <- function(yvar, ylab, y_breaks, title, subtitle, file) {
+  panels <- lapply(SUBREGIONS, subregion_panel, yvar = yvar, ylab = ylab, y_breaks = y_breaks)
+  combined <- patchwork::wrap_plots(panels, ncol = 1) +
+    patchwork::plot_annotation(title = title, subtitle = subtitle,
+      theme = ggplot2::theme(plot.title = ggplot2::element_text(face = "bold", size = 13)))
+  ggplot2::ggsave(file.path(RESULTS_DIR, file), combined,
+                  width = 10, height = 11, dpi = 320, bg = "white")
+}
+subregion_figure("pfpr2_10",
+  expression(italic(Pf) * "PR"[2-10] * " (%, 2-year mean), log scale"),
+  c(1, 2, 5, 10, 20, 50),
+  "Malaria prevalence in the analysed survey-regions, by sub-region and country",
+  paste("One circle per survey-region-year; lines join each country's",
+        "births-weighted mean per survey year; dashed lines, period boundaries"),
+  "prevalence_by_year_subregion.png")
+subregion_figure("postneonatal_mortality",
+  "All-cause post-neonatal mortality\n(per 1000 live births, log scale)",
+  c(5, 10, 20, 50, 100, 200),
+  "Post-neonatal mortality from DHS birth histories, by sub-region and country",
+  paste("Synthetic-cohort estimates over the 24 months before interview;",
+        "one circle per survey-region-year; lines join each country's",
+        "births-weighted mean"),
+  "mortality_by_year_subregion.png")
 
 ## ---- covariate effects by period -------------------------------------------
 # the ridge block enters as a single matrix term "G", so its per-variable
