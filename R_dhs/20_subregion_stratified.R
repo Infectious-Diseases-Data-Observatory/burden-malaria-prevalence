@@ -26,6 +26,7 @@
 #   subregion_stratified_summary.csv       dose-response by sub-region
 #   subregion_stratified_interaction.csv   interaction tests by sub-region
 #   subregion_stratified_splines.png       overlaid dose-response and AF
+#   subregion_stratified_scatter.png       the same fits, one panel per sub-region
 # =============================================================================
 source("R_dhs/00_config.R")
 required_packages(c("mgcv", "ggplot2", "patchwork", "scales"))
@@ -218,4 +219,45 @@ panel_af <- ggplot2::ggplot(af_df, ggplot2::aes(prevalence, af, colour = subregi
   base_theme
 ggplot2::ggsave(file.path(RESULTS_DIR, "subregion_stratified_splines.png"),
                 panel_rate | panel_af, width = 11.5, height = 4.8, dpi = 320, bg = "white")
-cat("\nsaved: subregion_stratified_{summary,interaction}.csv + subregion_stratified_splines.png\n")
+
+## ---- the same fits shown one panel per sub-region --------------------------
+# the overlay above compares the curves; this separates them so the spread of
+# points behind each fit is visible. The grey dashed line is the pooled fit across
+# all sub-regions, so a panel departing from it is where the relationship differs.
+pooled <- fit_spec(sharp, "spline_no_interaction")
+pooled_curve <- NULL
+if (!is.null(pooled)) {
+  grid <- exp(seq(log(max(1, min(sharp$pfpr2_10))), log(max(sharp$pfpr2_10)), length.out = 200))
+  pooled_fit <- link_prediction(pooled$model, newdata_at_mean(pooled$model, grid / 10, year_c = 0))
+  pooled_curve <- data.frame(prevalence = grid, rate = 1000 * exp(pooled_fit$fit))
+}
+scatter <- ggplot2::ggplot(sharp, ggplot2::aes(pfpr2_10, postneonatal_mortality)) +
+  ggplot2::geom_point(ggplot2::aes(size = exposure, colour = subregion), alpha = 0.35) +
+  { if (!is.null(pooled_curve))
+      ggplot2::geom_line(data = pooled_curve, ggplot2::aes(prevalence, rate),
+                         inherit.aes = FALSE, colour = "grey35",
+                         linetype = "dashed", linewidth = 0.7) } +
+  ggplot2::geom_ribbon(data = rate_df,
+                       ggplot2::aes(prevalence, ymin = lo, ymax = hi, fill = subregion),
+                       inherit.aes = FALSE, alpha = 0.18) +
+  ggplot2::geom_line(data = rate_df, ggplot2::aes(prevalence, rate, colour = subregion),
+                     inherit.aes = FALSE, linewidth = 1.1) +
+  ggplot2::facet_wrap(~ subregion, nrow = 1) +
+  ggplot2::scale_colour_manual(values = COLOURS, guide = "none") +
+  ggplot2::scale_fill_manual(values = COLOURS, guide = "none") +
+  ggplot2::scale_size_area(max_size = 4.5, name = "Births", labels = scales::comma) +
+  x_log + ggplot2::scale_y_log10() +
+  ggplot2::labs(x = expression(italic(Pf) * "PR"[2-10] * " (%, 2-year mean), log scale"),
+                y = "All-cause post-neonatal mortality\n(per 1000 live births, log scale)",
+                title = "Prevalence and post-neonatal mortality by sub-region",
+                subtitle = paste("Coloured line, fit within the sub-region;",
+                                 "grey dashed line, pooled fit across all sub-regions")) +
+  base_theme +
+  ggplot2::theme(legend.position = "bottom",
+                 strip.background = ggplot2::element_rect(fill = "grey92", colour = NA),
+                 strip.text = ggplot2::element_text(face = "bold"),
+                 plot.title = ggplot2::element_text(face = "bold"))
+ggplot2::ggsave(file.path(RESULTS_DIR, "subregion_stratified_scatter.png"),
+                scatter, width = 12.5, height = 5.2, dpi = 320, bg = "white")
+cat("\nsaved: subregion_stratified_{summary,interaction}.csv +",
+    "subregion_stratified_{splines,scatter}.png\n")
