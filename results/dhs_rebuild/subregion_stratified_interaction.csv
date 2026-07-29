@@ -1,0 +1,7 @@
+"specification","subregion","n","aic_best","pfpr_year_coef","pfpr_year_p","ti_edf","ti_p"
+"Period 24 + 2-year window","West Africa",343,"linear_time_interaction",0.00811171394149738,0.000486072136556245,1.00053161868974,0.000488014459412878
+"Period 24 + 2-year window","Central Africa",141,"spline_time_interaction",0.00439374931318089,0.412600025921267,3.95003386825354,0.110901705753
+"Period 24 + 2-year window","East & Southern",387,"linear_no_interaction",-0.00145475386251672,0.5395383343937,1.0004107103051,0.539814799343124
+"Period 60 + survey-year","West Africa",348,"spline_time_interaction",0.00711657837728314,0.000479644377120039,1.98445823076862,0.0014461038515724
+"Period 60 + survey-year","Central Africa",150,"spline_no_interaction",0.00692600777992432,0.10707321396552,1.00047395217965,0.168139094948572
+"Period 60 + survey-year","East & Southern",423,"linear_time_interaction",-0.00374571668204919,0.0505601483361389,1.0005073780312,0.0229446776623231
