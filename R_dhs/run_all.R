@@ -56,6 +56,9 @@ run_script("16_sensitivity_random_effects.R")
 # Births Recodes to build its two intermediates; both are cached per survey and
 # the script exits cleanly when those inputs are unavailable.
 run_script("17_sensitivity_timing.R")
+run_script("18_age_windows_5to14.R")
+# Period-stratified refits; needs the intermediates built by script 17.
+run_script("19_period_stratified.R")
 
 legacy_validation_inputs <- c(
   file.path(REPO_ROOT, "results", "penalized_models.rds"),
