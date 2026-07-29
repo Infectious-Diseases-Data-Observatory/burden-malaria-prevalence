@@ -43,6 +43,15 @@
 #   sensitivity_prevalence_timing_neonatal.png       negative control
 #   sensitivity_mortality_horizon.png                outcome-side dose-response
 #   sensitivity_timing_matched_combinations.png      matched-combination forest
+#   sensitivity_timing_burden_by_structure.csv       burden decline by horizon
+#                                                    AND time structure
+#
+# HEADLINE CAVEAT. Arm 4 shows the 2000-2024 burden decline is governed chiefly by
+# whether a PfPR x calendar-year interaction is admitted (52-63% without it,
+# 1-38% with it) rather than by the mortality horizon. That interaction is not
+# significant at Period 60 on the published sample but becomes so as the horizon
+# shortens, so the reported decline rests on an assumption of time-stability that
+# the timing analysis cannot itself settle.
 # =============================================================================
 source("R_dhs/00_config.R")
 required_packages(c("mgcv", "ggplot2", "patchwork", "scales"))
@@ -480,6 +489,77 @@ if (!is.null(mort_long)) {
                         "Mortality horizon x prevalence window: centre-matched combinations",
                         "Matched pairings (B, C, D) versus deliberate mismatches (A, E too recent; F over-lagged)"),
             "sensitivity_timing_matched_combinations.png", 11, 5)
+
+  ## =========================================================================
+  ## Arm 4 — burden consequence of the mortality horizon AND the time structure
+  ## =========================================================================
+  # The headline 2000-2024 decline turns out to depend far more on whether a
+  # PfPR x calendar-year interaction is admitted than on the mortality horizon or
+  # the dose-response shape. This matters because the interaction becomes
+  # significant as the horizon shortens (ti() p = 0.16 at Period 60 on the
+  # published sample, 0.0022 at Period 24), and because the AIC margin between
+  # the additive and time-varying structures is small and unstable. Under an
+  # interaction the attributable fraction RISES over the period, offsetting the
+  # fall in prevalence and flattening the burden trajectory.
+  national <- merge(
+    read.csv(file.path(DATA_DIR, "wb_mortality_timeseries.csv"),
+             stringsAsFactors = FALSE)[, c("iso3", "year", "allcause_1mo5y", "births")],
+    read.csv(file.path(DATA_DIR, "pfpr_by_country_year.csv"), stringsAsFactors = FALSE),
+    by = c("iso3", "year"))
+  national$region <- countrycode::countrycode(national$iso3, "iso3c", "region", warn = FALSE)
+  national <- national[national$region == "Sub-Saharan Africa" &
+                         is.finite(national$allcause_1mo5y) & is.finite(national$pfpr_pct) &
+                         is.finite(national$births) &
+                         national$year >= 2000 & national$year <= 2024, , drop = FALSE]
+  year_center <- unique(bundle$year_center)[1]
+  burden_series <- function(model) {
+    high <- newdata_at_mean(model, national$pfpr_pct / 10, year_c = national$year - year_center)
+    low <- newdata_at_mean(model, rep(AF_REFERENCE / 10, nrow(national)),
+                           year_c = national$year - year_center)
+    dX <- population_lpmatrix(model, high) - population_lpmatrix(model, low)
+    af <- pmax(1 - exp(-as.numeric(dX %*% coef(model))), 0)
+    tapply(af * national$allcause_1mo5y, national$year, sum)
+  }
+  af_at <- function(model, prevalence, year) {
+    high <- newdata_at_mean(model, prevalence / 10, year_c = year - year_center)
+    low <- newdata_at_mean(model, AF_REFERENCE / 10, year_c = year - year_center)
+    dX <- population_lpmatrix(model, high) - population_lpmatrix(model, low)
+    100 * max(1 - exp(-as.numeric(dX %*% coef(model))), 0)
+  }
+  # NOTE: every row here is REFITTED on the rows that survive this script's
+  # filters, so the Period-60 additive row is a close approximation to, not an
+  # exact reproduction of, the headline burden reported in Figure 4 (which uses
+  # the originally fitted model bundle). Compare declines across rows, not the
+  # absolute totals against the manuscript.
+  structure_cases <- list(
+    list(label = "Period 60, additive spline (primary structure)", period = NULL, spec = "spline_no_interaction"),
+    list(label = "Period 60, spline x time interaction",   period = 60,   spec = "spline_time_interaction"),
+    list(label = "Period 24, additive spline",             period = 24,   spec = "spline_no_interaction"),
+    list(label = "Period 24, spline x time interaction",   period = 24,   spec = "spline_time_interaction"),
+    list(label = "Period 24, linear x time interaction",   period = 24,   spec = "linear_time_interaction"),
+    list(label = "Period 24, additive linear",             period = 24,   spec = "linear_no_interaction")
+  )
+  structure_rows <- lapply(structure_cases, function(cs) {
+    dd <- make_frame(single_lag(0), "postneonatal_mortality", period = cs$period)
+    model <- fit_ridge_gam(dd, "postneonatal_mortality", catalog, cs$spec,
+                           method = "REML", preprocessing = bundle$preprocessing)$model
+    series <- burden_series(model)
+    data.frame(label = cs$label, n = nrow(dd),
+               deaths_2000 = as.numeric(series[["2000"]]),
+               deaths_2024 = as.numeric(series[["2024"]]),
+               decline_pct = 100 * (1 - series[["2024"]] / series[["2000"]]),
+               af30_2000 = af_at(model, 30, 2000), af30_2024 = af_at(model, 30, 2024))
+  })
+  structure_res <- do.call(rbind, structure_rows)
+  write.csv(structure_res, file.path(RESULTS_DIR, "sensitivity_timing_burden_by_structure.csv"),
+            row.names = FALSE)
+  cat("\n=== Burden 2000-2024 by mortality horizon and time structure ===\n")
+  print(within(structure_res, {
+    deaths_2000 <- round(deaths_2000 / 1000); deaths_2024 <- round(deaths_2024 / 1000)
+    decline_pct <- round(decline_pct); af30_2000 <- round(af30_2000, 1); af30_2024 <- round(af30_2024, 1)
+  }), row.names = FALSE)
+  cat("Deaths in thousands. The decline depends chiefly on whether a PfPR x year\n",
+      "interaction is admitted (52-63% without, 1-38% with), not on the horizon.\n", sep = "")
 } else {
   message("Mortality horizons skipped: no recomputed mortality available ",
           "(raw DHS Births Recodes required).")
