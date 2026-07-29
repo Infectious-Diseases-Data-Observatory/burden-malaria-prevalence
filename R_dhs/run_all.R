@@ -60,6 +60,7 @@ run_script("18_age_windows_5to14.R")
 # Period-stratified refits; needs the intermediates built by script 17.
 run_script("19_period_stratified.R")
 run_script("20_subregion_stratified.R")
+run_script("21_map_vs_measured_prevalence.R")
 
 legacy_validation_inputs <- c(
   file.path(REPO_ROOT, "results", "penalized_models.rds"),

@@ -1,0 +1,13 @@
+"group","quantity","exposure","n","estimate","lo","hi","p_value"
+"All overlap","linear_no_interaction","pfpr2_10",311,10.5832067680022,5.77362778672106,15.6114796757487,9.24481701747813e-06
+"All overlap","linear_no_interaction","map_window",311,10.3432000737481,5.74354924159968,15.1429272975953,5.87732275092122e-06
+"All overlap","linear_no_interaction","measured_pfpr",311,11.233809595581,6.13407501781322,16.5785860485366,8.73661597800289e-06
+"All overlap","linear_time_interaction","pfpr2_10",311,0.00378515356383597,NA,NA,0.352333121271782
+"All overlap","linear_time_interaction","map_window",311,0.00396488723056077,NA,NA,0.333316600399998
+"All overlap","linear_time_interaction","measured_pfpr",311,0.00671615977219412,NA,NA,0.0648549199320995
+"West Africa","linear_no_interaction","pfpr2_10",142,16.8982844321413,11.4043522234891,22.6631512184006,2.05435358560997e-10
+"West Africa","linear_no_interaction","map_window",142,16.9546077505379,11.3882615963086,22.799117950643,3.07490397411629e-10
+"West Africa","linear_no_interaction","measured_pfpr",142,13.4182427393638,8.51121581508343,18.5471721928413,2.40786272897731e-08
+"West Africa","linear_time_interaction","pfpr2_10",142,0.00641411198794337,NA,NA,0.331906333806106
+"West Africa","linear_time_interaction","map_window",142,0.00569530503279709,NA,NA,0.388019883804712
+"West Africa","linear_time_interaction","measured_pfpr",142,0.00627526433998344,NA,NA,0.256990472951809
