@@ -25,10 +25,10 @@
 # also small (1-7 survey-regions for most Sahel months), so the adjusted estimate
 # is the defensible one and is probably still attenuated.
 #
-# It also rules OUT survey timing as the explanation for the growing MAP-measured
-# gap of script 21: timing shifted between the first two eras and then plateaued
-# while the gap kept widening, and the shift was TOWARDS the high-transmission
-# season, which would narrow rather than widen the gap.
+# On the growing MAP-measured gap of script 21, survey timing is at most a PARTIAL
+# explanation: the share of fieldwork in July-November rises then falls (about 44%,
+# 58%, 39% across the three eras) while the gap widens steadily, so the first shift
+# works against the gap and only the second could contribute to it.
 #
 # Outputs (results/dhs_rebuild/):
 #   dhs_month_prevalence.csv          per survey-region month, measured and MAP
@@ -62,23 +62,34 @@ build_month_panel <- function() {
     if (file.exists(cache)) { rows[[stem]] <- readRDS(cache); next }
     x <- tryCatch(readRDS(path), error = function(e) NULL)
     if (is.null(x) || !all(c("hv006", "hv005", "hv024") %in% names(x))) next
-    region <- rkey(as.character(haven::as_factor(x$hv024)))
     month <- as.integer(x$hv006); weight <- as.numeric(x$hv005)
-    ok <- is.finite(month) & month >= 1 & month <= 12 &
-      is.finite(weight) & weight > 0 & nzchar(region)
-    if (!any(ok)) next
-    region <- region[ok]; month <- month[ok]; weight <- weight[ok]
-    # circular mean, so fieldwork spanning December-January is handled correctly
-    angle <- 2 * pi * (month - 1) / 12
-    sx <- tapply(weight * cos(angle), region, sum)
-    sy <- tapply(weight * sin(angle), region, sum)
-    circular <- (atan2(sy[names(sx)], sx) / (2 * pi)) * 12 + 1
-    circular[circular < 0.5] <- circular[circular < 0.5] + 12
-    out <- data.frame(survey_stem = stem, regkey = names(sx),
-                      month_circular = as.numeric(circular),
-                      month_min = as.numeric(tapply(month, region, min)),
-                      month_max = as.numeric(tapply(month, region, max)),
-                      stringsAsFactors = FALSE)
+    # Emit rows keyed by EVERY available region variable. Some countries report
+    # prevalence at a finer level than hv024: Nigeria's measured file is by the 37
+    # states (shstate) while hv024 carries only the 6 zones, so keying on hv024
+    # alone silently dropped all 111 Nigerian region-rows at the merge. Emitting
+    # both key sets fixes that for any country with the same mismatch.
+    region_vars <- intersect(c("hv024", "shstate", "sstate"), names(x))
+    per_var <- lapply(region_vars, function(v) {
+      region <- rkey(as.character(haven::as_factor(x[[v]])))
+      ok <- is.finite(month) & month >= 1 & month <= 12 &
+        is.finite(weight) & weight > 0 & nzchar(region)
+      if (!any(ok)) return(NULL)
+      r <- region[ok]; mm <- month[ok]; w <- weight[ok]
+      # circular mean, so fieldwork spanning December-January is handled correctly
+      angle <- 2 * pi * (mm - 1) / 12
+      sx <- tapply(w * cos(angle), r, sum)
+      sy <- tapply(w * sin(angle), r, sum)
+      circular <- (atan2(sy[names(sx)], sx) / (2 * pi)) * 12 + 1
+      circular[circular < 0.5] <- circular[circular < 0.5] + 12
+      data.frame(survey_stem = stem, region_var = v, regkey = names(sx),
+                 month_circular = as.numeric(circular),
+                 month_min = as.numeric(tapply(mm, r, min)),
+                 month_max = as.numeric(tapply(mm, r, max)),
+                 stringsAsFactors = FALSE)
+    })
+    out <- do.call(rbind, per_var[!vapply(per_var, is.null, TRUE)])
+    if (is.null(out) || !nrow(out)) next
+    out <- out[!duplicated(out$regkey), , drop = FALSE]
     saveRDS(out, cache); rows[[stem]] <- out
   }
   long <- do.call(rbind, rows); rownames(long) <- NULL
@@ -172,11 +183,149 @@ print(within(era_res, { mean_month <- round(mean_month, 1)
   pct_july_to_november <- round(pct_july_to_november)
   mean_map_minus_measured <- round(mean_map_minus_measured, 1)
   sahel_share_pct <- round(sahel_share_pct) }), row.names = FALSE)
-cat("\nTiming shifted between the first two eras then plateaued while the gap kept\n",
-    "widening, and the shift was towards the high-transmission season, which would\n",
-    "NARROW the gap. Survey timing therefore does not explain the MAP drift.\n", sep = "")
+cat("\nTiming is NOT monotone across eras: the share of fieldwork in July-November\n",
+    "rises then falls (about 44%, 58%, 39%), while the MAP-measured gap widens\n",
+    "steadily. The first shift, towards the high-transmission season, works against\n",
+    "the widening gap; the second, away from it, would contribute to the gap. So\n",
+    "timing cannot be dismissed as a partial contributor to the recent divergence,\n",
+    "though it cannot account for the earlier widening.\n", sep = "")
 write.csv(m[, c("iso3", "year", "regkey", "month", "measured", "map", "gap", "sahel", "era")],
           file.path(RESULTS_DIR, "dhs_month_prevalence.csv"), row.names = FALSE)
+
+
+## ---- admin-1 latitude, so the seasonal belt is defined subnationally --------
+# A country-level Sahel flag misclassifies countries that straddle the belt:
+# northern Nigeria is Sahelian, southern Nigeria is not. Latitude comes from the
+# centroid of each admin-1 polygon in the cached DHS boundary files. Where a
+# region has no polygon of its own (Nigeria reports prevalence by the 37 states
+# but its boundaries are the 6 zones) the zone centroid is used, via the
+# state-to-zone correspondence read from the recodes themselves.
+LATITUDE_CSV <- file.path(DERIVED_DIR, "dhs_region_latitude.csv")
+build_region_latitudes <- function() {
+  required_packages("sf")
+  registry <- read.csv(SURVEY_REGISTRY_CSV, stringsAsFactors = FALSE)
+  rows <- list()
+  for (f in list.files(BOUNDARY_DIR, pattern = "rds$", full.names = TRUE)) {
+    sid <- sub("\\.rds$", "", basename(f))
+    b <- tryCatch(sf::st_make_valid(readRDS(f)), error = function(e) NULL)
+    if (is.null(b) || !"DHSREGEN" %in% names(b)) next
+    ctr <- tryCatch(suppressWarnings(sf::st_coordinates(sf::st_centroid(sf::st_geometry(b)))),
+                    error = function(e) NULL)
+    if (is.null(ctr)) next
+    meta <- registry[registry$SurveyId == sid, ][1, ]
+    if (is.na(meta$iso3)) next
+    rows[[sid]] <- data.frame(iso3 = meta$iso3, regkey = rkey(b$DHSREGEN),
+                              lat = ctr[, 2], lon = ctr[, 1], stringsAsFactors = FALSE)
+  }
+  centroids <- do.call(rbind, rows)
+  centroids <- centroids[nzchar(centroids$regkey) & is.finite(centroids$lat), ]
+  # one centroid per country-region: a named region barely moves between rounds
+  lut <- aggregate(cbind(lat = centroids$lat, lon = centroids$lon),
+                   by = list(iso3 = centroids$iso3, regkey = centroids$regkey), FUN = mean)
+  # fallback map: finer region -> coarser region, from recodes carrying both
+  zone_rows <- list()
+  for (path in c(list.files(file.path(DATA_DIR, "dhs"), "PR.*rds$", full.names = TRUE),
+                 list.files(path.expand("~/.rdhs_cache"), "PR.*rds$",
+                            full.names = TRUE, recursive = TRUE))) {
+    stem <- toupper(sub("\\.rds$", "", basename(path)))
+    if (!is.null(zone_rows[[stem]])) next
+    x <- tryCatch(readRDS(path), error = function(e) NULL)
+    fine <- intersect(c("shstate", "sstate"), names(x))
+    if (is.null(x) || !length(fine) || !"hv024" %in% names(x)) next
+    f1 <- rkey(as.character(haven::as_factor(x[[fine[1]]])))
+    z1 <- rkey(as.character(haven::as_factor(x$hv024)))
+    ok <- nzchar(f1) & nzchar(z1)
+    if (!any(ok)) next
+    tb <- table(f1[ok], z1[ok])
+    zone_rows[[stem]] <- data.frame(iso3 = substr(stem, 1, 2), regkey = rownames(tb),
+                                    zone = colnames(tb)[apply(tb, 1, which.max)],
+                                    stringsAsFactors = FALSE)
+  }
+  if (length(zone_rows)) {
+    zmap <- unique(do.call(rbind, zone_rows))
+    # DHS two-letter file prefix to iso3, via the registry
+    key <- unique(data.frame(prefix = substr(registry$no_extension, 1, 2),
+                             iso3 = registry$iso3, stringsAsFactors = FALSE))
+    zmap$iso3 <- key$iso3[match(zmap$iso3, key$prefix)]
+    zmap <- zmap[!is.na(zmap$iso3) & !duplicated(paste(zmap$iso3, zmap$regkey)), ]
+    zmap$lat <- lut$lat[match(paste(zmap$iso3, zmap$zone), paste(lut$iso3, lut$regkey))]
+    zmap$lon <- lut$lon[match(paste(zmap$iso3, zmap$zone), paste(lut$iso3, lut$regkey))]
+    zmap <- zmap[is.finite(zmap$lat) &
+                   !paste(zmap$iso3, zmap$regkey) %in% paste(lut$iso3, lut$regkey), ]
+    if (nrow(zmap)) lut <- rbind(lut, zmap[, c("iso3", "regkey", "lat", "lon")])
+  }
+  write.csv(lut, LATITUDE_CSV, row.names = FALSE)
+  lut
+}
+latitudes <- if (file.exists(LATITUDE_CSV)) read.csv(LATITUDE_CSV, stringsAsFactors = FALSE) else
+  tryCatch(build_region_latitudes(), error = function(e) {
+    message("Region latitudes unavailable (", conditionMessage(e), ")."); NULL })
+
+if (!is.null(latitudes)) {
+  m$lat <- latitudes$lat[match(paste(m$iso3, m$regkey), paste(latitudes$iso3, latitudes$regkey))]
+  cat(sprintf("
+region-rows with an admin-1 latitude: %d of %d (%.0f%%)
+",
+              sum(is.finite(m$lat)), nrow(m), 100 * mean(is.finite(m$lat))))
+  z <- m[is.finite(m$lat), , drop = FALSE]
+  # The seasonal-transmission belt is taken as 10N and above rather than 12N: with
+  # Nigeria at zone resolution its northern centroids reach only 11.8N, and 10N is
+  # in any case closer to the seasonal-chemoprevention zone.
+  z$zone <- cut(z$lat, c(-40, 0, 10, 40),
+                labels = c("Southern hemisphere", "Equatorial 0-10N", "Seasonal belt >=10N"))
+  cat("
+region-rows by latitude zone:
+"); print(table(z$zone))
+  zone_rows <- lapply(levels(z$zone), function(zz) {
+    d <- z[z$zone == zz, , drop = FALSE]
+    if (nrow(d) < 40) return(NULL)
+    d$country <- factor(d$iso3)
+    base <- mgcv::gam(measured ~ s(map, k = 5) + s(country, bs = "re"), data = d, method = "REML")
+    full <- mgcv::gam(measured ~ s(map, k = 5) + s(month, bs = "cc", k = 6) + s(country, bs = "re"),
+                      data = d, method = "REML", knots = KNOTS)
+    st <- summary(full)$s.table; mr <- grep("^s\\(month\\)", rownames(st))
+    pd <- data.frame(map = mean(d$map, na.rm = TRUE), month = seq(1, 12, by = 0.1),
+                     country = d$country[1])
+    tm <- predict(full, pd, type = "terms")
+    tm <- tm[, grep("month", colnames(tm))]
+    data.frame(zone = zz, n = nrow(d), countries = length(unique(d$iso3)),
+               r2_without_month = summary(base)$r.sq, r2_with_month = summary(full)$r.sq,
+               increment = summary(full)$r.sq - summary(base)$r.sq,
+               month_p = st[mr, "p-value"], amplitude_pp = diff(range(tm)),
+               peak_month = month.abb[round(pd$month[which.max(tm)])],
+               trough_month = month.abb[round(pd$month[which.min(tm)])])
+  })
+  zone_res <- do.call(rbind, zone_rows[!vapply(zone_rows, is.null, TRUE)])
+  write.csv(zone_res, file.path(RESULTS_DIR, "seasonality_by_latitude_zone.csv"), row.names = FALSE)
+  cat("
+=== Seasonality by latitude zone (separate cyclic smooth per zone) ===\n")
+  print(within(zone_res, { r2_without_month <- round(r2_without_month, 3)
+    r2_with_month <- round(r2_with_month, 3); increment <- round(increment, 3)
+    month_p <- signif(month_p, 3); amplitude_pp <- round(amplitude_pp, 1) }), row.names = FALSE)
+  cat("\nPooling hemispheres cancels opposite-phase seasons, so each zone is fitted\n",
+      "separately. Nigeria enters at zone-level latitude, so within-Nigeria state\n",
+      "variation in latitude is not resolved.\n", sep = "")
+  zone_plot <- ggplot2::ggplot(z, ggplot2::aes(month, measured, colour = zone, fill = zone)) +
+    ggplot2::geom_point(alpha = 0.5, size = 1.4) +
+    ggplot2::geom_smooth(method = "gam", formula = y ~ s(x, bs = "cc", k = 6),
+                         method.args = list(knots = list(x = c(0.5, 12.5))),
+                         se = TRUE, linewidth = 1.1, alpha = 0.15) +
+    ggplot2::facet_wrap(~ zone, nrow = 1) +
+    ggplot2::scale_colour_manual(values = c("#3690c0", "#238b45", "#d95f0e"), guide = "none") +
+    ggplot2::scale_fill_manual(values = c("#3690c0", "#238b45", "#d95f0e"), guide = "none") +
+    ggplot2::scale_x_continuous(breaks = seq(1, 12, 2), labels = month.abb[seq(1, 12, 2)]) +
+    ggplot2::labs(x = "Month of fieldwork",
+                  y = expression("DHS-measured " * italic(Pf) * "PR"[2-10] * " (%)"),
+                  title = "Seasonality of measured parasitaemia by admin-1 latitude zone",
+                  subtitle = paste("Raw smooths shown; these are confounded by which country was",
+                                   "surveyed when, so read the adjusted table for the seasonal signal.")) +
+    ggplot2::theme_bw(base_size = 11) +
+    ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
+                   strip.background = ggplot2::element_rect(fill = "grey92", colour = NA),
+                   strip.text = ggplot2::element_text(face = "bold"))
+  ggplot2::ggsave(file.path(RESULTS_DIR, "seasonality_by_latitude_zone.png"), zone_plot,
+                  width = 12, height = 4.6, dpi = 320, bg = "white")
+}
 
 ## ---- figure ----------------------------------------------------------------
 m$group <- ifelse(m$sahel, "Sahel", "Other")
