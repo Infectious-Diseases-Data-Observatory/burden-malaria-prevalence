@@ -40,6 +40,7 @@
 #   period_stratified_covariates.csv         ridge covariate effects by period
 #   period_stratified_splines.png            overlaid dose-response and AF
 #   period_stratified_scatter.png            four-panel prevalence vs mortality
+#   period_stratified_prevalence_by_year.png prevalence over calendar time
 #   period_stratified_covariate_forest.png   covariate effects by period
 # =============================================================================
 source("R_dhs/00_config.R")
@@ -267,6 +268,44 @@ scatter <- ggplot2::ggplot(d, ggplot2::aes(pfpr2_10, postneonatal_mortality)) +
 ggplot2::ggsave(file.path(RESULTS_DIR, "period_stratified_scatter.png"),
                 scatter, width = 10, height = 8, dpi = 320, bg = "white")
 
+## ---- exposure over calendar time -------------------------------------------
+# One circle per survey-region-year: what the model actually sees over time. Two
+# features matter for the period-stratified comparison above - prevalence falls
+# throughout, and the high-prevalence observations thin out in the later periods,
+# which is why each fitted curve is confined to its own observed range.
+annual <- do.call(rbind, lapply(sort(unique(d$year)), function(y) {
+  z <- d[d$year == y, ]
+  data.frame(year = y, weighted_mean = sum(z$pfpr2_10 * z$exposure) / sum(z$exposure),
+             n = nrow(z))
+}))
+prevalence_time <- ggplot2::ggplot(d, ggplot2::aes(year, pfpr2_10)) +
+  ggplot2::geom_vline(xintercept = c(2006.5, 2012.5, 2018.5),
+                      linetype = "dashed", colour = "grey70") +
+  ggplot2::geom_point(ggplot2::aes(size = exposure, colour = period), alpha = 0.45) +
+  ggplot2::geom_line(data = annual, ggplot2::aes(year, weighted_mean),
+                     inherit.aes = FALSE, colour = "grey20", linewidth = 1) +
+  ggplot2::geom_point(data = annual, ggplot2::aes(year, weighted_mean),
+                      inherit.aes = FALSE, colour = "grey20", size = 1.6) +
+  ggplot2::scale_colour_manual(values = PERIOD_COLOURS, name = NULL,
+                               guide = ggplot2::guide_legend(override.aes = list(size = 3))) +
+  ggplot2::scale_size_area(max_size = 5, name = "Births", labels = scales::comma) +
+  ggplot2::scale_y_log10(breaks = c(1, 2, 5, 10, 20, 50)) +
+  ggplot2::scale_x_continuous(breaks = seq(2000, 2024, 4)) +
+  ggplot2::labs(x = NULL,
+                y = expression(italic(Pf) * "PR"[2-10] * " (%, 2-year mean), log scale"),
+                title = "Malaria prevalence in the analysed survey-regions over time",
+                subtitle = paste("One circle per survey-region-year, sized by births;",
+                                 "black line, births-weighted annual mean;",
+                                 "dashed lines, period boundaries")) +
+  base_theme +
+  ggplot2::theme(legend.position = "bottom", legend.box = "horizontal",
+                 plot.title = ggplot2::element_text(face = "bold"))
+ggplot2::ggsave(file.path(RESULTS_DIR, "period_stratified_prevalence_by_year.png"),
+                prevalence_time, width = 10, height = 5.6, dpi = 320, bg = "white")
+cat(sprintf("\nbirths-weighted mean PfPR2-10: %.1f%% in %d -> %.1f%% in %d\n",
+            annual$weighted_mean[1], annual$year[1],
+            annual$weighted_mean[nrow(annual)], annual$year[nrow(annual)]))
+
 ## ---- covariate effects by period -------------------------------------------
 # the ridge block enters as a single matrix term "G", so its per-variable
 # coefficients are the G rows of the parametric table
@@ -323,4 +362,4 @@ forest <- ggplot2::ggplot(cov_df, ggplot2::aes(pct_change, label, colour = perio
 ggplot2::ggsave(file.path(RESULTS_DIR, "period_stratified_covariate_forest.png"),
                 forest, width = 9.5, height = 7.5, dpi = 320, bg = "white")
 cat("\nsaved: period_stratified_{summary,covariates,balanced}.csv +",
-    "period_stratified_{splines,scatter,covariate_forest}.png\n")
+    "period_stratified_{splines,scatter,prevalence_by_year,covariate_forest}.png\n")
