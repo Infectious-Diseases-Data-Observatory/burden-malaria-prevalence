@@ -27,6 +27,9 @@
 #   subregion_stratified_interaction.csv   interaction tests by sub-region
 #   subregion_stratified_splines.png       overlaid dose-response and AF
 #   subregion_stratified_scatter.png       the same fits, one panel per sub-region
+#   subregion_slope_by_year.csv            implied slope at 2005/2010/2015/2020/2024
+#   west_africa_curves_2005_2020.csv       West Africa curves at the two dates
+#   west_africa_slope_2005_vs_2020.png     West Africa dose-response and AF, 2005 vs 2020
 # =============================================================================
 source("R_dhs/00_config.R")
 required_packages(c("mgcv", "ggplot2", "patchwork", "scales"))
@@ -259,5 +262,83 @@ scatter <- ggplot2::ggplot(sharp, ggplot2::aes(pfpr2_10, postneonatal_mortality)
                  plot.title = ggplot2::element_text(face = "bold"))
 ggplot2::ggsave(file.path(RESULTS_DIR, "subregion_stratified_scatter.png"),
                 scatter, width = 12.5, height = 5.2, dpi = 320, bg = "white")
-cat("\nsaved: subregion_stratified_{summary,interaction}.csv +",
-    "subregion_stratified_{splines,scatter}.png\n")
+## ---- C. how has the West Africa slope changed? -----------------------------
+# The slope at calendar year Y implied by the linear x time interaction is
+# b_pfpr + (Y - centre) * b_interaction, with its standard error from the variance
+# of that linear combination. Reported for West Africa (where the interaction is
+# significant) and East & Southern Africa (for contrast).
+slope_by_year <- function(z, years) {
+  f <- fit_spec(z, "linear_time_interaction")
+  if (is.null(f)) return(NULL)
+  b <- coef(f$model); V <- vcov(f$model)
+  i1 <- which(names(b) == "pfpr10"); i2 <- which(names(b) == "pfpr10:year_c")
+  if (!length(i1) || !length(i2)) return(NULL)
+  do.call(rbind, lapply(years, function(Y) {
+    t <- Y - unique(bundle$year_center)[1]
+    est <- b[i1] + t * b[i2]
+    se <- sqrt(V[i1, i1] + t^2 * V[i2, i2] + 2 * t * V[i1, i2])
+    data.frame(year = Y, pct_change_per_10 = 100 * (exp(est) - 1),
+               lo = 100 * (exp(est - 1.96 * se) - 1),
+               hi = 100 * (exp(est + 1.96 * se) - 1))
+  }))
+}
+SLOPE_YEARS <- c(2005, 2010, 2015, 2020, 2024)
+slope_rows <- list()
+for (region in SUBREGIONS) {
+  z <- sharp[sharp$subregion == region, , drop = FALSE]
+  s <- slope_by_year(z, SLOPE_YEARS)
+  if (!is.null(s)) slope_rows[[region]] <- cbind(subregion = region, s)
+}
+slope_res <- do.call(rbind, slope_rows)
+write.csv(slope_res, file.path(RESULTS_DIR, "subregion_slope_by_year.csv"), row.names = FALSE)
+cat("\n=== C. Implied slope by calendar year (% change per +10 PfPR points) ===\n")
+print(within(slope_res, { pct_change_per_10 <- round(pct_change_per_10, 1)
+  lo <- round(lo, 1); hi <- round(hi, 1) }), row.names = FALSE)
+
+# West Africa dose-response and attributable fraction at 2005 versus 2020, from
+# the spline x time model so the SHAPE as well as the slope may change
+westafrica <- sharp[sharp$subregion == "West Africa", , drop = FALSE]
+wa_fit <- fit_spec(westafrica, "spline_time_interaction")
+if (!is.null(wa_fit)) {
+  centre <- unique(bundle$year_center)[1]
+  grid <- exp(seq(log(max(1, min(westafrica$pfpr2_10))),
+                  log(max(westafrica$pfpr2_10)), length.out = 200))
+  wa_curves <- do.call(rbind, lapply(c(2005, 2020), function(Y) {
+    pr <- link_prediction(wa_fit$model, newdata_at_mean(wa_fit$model, grid / 10, year_c = Y - centre))
+    af <- af_from_model(wa_fit$model, grid, year_c = Y - centre)
+    data.frame(year = factor(Y), prevalence = grid, rate = 1000 * exp(pr$fit),
+               rate_lo = 1000 * exp(pr$fit - 1.96 * pr$se),
+               rate_hi = 1000 * exp(pr$fit + 1.96 * pr$se),
+               af = 100 * af$af, af_lo = 100 * af$lo, af_hi = 100 * af$hi)
+  }))
+  write.csv(wa_curves, file.path(RESULTS_DIR, "west_africa_curves_2005_2020.csv"), row.names = FALSE)
+  ERA <- c("2005" = "#3690c0", "2020" = "#a50f15")
+  wa_rate <- ggplot2::ggplot(wa_curves, ggplot2::aes(prevalence, rate, colour = year, fill = year)) +
+    ggplot2::geom_point(data = westafrica, ggplot2::aes(pfpr2_10, postneonatal_mortality),
+                        inherit.aes = FALSE, colour = "grey60", alpha = 0.3, size = 0.9) +
+    ggplot2::geom_ribbon(ggplot2::aes(ymin = rate_lo, ymax = rate_hi), alpha = 0.15, colour = NA) +
+    ggplot2::geom_line(linewidth = 1.2) + x_log + ggplot2::scale_y_log10() +
+    ggplot2::scale_colour_manual(values = ERA, name = NULL) +
+    ggplot2::scale_fill_manual(values = ERA, guide = "none") +
+    ggplot2::labs(x = expression(italic(Pf) * "PR"[2-10] * " (%), log scale"),
+                  y = "Post-neonatal mortality\n(per 1000, log scale)",
+                  title = "A  West Africa dose-response, 2005 versus 2020") +
+    base_theme +
+    ggplot2::theme(legend.position = c(0.02, 0.98), legend.justification = c(0, 1))
+  wa_af <- ggplot2::ggplot(wa_curves, ggplot2::aes(prevalence, af, colour = year, fill = year)) +
+    ggplot2::geom_ribbon(ggplot2::aes(ymin = af_lo, ymax = af_hi), alpha = 0.15, colour = NA) +
+    ggplot2::geom_line(linewidth = 1.2) + x_log +
+    ggplot2::scale_colour_manual(values = ERA, guide = "none") +
+    ggplot2::scale_fill_manual(values = ERA, guide = "none") +
+    ggplot2::coord_cartesian(ylim = c(0, 70)) +
+    ggplot2::labs(x = expression(italic(Pf) * "PR"[2-10] * " (%), log scale"),
+                  y = "Attributable share of post-neonatal\ndeaths (%, versus 1%)",
+                  title = "B  Attributable fraction, 2005 versus 2020") +
+    base_theme
+  ggplot2::ggsave(file.path(RESULTS_DIR, "west_africa_slope_2005_vs_2020.png"),
+                  wa_rate | wa_af, width = 11.5, height = 4.8, dpi = 320, bg = "white")
+}
+
+cat("\nsaved: subregion_stratified_{summary,interaction}.csv, subregion_slope_by_year.csv,",
+    "west_africa_curves_2005_2020.csv +",
+    "subregion_stratified_{splines,scatter}.png + west_africa_slope_2005_vs_2020.png\n")
