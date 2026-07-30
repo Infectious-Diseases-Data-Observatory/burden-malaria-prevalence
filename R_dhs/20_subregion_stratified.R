@@ -28,6 +28,7 @@
 #   subregion_stratified_splines.png       overlaid dose-response and AF
 #   subregion_stratified_scatter.png       the same fits, one panel per sub-region
 #   subregion_published_spec_summary.csv   the PUBLISHED spec split by sub-region
+#   subregion_published_spec_splines.png   the same, with the pooled fit overlaid
 #   subregion_slope_by_year.csv            implied slope at 2005/2010/2015/2020/2024
 #   west_africa_curves_2005_2020.csv       West Africa curves at the two dates
 #   west_africa_slope_2005_vs_2020.png     West Africa dose-response and AF, 2005 vs 2020
@@ -414,6 +415,70 @@ if (length(inter)) {
   cat("\nPfPR x sub-region interaction terms (reference = West Africa):\n")
   print(round(ptab[inter, , drop = FALSE], 4))
 }
+
+
+## ---- figure for the published specification --------------------------------
+# Each sub-region's own fit, with the POOLED published fit as a dashed reference so
+# the absence of significant heterogeneity is visible rather than only tabulated.
+# Curves are clipped to each sub-region's observed prevalence range and evaluated at
+# the common reference point (year_c = 0, covariates at the pooled mean), which is
+# valid here because every sub-region spans the whole 2000-2024 window.
+pub_pooled <- fit_spec(published, "spline_no_interaction")
+pub_rate <- list(); pub_af <- list()
+for (region in names(pub_fits)) {
+  z <- published[published$subregion == region, , drop = FALSE]
+  grid <- exp(seq(log(max(1, min(z$pfpr2_10))), log(max(z$pfpr2_10)), length.out = 200))
+  pr <- link_prediction(pub_fits[[region]]$model,
+                        newdata_at_mean(pub_fits[[region]]$model, grid / 10, year_c = 0))
+  pub_rate[[region]] <- data.frame(subregion = region, prevalence = grid,
+    rate = 1000 * exp(pr$fit), lo = 1000 * exp(pr$fit - 1.96 * pr$se),
+    hi = 1000 * exp(pr$fit + 1.96 * pr$se))
+  pub_af[[region]] <- data.frame(subregion = region, prevalence = grid,
+    af = 100 * af_from_model(pub_fits[[region]]$model, grid, year_c = 0)$af)
+}
+pub_rate_df <- do.call(rbind, pub_rate); pub_af_df <- do.call(rbind, pub_af)
+pub_rate_df$subregion <- factor(pub_rate_df$subregion, levels = SUBREGIONS)
+pub_af_df$subregion <- factor(pub_af_df$subregion, levels = SUBREGIONS)
+pooled_rate <- pooled_af <- NULL
+if (!is.null(pub_pooled)) {
+  g <- exp(seq(log(max(1, min(published$pfpr2_10))), log(max(published$pfpr2_10)), length.out = 200))
+  pr <- link_prediction(pub_pooled$model, newdata_at_mean(pub_pooled$model, g / 10, year_c = 0))
+  pooled_rate <- data.frame(prevalence = g, rate = 1000 * exp(pr$fit))
+  pooled_af <- data.frame(prevalence = g, af = 100 * af_from_model(pub_pooled$model, g, year_c = 0)$af)
+}
+pub_panel_rate <- ggplot2::ggplot(pub_rate_df,
+    ggplot2::aes(prevalence, rate, colour = subregion, fill = subregion)) +
+  ggplot2::geom_point(data = published,
+    ggplot2::aes(pfpr2_10, postneonatal_mortality, colour = subregion),
+    inherit.aes = FALSE, alpha = 0.16, size = 0.8) +
+  ggplot2::geom_ribbon(ggplot2::aes(ymin = lo, ymax = hi), alpha = 0.12, colour = NA) +
+  { if (!is.null(pooled_rate)) ggplot2::geom_line(data = pooled_rate,
+      ggplot2::aes(prevalence, rate), inherit.aes = FALSE, colour = "grey25",
+      linetype = "dashed", linewidth = 0.8) } +
+  ggplot2::geom_line(linewidth = 1.1) + x_log + ggplot2::scale_y_log10() +
+  ggplot2::scale_colour_manual(values = COLOURS, name = NULL) +
+  ggplot2::scale_fill_manual(values = COLOURS, guide = "none") +
+  ggplot2::labs(x = expression(italic(Pf) * "PR"[2-10] * " (%), log scale"),
+                y = "Post-neonatal mortality\n(per 1000, log scale)",
+                title = "A  Dose-response by sub-region, published specification") +
+  base_theme +
+  ggplot2::theme(legend.position = c(0.02, 0.98), legend.justification = c(0, 1),
+                 legend.background = ggplot2::element_rect(
+                   fill = scales::alpha("white", 0.75), colour = NA))
+pub_panel_af <- ggplot2::ggplot(pub_af_df, ggplot2::aes(prevalence, af, colour = subregion)) +
+  ggplot2::geom_hline(yintercept = 0, linetype = "dotted", colour = "grey55") +
+  { if (!is.null(pooled_af)) ggplot2::geom_line(data = pooled_af,
+      ggplot2::aes(prevalence, af), inherit.aes = FALSE, colour = "grey25",
+      linetype = "dashed", linewidth = 0.8) } +
+  ggplot2::geom_line(linewidth = 1.1) + x_log +
+  ggplot2::scale_colour_manual(values = COLOURS, guide = "none") +
+  ggplot2::coord_cartesian(ylim = c(0, 60)) +
+  ggplot2::labs(x = expression(italic(Pf) * "PR"[2-10] * " (%), log scale"),
+                y = "Malaria-attributable share of\npost-neonatal deaths (%, versus 1%)",
+                title = "B  Attributable fraction (dashed: pooled published fit)") +
+  base_theme
+ggplot2::ggsave(file.path(RESULTS_DIR, "subregion_published_spec_splines.png"),
+                pub_panel_rate | pub_panel_af, width = 11.5, height = 4.8, dpi = 320, bg = "white")
 
 cat("\nsaved: subregion_stratified_{summary,interaction}.csv, subregion_slope_by_year.csv,",
     "west_africa_curves_2005_2020.csv +",
