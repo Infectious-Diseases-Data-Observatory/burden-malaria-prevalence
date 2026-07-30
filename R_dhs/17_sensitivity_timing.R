@@ -43,6 +43,8 @@
 #   sensitivity_prevalence_timing_neonatal.png       negative control
 #   sensitivity_mortality_horizon.png                outcome-side dose-response
 #   sensitivity_timing_matched_combinations.png      matched-combination forest
+#   mortality_horizon_agreement.csv                  60- versus 24-month windows
+#   mortality_p60_vs_p24_by_subregion.png            the same, by sub-region
 #   sensitivity_timing_burden_by_structure.csv       burden decline by horizon
 #                                                    AND time structure
 #
@@ -489,6 +491,78 @@ if (!is.null(mort_long)) {
                         "Mortality horizon x prevalence window: centre-matched combinations",
                         "Matched pairings (B, C, D) versus deliberate mismatches (A, E too recent; F over-lagged)"),
             "sensitivity_timing_matched_combinations.png", 11, 5)
+
+
+  ## ---- diagnostic: do the two mortality horizons agree? --------------------
+  # A scatter of the 60-month against the 24-month estimate, one panel per
+  # sub-region. If shortening the window merely added noise the points would
+  # scatter symmetrically about equality; a systematic offset would mean the
+  # horizon changes the LEVEL of the outcome and not just its precision.
+  SUBREGION_MAP <- c(
+    BEN="West Africa",BFA="West Africa",CIV="West Africa",CPV="West Africa",
+    GHA="West Africa",GIN="West Africa",GMB="West Africa",GNB="West Africa",
+    LBR="West Africa",MLI="West Africa",MRT="West Africa",NER="West Africa",
+    NGA="West Africa",SEN="West Africa",SLE="West Africa",TGO="West Africa",
+    AGO="Central Africa",CAF="Central Africa",CMR="Central Africa",COD="Central Africa",
+    COG="Central Africa",GAB="Central Africa",GNQ="Central Africa",STP="Central Africa",
+    TCD="Central Africa",
+    BDI="East & Southern",BWA="East & Southern",COM="East & Southern",DJI="East & Southern",
+    ERI="East & Southern",ETH="East & Southern",KEN="East & Southern",LSO="East & Southern",
+    MDG="East & Southern",MOZ="East & Southern",MWI="East & Southern",NAM="East & Southern",
+    RWA="East & Southern",SDN="East & Southern",SOM="East & Southern",SSD="East & Southern",
+    SWZ="East & Southern",TZA="East & Southern",UGA="East & Southern",ZAF="East & Southern",
+    ZMB="East & Southern",ZWE="East & Southern")
+  horizons <- merge(
+    mort_long[mort_long$period == 60, c("k", "postneonatal_mortality", "exposure")],
+    mort_long[mort_long$period == 24, c("k", "postneonatal_mortality", "exposure")],
+    by = "k", suffixes = c("_p60", "_p24"))
+  idx <- match(horizons$k, analysis$k)
+  horizons$iso3 <- analysis$iso3[idx]
+  horizons <- horizons[!is.na(idx) & as.logical(analysis$main_sample)[idx] &
+                         is.finite(horizons$postneonatal_mortality_p60) &
+                         horizons$postneonatal_mortality_p60 > 0 &
+                         is.finite(horizons$postneonatal_mortality_p24) &
+                         horizons$postneonatal_mortality_p24 > 0, , drop = FALSE]
+  horizons$subregion <- factor(unname(SUBREGION_MAP[horizons$iso3]),
+    levels = c("West Africa", "Central Africa", "East & Southern"))
+  horizons <- horizons[!is.na(horizons$subregion), , drop = FALSE]
+  horizons$ratio <- horizons$postneonatal_mortality_p60 / horizons$postneonatal_mortality_p24
+  horizon_res <- do.call(rbind, lapply(c(levels(horizons$subregion), "ALL"), function(sr) {
+    z <- if (sr == "ALL") horizons else horizons[horizons$subregion == sr, ]
+    data.frame(subregion = sr, n = nrow(z),
+      median_period60 = median(z$postneonatal_mortality_p60),
+      median_period24 = median(z$postneonatal_mortality_p24),
+      median_ratio = median(z$ratio), pct_period60_higher = 100 * mean(z$ratio > 1),
+      log_correlation = cor(log(z$postneonatal_mortality_p60), log(z$postneonatal_mortality_p24)))
+  }))
+  write.csv(horizon_res, file.path(RESULTS_DIR, "mortality_horizon_agreement.csv"), row.names = FALSE)
+  cat("\n=== Agreement between the 60-month and 24-month mortality windows ===\n")
+  print(within(horizon_res, { median_period60 <- round(median_period60, 1)
+    median_period24 <- round(median_period24, 1); median_ratio <- round(median_ratio, 3)
+    pct_period60_higher <- round(pct_period60_higher)
+    log_correlation <- round(log_correlation, 3) }), row.names = FALSE)
+  horizon_plot <- ggplot2::ggplot(horizons,
+      ggplot2::aes(postneonatal_mortality_p24, postneonatal_mortality_p60)) +
+    ggplot2::geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "grey40") +
+    ggplot2::geom_point(ggplot2::aes(size = exposure_p60, colour = subregion), alpha = 0.4) +
+    ggplot2::geom_smooth(method = "lm", formula = y ~ x, se = TRUE, colour = "grey20",
+                         fill = "grey70", linewidth = 0.7) +
+    ggplot2::facet_wrap(~ subregion, nrow = 1) +
+    ggplot2::scale_colour_manual(values = c("West Africa" = "#08519c",
+      "Central Africa" = "#e08214", "East & Southern" = "#238b45"), guide = "none") +
+    ggplot2::scale_size_area(max_size = 4.5, name = "Births", labels = scales::comma) +
+    ggplot2::scale_x_log10() + ggplot2::scale_y_log10() + ggplot2::coord_equal() +
+    ggplot2::labs(x = "Post-neonatal mortality, 24-month window (per 1000, log scale)",
+      y = "Post-neonatal mortality,\n60-month window (per 1000, log scale)",
+      title = "DHS mortality over a 5-year versus a 2-year reference period",
+      subtitle = "One point per survey-region; dashed line is equality") +
+    base_theme +
+    ggplot2::theme(legend.position = "bottom",
+      strip.background = ggplot2::element_rect(fill = "grey92", colour = NA),
+      strip.text = ggplot2::element_text(face = "bold"),
+      plot.title = ggplot2::element_text(face = "bold"))
+  ggplot2::ggsave(file.path(RESULTS_DIR, "mortality_p60_vs_p24_by_subregion.png"),
+                  horizon_plot, width = 12, height = 5, dpi = 320, bg = "white")
 
   ## =========================================================================
   ## Arm 4 — burden consequence of the mortality horizon AND the time structure
