@@ -63,6 +63,7 @@ run_script("20_subregion_stratified.R")
 run_script("21_map_vs_measured_prevalence.R")
 run_script("22_seasonality_of_fieldwork.R")
 run_script("23_deprivation_proxy.R")
+run_script("24_intervention_targeting.R")
 
 legacy_validation_inputs <- c(
   file.path(REPO_ROOT, "results", "penalized_models.rds"),
