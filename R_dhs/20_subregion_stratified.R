@@ -27,6 +27,7 @@
 #   subregion_stratified_interaction.csv   interaction tests by sub-region
 #   subregion_stratified_splines.png       overlaid dose-response and AF
 #   subregion_stratified_scatter.png       the same fits, one panel per sub-region
+#   subregion_published_spec_summary.csv   the PUBLISHED spec split by sub-region
 #   subregion_slope_by_year.csv            implied slope at 2005/2010/2015/2020/2024
 #   west_africa_curves_2005_2020.csv       West Africa curves at the two dates
 #   west_africa_slope_2005_vs_2020.png     West Africa dose-response and AF, 2005 vs 2020
@@ -337,6 +338,81 @@ if (!is.null(wa_fit)) {
     base_theme
   ggplot2::ggsave(file.path(RESULTS_DIR, "west_africa_slope_2005_vs_2020.png"),
                   wa_rate | wa_af, width = 11.5, height = 4.8, dpi = 320, bg = "white")
+}
+
+
+## ---- D. the PUBLISHED specification, split by sub-region -------------------
+# Arms A-C use the sharp Period-24 outcome with windowed prevalence. This arm asks
+# the same question of the MANUSCRIPT's primary specification: the analysis
+# dataset's own post-neonatal mortality (chmort with the default Period = 60) and
+# survey-year PfPR2-10, with no timing correction at all. It is the version that
+# bears directly on whether the published headline conceals regional heterogeneity.
+published <- analysis[as.logical(analysis$main_sample), , drop = FALSE]
+published$subregion <- unname(SUBREGION_MAP[published$iso3])
+published <- published[!is.na(published$subregion) & is.finite(published$pfpr10) &
+                         published$pfpr10 > 0 &
+                         is.finite(published$postneonatal_mortality) &
+                         published$postneonatal_mortality > 0 &
+                         is.finite(published$exposure) & published$exposure > 0, , drop = FALSE]
+published$subregion <- factor(published$subregion, levels = SUBREGIONS)
+cat("\n=== D. Published specification (Period 60 + survey-year PfPR) by sub-region ===\n")
+pub_fits <- list(); pub_rows <- list()
+for (region in SUBREGIONS) {
+  z <- published[published$subregion == region, , drop = FALSE]
+  spline <- fit_spec(z, "spline_no_interaction")
+  linear <- fit_spec(z, "linear_no_interaction")
+  if (is.null(spline)) { message("  ", region, ": failed"); next }
+  st <- summary(spline$model)$s.table
+  sr <- grep("^s\\(pfpr10\\)", rownames(st))
+  anchors <- af_from_model(spline$model, c(10, 30, 50), year_c = 0)
+  lin <- if (is.null(linear)) NULL else model_summary_row(linear)
+  pub_fits[[region]] <- spline
+  pub_rows[[region]] <- data.frame(subregion = region, n = nrow(z),
+    countries = length(unique(z$iso3)), pfpr_median = median(z$pfpr2_10),
+    smooth_edf = st[sr, "edf"], smooth_p = st[sr, "p-value"],
+    pct_change_per_10 = if (is.null(lin)) NA_real_ else lin$pct_change_per_10,
+    lo = if (is.null(lin)) NA_real_ else lin$pct_change_lo,
+    hi = if (is.null(lin)) NA_real_ else lin$pct_change_hi,
+    af10 = 100 * anchors$af[1], af30 = 100 * anchors$af[2], af50 = 100 * anchors$af[3])
+}
+pub_res <- do.call(rbind, pub_rows)
+write.csv(pub_res, file.path(RESULTS_DIR, "subregion_published_spec_summary.csv"), row.names = FALSE)
+print(within(pub_res, { pfpr_median <- round(pfpr_median, 1); smooth_edf <- round(smooth_edf, 2)
+  smooth_p <- signif(smooth_p, 2); pct_change_per_10 <- round(pct_change_per_10, 1)
+  lo <- round(lo, 1); hi <- round(hi, 1)
+  af10 <- round(af10); af30 <- round(af30); af50 <- round(af50) }), row.names = FALSE)
+
+## ---- formal test: is the dose-response heterogeneous across sub-regions? ----
+# Pooled single smooth versus one smooth per sub-region, on identical rows, by ML
+# AIC; plus a linear version giving an explicit joint p-value for the
+# PfPR x sub-region terms.
+z <- published
+z$country <- factor(z$iso3); z$G <- NULL
+ridge <- make_ridge_matrix(z, catalog, bundle$preprocessing)
+z$G <- ridge$matrix
+penalty <- list(G = list(diag(ncol(ridge$matrix))))
+z$deaths <- round(z$postneonatal_mortality / 1000 * z$exposure)
+common <- ~ G + s(year_c, k = 8) + s(country, bs = "re") + s(country, pfpr10, bs = "re") +
+  offset(log(exposure))
+pooled_spline <- mgcv::gam(update(common, deaths ~ s(pfpr10, k = 6) + .),
+  family = mgcv::nb(), method = "ML", paraPen = penalty, data = z)
+region_spline <- mgcv::gam(update(common, deaths ~ subregion + s(pfpr10, k = 6, by = subregion) + .),
+  family = mgcv::nb(), method = "ML", paraPen = penalty, data = z)
+pooled_linear <- mgcv::gam(update(common, deaths ~ pfpr10 + .),
+  family = mgcv::nb(), method = "ML", paraPen = penalty, data = z)
+region_linear <- mgcv::gam(update(common, deaths ~ pfpr10 * subregion + .),
+  family = mgcv::nb(), method = "ML", paraPen = penalty, data = z)
+cat(sprintf("\nheterogeneity of the smooth: AIC pooled %.1f versus per-sub-region %.1f (difference %+.1f)\n",
+            AIC(pooled_spline), AIC(region_spline), AIC(region_spline) - AIC(pooled_spline)))
+cat(sprintf("heterogeneity of the slope:  AIC pooled %.1f versus interaction %.1f (difference %+.1f)\n",
+            AIC(pooled_linear), AIC(region_linear), AIC(region_linear) - AIC(pooled_linear)))
+lrt <- anova(pooled_linear, region_linear, test = "Chisq")
+print(lrt)
+ptab <- summary(region_linear)$p.table
+inter <- grep("^pfpr10:subregion", rownames(ptab))
+if (length(inter)) {
+  cat("\nPfPR x sub-region interaction terms (reference = West Africa):\n")
+  print(round(ptab[inter, , drop = FALSE], 4))
 }
 
 cat("\nsaved: subregion_stratified_{summary,interaction}.csv, subregion_slope_by_year.csv,",
