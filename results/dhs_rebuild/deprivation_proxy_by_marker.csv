@@ -1,0 +1,19 @@
+"region_group","n","surveys","marker","variable","correlation"
+"West Africa",348,43,"Urban residence","pct_urban",-0.495997068508644
+"West Africa",348,43,"Maternal education","educ_yrs",-0.418031455711442
+"West Africa",348,43,"Facility delivery","facility",-0.339896724065837
+"West Africa",348,43,"Improved water","imp_water",-0.297631859011135
+"West Africa",348,43,"Improved sanitation","imp_sanit",-0.492106099327296
+"West Africa",348,43,"Household electricity","elec_dhs",-0.432050396883481
+"Central Africa",150,15,"Urban residence","pct_urban",-0.203640934505796
+"Central Africa",150,15,"Maternal education","educ_yrs",-0.0954491281925732
+"Central Africa",150,15,"Facility delivery","facility",-0.215415767931234
+"Central Africa",150,15,"Improved water","imp_water",-0.33969635093219
+"Central Africa",150,15,"Improved sanitation","imp_sanit",-0.109504160776949
+"Central Africa",150,15,"Household electricity","elec_dhs",-0.210071449821246
+"East & Southern",397,44,"Urban residence","pct_urban",-0.230653466642512
+"East & Southern",397,44,"Maternal education","educ_yrs",-0.221638489039418
+"East & Southern",397,44,"Facility delivery","facility",-0.232938853910601
+"East & Southern",397,44,"Improved water","imp_water",-0.21605303922418
+"East & Southern",397,44,"Improved sanitation","imp_sanit",-0.199941409152972
+"East & Southern",397,44,"Household electricity","elec_dhs",-0.273380078231159
