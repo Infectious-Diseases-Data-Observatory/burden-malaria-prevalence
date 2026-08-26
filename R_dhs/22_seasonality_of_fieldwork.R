@@ -268,19 +268,24 @@ region-rows with an admin-1 latitude: %d of %d (%.0f%%)
 ",
               sum(is.finite(m$lat)), nrow(m), 100 * mean(is.finite(m$lat))))
   z <- m[is.finite(m$lat), , drop = FALSE]
-  # Zones follow transmission ecology rather than the equator. The equatorial belt
-  # of perennial or bimodal transmission runs about 10S to 10N, so splitting at 0
-  # would put genuinely equatorial places - Gabon at 1S, southern DR Congo, Burundi,
-  # Rwanda - in with seasonal southern Africa. The northern bound of the seasonal
-  # belt is 10N rather than 12N because Nigeria enters at zone resolution and its
-  # northern centroids reach only 11.8N; 10N is also closer to the
-  # seasonal-chemoprevention zone.
-  z$zone <- cut(z$lat, c(-40, -10, 10, 40),
-                labels = c("Southern (below 10S)", "Equatorial 10S-10N", "Seasonal belt >=10N"))
+  # FOUR zones, which keeps the ecology without letting opposite seasons cancel.
+  # The belt of perennial or bimodal transmission runs about 10S to 10N, so a
+  # boundary at the equator alone would put genuinely equatorial places - Gabon at
+  # 1S, southern DR Congo, Burundi, Rwanda - in with seasonal southern Africa. But
+  # a single 10S-10N band spans the intertropical convergence zone, and its
+  # northern and southern halves still peak in opposite halves of the year, so
+  # merging them drove the fitted amplitude to zero. Splitting the equatorial belt
+  # at the equator keeps both properties. The northern bound of 10N rather than 12N
+  # is because Nigeria enters at zone resolution, its northern centroids reaching
+  # only 11.8N; 10N is also closer to the seasonal-chemoprevention zone.
+  z$zone <- cut(z$lat, c(-40, -10, 0, 10, 40),
+                labels = c("Southern (below 10S)", "Southern equatorial (10S-0)",
+                           "Northern equatorial (0-10N)", "Seasonal belt (>=10N)"))
   cat("
 region-rows by latitude zone:
 "); print(table(z$zone))
-  zone_rows <- lapply(levels(z$zone), function(zz) {
+  # reported and drawn north to south, so the northernmost zone is first
+  zone_rows <- lapply(rev(levels(z$zone)), function(zz) {
     d <- z[z$zone == zz, , drop = FALSE]
     if (nrow(d) < 40) return(NULL)
     d$country <- factor(d$iso3)
@@ -319,9 +324,17 @@ region-rows by latitude zone:
   zone_panel <- function(zz) {
     d <- z[z$zone == zz, , drop = FALSE]
     countries <- sort(unique(d$country_name))
+    # DR Congo carries the largest malaria burden of any country in the panel and
+    # straddles two zones, so it is given a vivid colour held OUTSIDE the generated
+    # palette rather than another mid-saturation hue that blends into its
+    # neighbours.
+    drc <- unique(d$country_name[d$iso3 == "COD"])
+    others <- setdiff(countries, drc)
     palette <- setNames(
-      grDevices::hcl.colors(max(3, length(countries)), "Dark 3")[seq_along(countries)],
-      countries)
+      grDevices::hcl.colors(max(3, length(others)), "Dark 3")[seq_along(others)],
+      others)
+    if (length(drc)) palette[drc] <- "#E6007E"
+    palette <- palette[countries]
     ggplot2::ggplot(d, ggplot2::aes(month, measured)) +
       ggplot2::geom_smooth(method = "gam", formula = y ~ s(x, bs = "cc", k = 6),
                            method.args = list(knots = list(x = c(0.5, 12.5))),
@@ -342,7 +355,7 @@ region-rows by latitude zone:
                      legend.text = ggplot2::element_text(size = 7.5),
                      plot.title = ggplot2::element_text(face = "bold", size = 11))
   }
-  zone_plot <- patchwork::wrap_plots(lapply(levels(z$zone), zone_panel), ncol = 1) +
+  zone_plot <- patchwork::wrap_plots(lapply(rev(levels(z$zone)), zone_panel), ncol = 1) +
     patchwork::plot_annotation(
       title = "Seasonality of measured parasitaemia by admin-1 latitude zone",
       subtitle = paste("Dots coloured by country; grey line is the cyclic smooth within the zone.",
@@ -350,7 +363,7 @@ region-rows by latitude zone:
                        "adjusted table for the seasonal signal."),
       theme = ggplot2::theme(plot.title = ggplot2::element_text(face = "bold", size = 13)))
   ggplot2::ggsave(file.path(RESULTS_DIR, "seasonality_by_latitude_zone.png"), zone_plot,
-                  width = 10, height = 11.5, dpi = 320, bg = "white")
+                  width = 10, height = 14.5, dpi = 320, bg = "white")
 }
 
 ## ---- figure ----------------------------------------------------------------
