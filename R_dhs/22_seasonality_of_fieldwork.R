@@ -268,11 +268,15 @@ region-rows with an admin-1 latitude: %d of %d (%.0f%%)
 ",
               sum(is.finite(m$lat)), nrow(m), 100 * mean(is.finite(m$lat))))
   z <- m[is.finite(m$lat), , drop = FALSE]
-  # The seasonal-transmission belt is taken as 10N and above rather than 12N: with
-  # Nigeria at zone resolution its northern centroids reach only 11.8N, and 10N is
-  # in any case closer to the seasonal-chemoprevention zone.
-  z$zone <- cut(z$lat, c(-40, 0, 10, 40),
-                labels = c("Southern hemisphere", "Equatorial 0-10N", "Seasonal belt >=10N"))
+  # Zones follow transmission ecology rather than the equator. The equatorial belt
+  # of perennial or bimodal transmission runs about 10S to 10N, so splitting at 0
+  # would put genuinely equatorial places - Gabon at 1S, southern DR Congo, Burundi,
+  # Rwanda - in with seasonal southern Africa. The northern bound of the seasonal
+  # belt is 10N rather than 12N because Nigeria enters at zone resolution and its
+  # northern centroids reach only 11.8N; 10N is also closer to the
+  # seasonal-chemoprevention zone.
+  z$zone <- cut(z$lat, c(-40, -10, 10, 40),
+                labels = c("Southern (below 10S)", "Equatorial 10S-10N", "Seasonal belt >=10N"))
   cat("
 region-rows by latitude zone:
 "); print(table(z$zone))
