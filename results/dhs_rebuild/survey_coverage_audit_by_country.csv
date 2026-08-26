@@ -1,0 +1,38 @@
+"iso3","country","eligible","analysed","omitted"
+"SEN","Senegal",11,5,6
+"LSO","Lesotho",4,0,4
+"MWI","Malawi",5,3,2
+"BFA","Burkina Faso",3,2,1
+"COD","Congo - Kinshasa",3,2,1
+"CIV","Côte d’Ivoire",2,1,1
+"RWA","Rwanda",6,5,1
+"STP","São Tomé & Príncipe",1,0,1
+"TZA","Tanzania",4,3,1
+"UGA","Uganda",5,4,1
+"AGO","Angola",3,3,0
+"BEN","Benin",4,4,0
+"BDI","Burundi",2,2,0
+"CMR","Cameroon",3,3,0
+"TCD","Chad",2,2,0
+"COM","Comoros",1,1,0
+"COG","Congo - Brazzaville",2,2,0
+"SWZ","Eswatini",1,1,0
+"ETH","Ethiopia",6,6,0
+"GAB","Gabon",3,3,0
+"GMB","Gambia",2,2,0
+"GHA","Ghana",4,4,0
+"GIN","Guinea",3,3,0
+"KEN","Kenya",4,4,0
+"LBR","Liberia",4,4,0
+"MDG","Madagascar",3,3,0
+"MLI","Mali",5,5,0
+"MRT","Mauritania",1,1,0
+"MOZ","Mozambique",3,3,0
+"NAM","Namibia",3,3,0
+"NER","Niger",2,2,0
+"NGA","Nigeria",6,6,0
+"SLE","Sierra Leone",3,3,0
+"ZAF","South Africa",1,1,0
+"TGO","Togo",1,1,0
+"ZMB","Zambia",5,5,0
+"ZWE","Zimbabwe",3,3,0
