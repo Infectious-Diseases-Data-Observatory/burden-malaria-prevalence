@@ -321,6 +321,11 @@ region-rows by latitude zone:
   # because one legend spanning every country would not be readable.
   z$country_name <- countrycode::countrycode(z$iso3, "iso3c", "country.name", warn = FALSE)
   z$country_name[is.na(z$country_name)] <- z$iso3[is.na(z$country_name)]
+  # countrycode's "country.name" returns the CLDR English short names, which render
+  # the two Congos as "Congo - Kinshasa" and "Congo - Brazzaville". Those are
+  # unfamiliar in a malaria context and sort under C, so use the usual forms.
+  z$country_name[z$iso3 == "COD"] <- "DR Congo"
+  z$country_name[z$iso3 == "COG"] <- "Congo-Brazzaville"
   zone_panel <- function(zz) {
     d <- z[z$zone == zz, , drop = FALSE]
     countries <- sort(unique(d$country_name))
@@ -342,7 +347,7 @@ region-rows by latitude zone:
                            linewidth = 1.1, alpha = 0.25) +
       ggplot2::geom_point(ggplot2::aes(colour = country_name), alpha = 0.75, size = 1.8) +
       ggplot2::scale_colour_manual(values = palette, name = NULL,
-        guide = ggplot2::guide_legend(ncol = 2, override.aes = list(size = 2.6, alpha = 1))) +
+        guide = ggplot2::guide_legend(ncol = 2, override.aes = list(size = 4, alpha = 1))) +
       ggplot2::scale_x_continuous(breaks = 1:12, labels = month.abb, limits = c(0.5, 12.5)) +
       ggplot2::labs(x = NULL,
                     y = expression("DHS-measured " * italic(Pf) * "PR"[2-10] * " (%)"),
@@ -351,9 +356,9 @@ region-rows by latitude zone:
       ggplot2::theme_bw(base_size = 11) +
       ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
                      legend.position = "right",
-                     legend.key.height = ggplot2::unit(9, "pt"),
-                     legend.text = ggplot2::element_text(size = 7.5),
-                     plot.title = ggplot2::element_text(face = "bold", size = 11))
+                     legend.key.height = ggplot2::unit(16, "pt"),
+                     legend.text = ggplot2::element_text(size = 12),
+                     plot.title = ggplot2::element_text(face = "bold", size = 12))
   }
   zone_plot <- patchwork::wrap_plots(lapply(rev(levels(z$zone)), zone_panel), ncol = 1) +
     patchwork::plot_annotation(
@@ -363,7 +368,7 @@ region-rows by latitude zone:
                        "adjusted table for the seasonal signal."),
       theme = ggplot2::theme(plot.title = ggplot2::element_text(face = "bold", size = 13)))
   ggplot2::ggsave(file.path(RESULTS_DIR, "seasonality_by_latitude_zone.png"), zone_plot,
-                  width = 10, height = 14.5, dpi = 320, bg = "white")
+                  width = 11.5, height = 14.5, dpi = 320, bg = "white")
 }
 
 ## ---- figure ----------------------------------------------------------------
