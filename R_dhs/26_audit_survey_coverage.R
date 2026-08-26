@@ -13,9 +13,13 @@
 #
 #   no_map_extraction  the per-survey MAP regional extraction was never cached,
 #                      so the survey has no regional prevalence to merge on
+#   no_key_overlap     boundary and recode agree on the number of units but
+#                      share no key at all: either the boundary is in English
+#                      and the recode in French (Cote d'Ivoire 2012, Rwanda
+#                      2008) or the recode appends a generic noun the boundary
+#                      omits ("central region" versus "Central", Malawi 2015)
 #   region_key_mismatch the recode's v024 labels and the boundary's DHSREGEN
-#                      do not reconcile under rkey(), so the regional join
-#                      drops rows (fully, when the overlap is zero)
+#                      reconcile only partly under rkey(), so some regions drop
 #   boundary_granularity the boundary carries a different number of units from
 #                      the recode (e.g. zones versus regions)
 #   no_map_series      MAP publishes no national prevalence series for the
@@ -97,6 +101,7 @@ classify <- function(row) {
   n_recode <- row$n_recode_units
   if (isTRUE(is.finite(overlap))) {
     if (isTRUE(n_boundary != n_recode)) return("boundary_granularity")
+    if (isTRUE(overlap == 0)) return("no_key_overlap")
     if (isTRUE(overlap < n_recode)) return("region_key_mismatch")
   }
   if (!row$map_extraction_cached) return("no_map_extraction")

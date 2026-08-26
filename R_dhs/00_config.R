@@ -81,10 +81,42 @@ required_packages <- function(packages) {
 
 `%||%` <- function(x, y) if (is.null(x)) y else x
 
+# DHS Stata recodes are encoded in Latin-1, but some of them reach us decoded as
+# Windows-1250, so a Latin-1 accented letter arrives as the Central-European
+# letter sharing its byte: Kasai's i-diaeresis (byte 0xEF) becomes d-caron and
+# Thies's e-grave (byte 0xE8) becomes c-caron. The region name then fails to
+# join to the boundary's DHSREGEN and the region is silently dropped. Repair it
+# by mapping each letter that exists in CP1250 but NOT in Latin-1 back to the
+# Latin-1 letter at the same byte. Correctly encoded names are left untouched,
+# so the substitution is a no-op for all but the affected surveys.
+.CP1250_TO_LATIN1 <- local({
+  bytes <- as.raw(128:255)
+  decode <- function(from) {
+    vapply(bytes, function(b) {
+      tryCatch(iconv(rawToChar(as.raw(b)), from, "UTF-8"),
+               error = function(e) NA_character_)
+    }, character(1))
+  }
+  cp1250 <- decode("CP1250")
+  latin1 <- decode("ISO-8859-1")
+  keep <- !is.na(cp1250) & !is.na(latin1) &
+    grepl("^[[:alpha:]]$", cp1250) & grepl("^[[:alpha:]]$", latin1) &
+    is.na(suppressWarnings(iconv(cp1250, "UTF-8", "ISO-8859-1")))
+  list(from = paste(cp1250[keep], collapse = ""),
+       to = paste(latin1[keep], collapse = ""))
+})
+
 rkey <- function(x) {
+  s <- as.character(x)
+  if (nzchar(.CP1250_TO_LATIN1$from)) {
+    s <- chartr(.CP1250_TO_LATIN1$from, .CP1250_TO_LATIN1$to, s)
+  }
+  # sub = "" drops any character iconv cannot transliterate instead of
+  # returning NA for the whole string, which would silently void the key and
+  # drop the region. Transliterable accents are unaffected.
   gsub(
     "[^a-z0-9]", "",
-    tolower(iconv(as.character(x), "", "ASCII//TRANSLIT"))
+    tolower(iconv(s, "", "ASCII//TRANSLIT", sub = ""))
   )
 }
 
