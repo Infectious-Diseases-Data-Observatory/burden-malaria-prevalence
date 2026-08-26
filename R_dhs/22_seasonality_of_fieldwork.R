@@ -326,6 +326,31 @@ region-rows by latitude zone:
   # unfamiliar in a malaria context and sort under C, so use the usual forms.
   z$country_name[z$iso3 == "COD"] <- "DR Congo"
   z$country_name[z$iso3 == "COG"] <- "Congo-Brazzaville"
+  # Curves are fitted with a LOG LINK (quasi-Poisson), so a fitted prevalence can
+  # never fall below zero - the previous Gaussian smooth dipped to about -5% in the
+  # southern equatorial panel, which is impossible. Country-level curves are drawn
+  # wherever a country's fieldwork spans enough distinct months to identify one;
+  # most DHS surveys run over only one to four months, so for the majority of
+  # countries a seasonal curve cannot be estimated and only the points are shown.
+  MONTH_GRID <- seq(0.5, 12.5, by = 0.1)
+  fit_seasonal <- function(dd, k) {
+    if (nrow(dd) < 10 || length(unique(round(dd$month))) < 5) return(NULL)
+    f <- tryCatch(mgcv::gam(measured ~ s(month, bs = "cc", k = k), data = dd,
+                            family = quasipoisson(), method = "REML",
+                            knots = list(month = c(0.5, 12.5))),
+                  error = function(e) NULL)
+    if (is.null(f)) return(NULL)
+    pr <- tryCatch(predict(f, data.frame(month = MONTH_GRID), type = "link", se.fit = TRUE),
+                   error = function(e) NULL)
+    if (is.null(pr)) return(NULL)
+    # A cyclic spline that the penalty has shrunk to a constant carries no seasonal
+    # information, and drawing it as a flat line across all twelve months implies
+    # coverage the country does not have. Report such fits as not estimable.
+    edf <- tryCatch(sum(summary(f)$edf), error = function(e) NA_real_)
+    if (!is.finite(edf) || edf < 1.5) return(NULL)
+    data.frame(month = MONTH_GRID, fit = exp(pr$fit),
+               lo = exp(pr$fit - 1.96 * pr$se.fit), hi = exp(pr$fit + 1.96 * pr$se.fit))
+  }
   zone_panel <- function(zz) {
     d <- z[z$zone == zz, , drop = FALSE]
     countries <- sort(unique(d$country_name))
@@ -340,19 +365,36 @@ region-rows by latitude zone:
       others)
     if (length(drc)) palette[drc] <- "#E6007E"
     palette <- palette[countries]
+    zone_curve <- fit_seasonal(d, 6)
+    country_curves <- do.call(rbind, lapply(countries, function(cc) {
+      cur <- fit_seasonal(d[d$country_name == cc, , drop = FALSE], 4)
+      if (is.null(cur)) return(NULL)
+      cbind(country_name = cc, cur)
+    }))
+    fitted_note <- if (is.null(country_curves)) "no country curve estimable" else
+      sprintf("%d of %d countries with an identifiable seasonal curve",
+              length(unique(country_curves$country_name)), length(countries))
     ggplot2::ggplot(d, ggplot2::aes(month, measured)) +
-      ggplot2::geom_smooth(method = "gam", formula = y ~ s(x, bs = "cc", k = 6),
-                           method.args = list(knots = list(x = c(0.5, 12.5))),
-                           se = TRUE, colour = "grey20", fill = "grey65",
-                           linewidth = 1.1, alpha = 0.25) +
+      { if (!is.null(zone_curve))
+          ggplot2::geom_ribbon(data = zone_curve,
+            ggplot2::aes(month, ymin = lo, ymax = hi), inherit.aes = FALSE,
+            fill = "grey65", alpha = 0.25) } +
+      { if (!is.null(zone_curve))
+          ggplot2::geom_line(data = zone_curve, ggplot2::aes(month, fit),
+            inherit.aes = FALSE, colour = "grey20", linewidth = 1.2) } +
+      { if (!is.null(country_curves))
+          ggplot2::geom_line(data = country_curves,
+            ggplot2::aes(month, fit, colour = country_name),
+            inherit.aes = FALSE, linewidth = 1) } +
       ggplot2::geom_point(ggplot2::aes(colour = country_name), alpha = 0.75, size = 1.8) +
       ggplot2::scale_colour_manual(values = palette, name = NULL,
         guide = ggplot2::guide_legend(ncol = 2, override.aes = list(size = 4, alpha = 1))) +
       ggplot2::scale_x_continuous(breaks = 1:12, labels = month.abb, limits = c(0.5, 12.5)) +
+      ggplot2::scale_y_continuous(limits = c(0, NA)) +
       ggplot2::labs(x = NULL,
                     y = expression("DHS-measured " * italic(Pf) * "PR"[2-10] * " (%)"),
-                    title = sprintf("%s  (%d region-years, %d countries)",
-                                    zz, nrow(d), length(countries))) +
+                    title = sprintf("%s  (%d region-years, %d countries; %s)",
+                                    zz, nrow(d), length(countries), fitted_note)) +
       ggplot2::theme_bw(base_size = 11) +
       ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
                      legend.position = "right",
@@ -363,9 +405,10 @@ region-rows by latitude zone:
   zone_plot <- patchwork::wrap_plots(lapply(rev(levels(z$zone)), zone_panel), ncol = 1) +
     patchwork::plot_annotation(
       title = "Seasonality of measured parasitaemia by admin-1 latitude zone",
-      subtitle = paste("Dots coloured by country; grey line is the cyclic smooth within the zone.",
-                       "\nThe smooth is confounded by which country was surveyed when, so read the",
-                       "adjusted table for the seasonal signal."),
+      subtitle = paste("Dots coloured by country. Grey line is the zone-level cyclic smooth;",
+                       "coloured lines are country-level curves,\nfitted only where a country's",
+                       "fieldwork spans enough months. All curves use a log link, so fitted",
+                       "values cannot fall below zero."),
       theme = ggplot2::theme(plot.title = ggplot2::element_text(face = "bold", size = 13)))
   ggplot2::ggsave(file.path(RESULTS_DIR, "seasonality_by_latitude_zone.png"), zone_plot,
                   width = 11.5, height = 14.5, dpi = 320, bg = "white")
