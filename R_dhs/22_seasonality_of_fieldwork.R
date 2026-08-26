@@ -38,7 +38,7 @@
 # Also writes data/derived_dhs/dhs_survey_region_month.csv (cached per survey).
 # =============================================================================
 source("R_dhs/00_config.R")
-required_packages(c("mgcv", "malariaAtlas", "ggplot2", "haven"))
+required_packages(c("mgcv", "malariaAtlas", "ggplot2", "haven", "patchwork", "countrycode"))
 
 MEASURED_CSV <- file.path(DATA_DIR, "dhs_prevalence_by_region.csv")
 CONVERSION_CSV <- file.path(REPO_ROOT, "results", "rdt_microscopy_conversion.csv")
@@ -305,26 +305,48 @@ region-rows by latitude zone:
   cat("\nPooling hemispheres cancels opposite-phase seasons, so each zone is fitted\n",
       "separately. Nigeria enters at zone-level latitude, so within-Nigeria state\n",
       "variation in latitude is not resolved.\n", sep = "")
-  zone_plot <- ggplot2::ggplot(z, ggplot2::aes(month, measured, colour = zone, fill = zone)) +
-    ggplot2::geom_point(alpha = 0.5, size = 1.4) +
-    ggplot2::geom_smooth(method = "gam", formula = y ~ s(x, bs = "cc", k = 6),
-                         method.args = list(knots = list(x = c(0.5, 12.5))),
-                         se = TRUE, linewidth = 1.1, alpha = 0.15) +
-    ggplot2::facet_wrap(~ zone, nrow = 1) +
-    ggplot2::scale_colour_manual(values = c("#3690c0", "#238b45", "#d95f0e"), guide = "none") +
-    ggplot2::scale_fill_manual(values = c("#3690c0", "#238b45", "#d95f0e"), guide = "none") +
-    ggplot2::scale_x_continuous(breaks = seq(1, 12, 2), labels = month.abb[seq(1, 12, 2)]) +
-    ggplot2::labs(x = "Month of fieldwork",
-                  y = expression("DHS-measured " * italic(Pf) * "PR"[2-10] * " (%)"),
-                  title = "Seasonality of measured parasitaemia by admin-1 latitude zone",
-                  subtitle = paste("Raw smooths shown; these are confounded by which country was",
-                                   "surveyed when, so read the adjusted table for the seasonal signal.")) +
-    ggplot2::theme_bw(base_size = 11) +
-    ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
-                   strip.background = ggplot2::element_rect(fill = "grey92", colour = NA),
-                   strip.text = ggplot2::element_text(face = "bold"))
+  # Dots are coloured by COUNTRY rather than by zone. Within a zone the apparent
+  # seasonal shape is driven substantially by which country happened to be surveyed
+  # in which month, so showing country identity makes that confounding visible
+  # instead of hiding it behind a single colour. Each zone gets its own palette
+  # because one legend spanning every country would not be readable.
+  z$country_name <- countrycode::countrycode(z$iso3, "iso3c", "country.name", warn = FALSE)
+  z$country_name[is.na(z$country_name)] <- z$iso3[is.na(z$country_name)]
+  zone_panel <- function(zz) {
+    d <- z[z$zone == zz, , drop = FALSE]
+    countries <- sort(unique(d$country_name))
+    palette <- setNames(
+      grDevices::hcl.colors(max(3, length(countries)), "Dark 3")[seq_along(countries)],
+      countries)
+    ggplot2::ggplot(d, ggplot2::aes(month, measured)) +
+      ggplot2::geom_smooth(method = "gam", formula = y ~ s(x, bs = "cc", k = 6),
+                           method.args = list(knots = list(x = c(0.5, 12.5))),
+                           se = TRUE, colour = "grey20", fill = "grey65",
+                           linewidth = 1.1, alpha = 0.25) +
+      ggplot2::geom_point(ggplot2::aes(colour = country_name), alpha = 0.75, size = 1.8) +
+      ggplot2::scale_colour_manual(values = palette, name = NULL,
+        guide = ggplot2::guide_legend(ncol = 2, override.aes = list(size = 2.6, alpha = 1))) +
+      ggplot2::scale_x_continuous(breaks = 1:12, labels = month.abb, limits = c(0.5, 12.5)) +
+      ggplot2::labs(x = NULL,
+                    y = expression("DHS-measured " * italic(Pf) * "PR"[2-10] * " (%)"),
+                    title = sprintf("%s  (%d region-years, %d countries)",
+                                    zz, nrow(d), length(countries))) +
+      ggplot2::theme_bw(base_size = 11) +
+      ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
+                     legend.position = "right",
+                     legend.key.height = ggplot2::unit(9, "pt"),
+                     legend.text = ggplot2::element_text(size = 7.5),
+                     plot.title = ggplot2::element_text(face = "bold", size = 11))
+  }
+  zone_plot <- patchwork::wrap_plots(lapply(levels(z$zone), zone_panel), ncol = 1) +
+    patchwork::plot_annotation(
+      title = "Seasonality of measured parasitaemia by admin-1 latitude zone",
+      subtitle = paste("Dots coloured by country; grey line is the cyclic smooth within the zone.",
+                       "\nThe smooth is confounded by which country was surveyed when, so read the",
+                       "adjusted table for the seasonal signal."),
+      theme = ggplot2::theme(plot.title = ggplot2::element_text(face = "bold", size = 13)))
   ggplot2::ggsave(file.path(RESULTS_DIR, "seasonality_by_latitude_zone.png"), zone_plot,
-                  width = 12, height = 4.6, dpi = 320, bg = "white")
+                  width = 10, height = 11.5, dpi = 320, bg = "white")
 }
 
 ## ---- figure ----------------------------------------------------------------
