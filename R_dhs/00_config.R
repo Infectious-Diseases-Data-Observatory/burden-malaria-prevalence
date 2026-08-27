@@ -125,6 +125,56 @@ survey_key <- function(filename) {
   paste0(substr(x, 1, 2), substr(x, 5, 8))
 }
 
+# Recode region labels and boundary labels often differ in ways that are purely
+# lexical: an older recode truncates its labels ("extreme nor" for
+# "Extreme-Nord"), names a region in short form where the boundary spells it out
+# ("north" against "Northern"), or appends a generic noun ("central region"
+# against "Central"). Exact key matching drops every one of those regions with
+# no diagnostic.
+#
+# After the exact matches, pair a leftover recode key with a leftover boundary
+# key when one is a prefix of the other - but only when the pairing is
+# unambiguous in BOTH directions and the two sides describe the same number of
+# units. The equal-count condition is what makes this safe. Where a boundary
+# merges several recode regions (Mali 2001 folds Kidal, Gao and Timbouctou into
+# one polygon; Tanzania 2004 reports 26 regions against 8 zones) a prefix
+# pairing would attach one region's mortality to a polygon covering several, so
+# those surveys are refused and their regions stay unmatched rather than being
+# silently mis-assigned.
+match_region_keys <- function(recode_keys, boundary_keys, min_prefix = 4L) {
+  clean <- function(x) unique(x[!is.na(x) & nzchar(x)])
+  recode_keys <- clean(recode_keys)
+  boundary_keys <- clean(boundary_keys)
+  exact <- intersect(recode_keys, boundary_keys)
+  out <- data.frame(from = exact, to = exact,
+                    how = rep("exact", length(exact)),
+                    stringsAsFactors = FALSE)
+  if (length(recode_keys) != length(boundary_keys)) return(out)
+
+  remaining_recode <- setdiff(recode_keys, exact)
+  remaining_boundary <- setdiff(boundary_keys, exact)
+  if (!length(remaining_recode) || !length(remaining_boundary)) return(out)
+
+  candidates <- lapply(remaining_recode, function(key) {
+    remaining_boundary[
+      (nchar(key) >= min_prefix & startsWith(remaining_boundary, key)) |
+        (nchar(remaining_boundary) >= min_prefix &
+           startsWith(key, remaining_boundary))
+    ]
+  })
+  names(candidates) <- remaining_recode
+
+  for (key in remaining_recode) {
+    hit <- candidates[[key]]
+    if (length(hit) != 1L) next
+    suitors <- sum(vapply(candidates, function(x) hit %in% x, logical(1)))
+    if (suitors != 1L) next
+    out <- rbind(out, data.frame(from = key, to = hit, how = "prefix",
+                                 stringsAsFactors = FALSE))
+  }
+  out
+}
+
 best_region_var <- function(br, target_keys, prefer = "v024") {
   target_keys <- unique(target_keys[nzchar(target_keys)])
   coverage <- function(v) {

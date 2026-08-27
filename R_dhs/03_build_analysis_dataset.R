@@ -288,6 +288,7 @@ build_from_raw <- function() {
   map <- read.csv(MAP_REGION_CSV, stringsAsFactors = FALSE)
 
   rows <- list()
+  merge_quality <- list()
   for (i in seq_len(nrow(registry))) {
     survey <- registry[i, , drop = FALSE]
     survey_map <- map[map$svkey == survey$svkey, , drop = FALSE]
@@ -303,6 +304,33 @@ build_from_raw <- function() {
     if (is.null(mortality) || is.null(covariates)) next
 
     region <- merge(mortality, covariates, by = "regkey", all = TRUE)
+
+    # Reconcile the recode's region labels with the boundary's before merging,
+    # and record what could not be reconciled so the loss is auditable rather
+    # than silent.
+    boundary_keys <- unique(survey_map$regkey)
+    crosswalk <- match_region_keys(region$regkey, boundary_keys)
+    position <- match(region$regkey, crosswalk$from)
+    unmatched_recode <- sort(unique(region$regkey[is.na(position)]))
+    region$regkey <- crosswalk$to[position]
+    region <- region[!is.na(region$regkey), , drop = FALSE]
+
+    merge_quality[[survey$svkey]] <- data.frame(
+      svkey = survey$svkey, iso3 = survey$iso3, year = survey$year,
+      region_var = region_var,
+      n_boundary = length(boundary_keys),
+      n_recode = length(unique(crosswalk$from)) + length(unmatched_recode),
+      matched_exact = sum(crosswalk$how == "exact"),
+      matched_prefix = sum(crosswalk$how == "prefix"),
+      unmatched_recode = length(unmatched_recode),
+      unmatched_boundary = length(setdiff(boundary_keys, crosswalk$to)),
+      dropped_recode_regions = paste(unmatched_recode, collapse = "; "),
+      dropped_boundary_regions = paste(
+        sort(setdiff(boundary_keys, crosswalk$to)), collapse = "; "
+      ),
+      stringsAsFactors = FALSE
+    )
+
     region <- merge(
       region,
       unique(survey_map[, c(
@@ -319,6 +347,21 @@ build_from_raw <- function() {
     )
   }
   if (!length(rows)) stop("No survey-regions could be assembled.")
+
+  if (length(merge_quality)) {
+    quality <- do.call(rbind, merge_quality)
+    quality <- quality[order(-quality$unmatched_boundary, quality$svkey), ]
+    write.csv(quality, file.path(RESULTS_DIR, "region_merge_quality.csv"),
+              row.names = FALSE)
+    message(
+      "Region merge: ", sum(quality$matched_exact), " exact, ",
+      sum(quality$matched_prefix), " reconciled by prefix, ",
+      sum(quality$unmatched_boundary), " boundary regions unmatched across ",
+      sum(quality$unmatched_boundary > 0), " surveys. See ",
+      "results/dhs_rebuild/region_merge_quality.csv"
+    )
+  }
+
   out <- do.call(rbind, rows)
   rownames(out) <- NULL
   out
