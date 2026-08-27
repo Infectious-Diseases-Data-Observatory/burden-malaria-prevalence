@@ -162,11 +162,35 @@ pick_named <- function(x, keys) {
   unname(x[keys])
 }
 
+# DHS.rates takes the sample strata from v022. A few recodes ship it empty
+# (DR Congo 2007 and Senegal 2008 among them), and chmort then aborts with
+# "missing values in `strata'", which silently cost us the whole survey. Fall
+# back to the next usable stratum definition: v023 where the recode populates
+# it, otherwise the standard DHS design stratification of region by urban/rural.
+# Only the rate and the weighted exposure are read out of chmort, and neither
+# depends on the stratification - it enters the standard errors alone - so the
+# fallback cannot move the point estimates.
+strata_variable <- function(br) {
+  usable <- function(v) v %in% names(br) && !all(is.na(br[[v]]))
+  if (usable("v022")) return("v022")
+  if (usable("v023")) return("v023")
+  if (all(c("v024", "v025") %in% names(br))) return(NA_character_)
+  NULL
+}
+
 mortality_by_region <- function(br, region_var) {
   required_packages("DHS.rates")
   if (!region_var %in% names(br)) return(NULL)
+  strata <- strata_variable(br)
+  if (is.null(strata)) return(NULL)
+  if (is.na(strata)) {
+    br$strata_fallback <- as.integer(factor(paste(br$v024, br$v025)))
+    strata <- "strata_fallback"
+  }
   rates <- tryCatch(
-    suppressMessages(DHS.rates::chmort(br, Class = region_var)),
+    suppressMessages(
+      DHS.rates::chmort(br, Class = region_var, Strata = strata)
+    ),
     error = function(e) NULL
   )
   if (is.null(rates)) return(NULL)
@@ -218,10 +242,24 @@ wb_fetch <- function(indicator, date = "2000:2025") {
       error = function(e) NULL
     )
     if (!is.null(response) && httr::status_code(response) == 200) {
-      payload <- jsonlite::fromJSON(
+      parsed <- jsonlite::fromJSON(
         httr::content(response, "text", encoding = "UTF-8"),
         simplifyDataFrame = TRUE
-      )[[2]]
+      )
+      # A retired or renamed indicator still returns HTTP 200, with the reason
+      # in a one-element "message" payload rather than the usual two-element
+      # [metadata, data] list. Report that instead of failing on a subscript.
+      if (is.data.frame(parsed) && "message" %in% names(parsed)) {
+        stop(
+          "World Bank rejected indicator ", indicator, ": ",
+          tryCatch(parsed$message[[1]]$value[1],
+                   error = function(e) "unknown reason")
+        )
+      }
+      if (!is.list(parsed) || length(parsed) < 2 || is.null(parsed[[2]])) {
+        stop("World Bank returned no data for indicator ", indicator)
+      }
+      payload <- parsed[[2]]
       out <- data.frame(
         iso3 = payload$countryiso3code,
         year = as.integer(payload$date),
@@ -240,7 +278,21 @@ read_or_fetch_wb <- function(filename, indicator, value_name) {
     out <- read.csv(path, stringsAsFactors = FALSE)
   } else {
     message("Fetching World Bank indicator ", indicator, " -> ", filename)
-    out <- wb_fetch(indicator)
+    # An indicator the Bank has archived must not abort the whole rebuild. The
+    # covariate simply stays missing and the existing missingness rule drops it,
+    # which is what already happens to any series we cannot populate.
+    out <- tryCatch(wb_fetch(indicator), error = function(e) {
+      warning("World Bank indicator ", indicator, " unavailable (",
+              conditionMessage(e), "); ", value_name,
+              " will be left missing.", call. = FALSE)
+      NULL
+    })
+    if (is.null(out)) {
+      empty <- data.frame(iso3 = character(0), year = integer(0),
+                          stringsAsFactors = FALSE)
+      empty[[value_name]] <- numeric(0)
+      return(empty)
+    }
     names(out)[names(out) == "value"] <- value_name
     write.csv(out, path, row.names = FALSE)
   }

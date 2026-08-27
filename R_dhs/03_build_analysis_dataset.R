@@ -410,7 +410,9 @@ attach_national_covariates <- function(data) {
     hexp_pc = read_or_fetch_wb(
       "wb_hexp_pc.csv", "SH.XPD.CHEX.PC.CD", "hexp_pc"
     ),
-    polstab = read_or_fetch_wb("wb_polstab.csv", "PV.EST", "polstab"),
+    # The Bank archived PV.EST; the Worldwide Governance Indicators are now
+    # served under GOV_WGI_ codes.
+    polstab = read_or_fetch_wb("wb_polstab.csv", "GOV_WGI_PV_EST", "polstab"),
     elec = read_or_fetch_wb("wb_elec.csv", "EG.ELC.ACCS.ZS", "elec")
   )
   for (name in names(panels)) {
