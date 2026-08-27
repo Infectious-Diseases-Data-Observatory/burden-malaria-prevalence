@@ -1,10 +1,10 @@
 "region_group","n","surveys","marker","variable","correlation"
-"West Africa",406,46,"Urban residence","pct_urban",-0.47831379457118
-"West Africa",406,46,"Maternal education","educ_yrs",-0.410803531240546
-"West Africa",406,46,"Facility delivery","facility",-0.350337103663733
-"West Africa",406,46,"Improved water","imp_water",-0.302206306514985
-"West Africa",406,46,"Improved sanitation","imp_sanit",-0.481409875278487
-"West Africa",406,46,"Household electricity","elec_dhs",-0.406994764402483
+"West Africa",427,51,"Urban residence","pct_urban",-0.463311500820091
+"West Africa",427,51,"Maternal education","educ_yrs",-0.402653393990237
+"West Africa",427,51,"Facility delivery","facility",-0.337095762654889
+"West Africa",427,51,"Improved water","imp_water",-0.284820895916403
+"West Africa",427,51,"Improved sanitation","imp_sanit",-0.465859946977384
+"West Africa",427,51,"Household electricity","elec_dhs",-0.392794154602923
 "Central Africa",195,16,"Urban residence","pct_urban",-0.179220262277341
 "Central Africa",195,16,"Maternal education","educ_yrs",-0.0164216146282773
 "Central Africa",195,16,"Facility delivery","facility",-0.165280597905314

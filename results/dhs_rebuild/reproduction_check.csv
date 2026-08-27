@@ -1,12 +1,12 @@
 "category","metric","legacy_value","rebuilt_value","absolute_difference","tolerance","units","pass"
-"sample","analysis rows",921,1079,158,0,"survey-region-years",FALSE
+"sample","analysis rows",921,1108,187,0,"survey-region-years",FALSE
 "sample","countries",34,35,1,0,"countries",FALSE
-"ridge-linear effect","postneonatal: percent change per 10 PfPR points",8.67771644424782,7.81105473025139,0.866661713996429,1,"percentage points",TRUE
+"ridge-linear effect","postneonatal: percent change per 10 PfPR points",8.67771644424782,7.48532298768312,1.1923934565647,1,"percentage points",FALSE
 "inference","postneonatal: p < 0.05",1,1,0,0,"indicator",TRUE
-"ridge-linear effect","all_under_5: percent change per 10 PfPR points",6.61726179498949,5.48995270269341,1.12730909229608,1,"percentage points",FALSE
+"ridge-linear effect","all_under_5: percent change per 10 PfPR points",6.61726179498949,5.26122054591107,1.35604124907842,1,"percentage points",FALSE
 "inference","all_under_5: p < 0.05",1,1,0,0,"indicator",TRUE
-"ridge-linear effect","neonatal: percent change per 10 PfPR points",1.12140951865387,1.31948856997912,0.19807905132525,1,"percentage points",TRUE
+"ridge-linear effect","neonatal: percent change per 10 PfPR points",1.12140951865387,1.34138640178958,0.21997688313571,1,"percentage points",TRUE
 "inference","neonatal: p < 0.05",0,0,0,0,"indicator",TRUE
-"nonlinear attributable fraction","postneonatal AF at 10% PfPR",14.9319185042405,7.54753278751834,7.38438571672216,3,"percentage points",FALSE
-"nonlinear attributable fraction","postneonatal AF at 30% PfPR",35.4183393283341,22.34277801133,13.0755613170041,3,"percentage points",FALSE
-"nonlinear attributable fraction","postneonatal AF at 50% PfPR",41.0965279710339,34.7703278362766,6.32620013475727,3,"percentage points",FALSE
+"nonlinear attributable fraction","postneonatal AF at 10% PfPR",14.9319185042405,7.31975003401528,7.61216847022523,3,"percentage points",FALSE
+"nonlinear attributable fraction","postneonatal AF at 30% PfPR",35.4183393283341,21.7245792438477,13.6937600844864,3,"percentage points",FALSE
+"nonlinear attributable fraction","postneonatal AF at 50% PfPR",41.0965279710339,33.8905376625397,7.20599030849417,3,"percentage points",FALSE

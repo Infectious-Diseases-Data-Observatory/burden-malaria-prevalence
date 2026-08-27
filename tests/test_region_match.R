@@ -158,5 +158,56 @@ check("14 regions against 4 zones stay unmatched (Senegal 2014)",
       nrow(match_region_keys(c("dakar", "thies", "kolda", "matam", "louga"),
                              c("North", "South", "West", "Center"))) == 0L)
 
+# --- choosing the region variable --------------------------------------------
+# Senegal's later continuous surveys keep the boundary's four zones in szone
+# while v024 holds fourteen regions, so the selector must look past its default.
+senegal <- data.frame(
+  v024 = c("dakar", "thies", "louga", "matam", "kolda", "kaolack"),
+  szone = c("ouest", "ouest", "nord", "nord", "sud", "centre"),
+  stringsAsFactors = FALSE
+)
+zones <- c("West", "North", "South", "Center")
+check("the coarser variable is chosen when v024 cannot reconcile",
+      best_region_var(senegal, zones) == "szone")
+
+# But v024 must NOT be displaced when it already reconciles with the boundary.
+regions <- data.frame(
+  v024 = c("dakar", "thies", "louga", "matam"),
+  other = c("a", "b", "c", "d"), stringsAsFactors = FALSE
+)
+check("v024 is kept when it reconciles with the boundary",
+      best_region_var(regions, c("Dakar", "Thies", "Louga", "Matam")) == "v024")
+check("an unusable boundary leaves the default in place",
+      best_region_var(regions, character(0)) == "v024")
+
+# --- rolling regions up to a coarser boundary --------------------------------
+grouping <- derive_region_grouping(senegal, zones, rkey(senegal$v024))
+check("a grouping is derived from a donor carrying both levels",
+      !is.null(grouping) && nrow(grouping) == 6L)
+check("the grouping sends each region to the right zone",
+      !is.null(grouping) &&
+        grouping$boundary[grouping$fine == "dakar"] == "west" &&
+        grouping$boundary[grouping$fine == "matam"] == "north" &&
+        grouping$boundary[grouping$fine == "kaolack"] == "center")
+
+# A region straddling two zones cannot be rolled up without splitting its
+# mortality, so the whole grouping must be refused rather than guessed.
+straddling <- data.frame(
+  v024 = c("dakar", "dakar", "louga", "matam", "kolda", "kaolack"),
+  szone = c("ouest", "nord", "nord", "nord", "sud", "centre"),
+  stringsAsFactors = FALSE
+)
+check("a region spanning two zones refuses the whole grouping",
+      is.null(derive_region_grouping(straddling, zones, rkey(straddling$v024))))
+
+# A donor with nothing at the boundary's granularity yields nothing.
+check("no coarse variable means no grouping",
+      is.null(derive_region_grouping(regions, zones, rkey(regions$v024))))
+
+# The donor's fine variable must actually name the regions the target reports.
+check("a donor that does not cover the target's regions is refused",
+      is.null(derive_region_grouping(senegal, zones,
+                                     c("arusha", "dodoma", "mbeya", "tanga"))))
+
 if (failures > 0L) stop(sprintf("%d match_region_keys() check(s) failed", failures))
 message("\nAll match_region_keys() checks passed.")

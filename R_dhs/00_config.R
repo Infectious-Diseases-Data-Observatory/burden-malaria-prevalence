@@ -355,27 +355,119 @@ match_region_keys <- function(recode_labels, boundary_labels,
   pairs
 }
 
-best_region_var <- function(br, target_keys, prefer = "v024") {
-  target_keys <- unique(target_keys[nzchar(target_keys)])
-  coverage <- function(v) {
-    if (!v %in% names(br)) return(0)
-    mean(target_keys %in% rkey(unique(as.character(br[[v]]))))
+best_region_var <- function(br, boundary_labels, prefer = "v024") {
+  boundary_keys <- unique(rkey(as.character(boundary_labels)))
+  boundary_keys <- boundary_keys[nzchar(boundary_keys) & !is.na(boundary_keys)]
+  if (!length(boundary_keys)) return(prefer)
+
+  levels_of <- function(v) {
+    values <- unique(as.character(br[[v]]))
+    values[!is.na(values) & nzchar(values)]
   }
-  if (prefer %in% names(br) && coverage(prefer) >= 0.5) return(prefer)
+  # Score with the full reconciliation rather than a bare key intersection, so a
+  # variable that names the boundary's units in another language or word order
+  # is not passed over. Senegal 2015 keeps its four zones in szone while v024
+  # holds fourteen regions; Mali 2001 keeps the boundary's seven units in v023.
+  reconciled <- function(v) {
+    if (!v %in% names(br)) return(0L)
+    values <- levels_of(v)
+    if (length(values) < 2L || length(values) > 60L) return(0L)
+    nrow(match_region_keys(values, boundary_labels))
+  }
+
+  if (prefer %in% names(br) && reconciled(prefer) == length(boundary_keys)) {
+    return(prefer)
+  }
 
   candidates <- names(br)[vapply(
-    br,
-    function(x) is.character(x) || is.factor(x),
-    logical(1)
+    br, function(x) is.character(x) || is.factor(x), logical(1)
   )]
   if (!length(candidates)) return(prefer)
-  scores <- vapply(
-    candidates,
-    function(v) sum(target_keys %in% rkey(unique(as.character(br[[v]])))),
-    integer(1)
-  )
-  best <- candidates[which.max(scores)]
-  if (max(scores) > 0 && coverage(best) >= 0.6) best else prefer
+  scores <- vapply(candidates, reconciled, integer(1))
+  if (max(scores) < 1L) return(prefer)
+
+  best <- candidates[scores == max(scores)]
+  # Among equally reconciling variables take the one with fewest levels: it is
+  # the one actually at the boundary's granularity rather than a finer variable
+  # that happens to share some names.
+  sizes <- vapply(best, function(v) length(levels_of(v)), integer(1))
+  best <- best[which.min(sizes)]
+
+  preferred_score <- reconciled(prefer)
+  if (preferred_score >= max(scores)) return(prefer)
+  # Only displace the preferred variable when the alternative reconciles with at
+  # least three fifths of the boundary, so a marginal gain cannot swap it out.
+  if (max(scores) / length(boundary_keys) >= 0.6) best else prefer
+}
+
+# --- boundaries published coarser than the recode ----------------------------
+# Some boundaries carry fewer units than the recode reports regions: Tanzania
+# 2004 reports 26 regions against 8 zones, the Senegal continuous surveys of
+# 2012 and 2014 report 14 against 4. Because MAP prevalence is computed per
+# boundary polygon, the recode's regions must be rolled UP to the boundary's
+# unit before anything can be joined. Pushing the zone's prevalence down onto
+# each region instead would repeat one prevalence across many rows and
+# pseudo-replicate it.
+#
+# The grouping is never invented. It is read out of a sibling survey of the same
+# country whose recode carries BOTH levels at once - Senegal 2015 holds v024
+# (14 regions) beside szone (4 zones), Tanzania 2010 holds v024 beside v023 - so
+# the grouping is DHS's own definition rather than our guess.
+derive_region_grouping <- function(donor, boundary_labels, target_keys) {
+  boundary_keys <- unique(rkey(as.character(boundary_labels)))
+  boundary_keys <- boundary_keys[nzchar(boundary_keys) & !is.na(boundary_keys)]
+  candidates <- names(donor)[vapply(
+    donor, function(x) is.character(x) || is.factor(x), logical(1)
+  )]
+  levels_of <- function(v) {
+    values <- unique(as.character(donor[[v]]))
+    values[!is.na(values) & nzchar(values)]
+  }
+
+  # A variable of the donor that reconciles one-to-one with every boundary unit.
+  coarse <- NULL
+  for (v in candidates) {
+    values <- levels_of(v)
+    if (length(values) < 2L || length(values) > 3L * length(boundary_keys)) next
+    crosswalk <- match_region_keys(values, boundary_labels)
+    if (nrow(crosswalk) == length(boundary_keys) &&
+          length(unique(crosswalk$to)) == length(boundary_keys)) {
+      coarse <- list(variable = v, crosswalk = crosswalk)
+      break
+    }
+  }
+  if (is.null(coarse)) return(NULL)
+
+  # A finer variable of the donor that nests cleanly inside it AND actually
+  # names the regions the target survey reports.
+  for (v in candidates) {
+    if (identical(v, coarse$variable)) next
+    values <- levels_of(v)
+    if (length(values) <= length(boundary_keys) || length(values) > 60L) next
+    pairs <- unique(data.frame(
+      fine_label = as.character(donor[[v]]),
+      fine = rkey(as.character(donor[[v]])),
+      coarse = rkey(as.character(donor[[coarse$variable]])),
+      stringsAsFactors = FALSE
+    ))
+    pairs <- pairs[!duplicated(pairs$fine) | !duplicated(pairs$coarse), , drop = FALSE]
+    pairs <- pairs[nzchar(pairs$fine) & nzchar(pairs$coarse), , drop = FALSE]
+    if (!nrow(pairs)) next
+    # The grouping must be many-to-one: a region spanning two boundary units
+    # cannot be rolled up without splitting its mortality.
+    if (any(table(pairs$fine) > 1L)) next
+    if (mean(target_keys %in% pairs$fine) < 0.6) next
+    pairs$boundary <- coarse$crosswalk$to[
+      match(pairs$coarse, coarse$crosswalk$from)
+    ]
+    pairs <- pairs[!is.na(pairs$boundary), , drop = FALSE]
+    if (!nrow(pairs)) next
+    return(data.frame(fine = pairs$fine, fine_label = pairs$fine_label,
+                      boundary = pairs$boundary,
+                      donor_fine = v, donor_coarse = coarse$variable,
+                      stringsAsFactors = FALSE))
+  }
+  NULL
 }
 
 weighted_mean_by_region <- function(value, weight, region, eligible) {

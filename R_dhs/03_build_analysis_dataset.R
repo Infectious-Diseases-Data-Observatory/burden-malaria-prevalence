@@ -277,6 +277,51 @@ region_covariates <- function(br, region_var) {
   out
 }
 
+# Roll a recode's regions up to a coarser boundary's units, using a grouping
+# read from a sibling survey of the same country that carries both levels. The
+# target's own region names are reconciled against the donor's first, so a
+# spelling change between rounds does not break the mapping. Returns NULL unless
+# EVERY region the target reports can be placed, because a partial grouping
+# would quietly drop respondents.
+group_regions_to_boundary <- function(br, region_var, boundary_labels,
+                                      survey, registry) {
+  target_labels <- unique(as.character(br[[region_var]]))
+  target_labels <- target_labels[!is.na(target_labels) & nzchar(target_labels)]
+  target_keys <- unique(rkey(target_labels))
+
+  siblings <- registry[registry$iso3 == survey$iso3 &
+                         registry$svkey != survey$svkey, , drop = FALSE]
+  if (!nrow(siblings)) return(NULL)
+  siblings <- siblings[order(abs(siblings$year - survey$year)), , drop = FALSE]
+
+  for (i in seq_len(nrow(siblings))) {
+    path <- as.character(siblings$local_recode[i])
+    if (!is.character(path) || is.na(path) || !file.exists(path)) next
+    donor <- tryCatch(readRDS(path), error = function(e) NULL)
+    if (is.null(donor)) next
+    grouping <- derive_region_grouping(donor, boundary_labels, target_keys)
+    rm(donor)
+    gc(FALSE)
+    if (is.null(grouping)) next
+
+    alignment <- match_region_keys(target_labels, grouping$fine_label)
+    if (nrow(alignment) < length(target_keys)) next
+    boundary_for_target <- grouping$boundary[match(alignment$to, grouping$fine)]
+    values <- boundary_for_target[
+      match(rkey(as.character(br[[region_var]])), alignment$from)
+    ]
+    observed <- !is.na(br[[region_var]]) & nzchar(as.character(br[[region_var]]))
+    if (any(is.na(values[observed]))) next
+
+    return(list(
+      values = values,
+      source = sprintf("%s %s->%s", siblings$svkey[i],
+                       grouping$donor_fine[1], grouping$donor_coarse[1])
+    ))
+  }
+  NULL
+}
+
 build_from_raw <- function() {
   if (!file.exists(SURVEY_REGISTRY_CSV)) {
     stop("Survey registry missing. Run script 01.")
@@ -298,7 +343,29 @@ build_from_raw <- function() {
 
     br <- tryCatch(readRDS(recode), error = function(e) NULL)
     if (is.null(br)) next
-    region_var <- best_region_var(br, survey_map$regkey)
+    boundary_labels <- unique(as.character(survey_map$region))
+    region_var <- best_region_var(br, boundary_labels)
+
+    # Where the boundary is published coarser than the recode's regions, roll
+    # the regions up to it before anything is computed, so chmort aggregates the
+    # mortality and region_covariates aggregates the covariates on the same
+    # weights they always use.
+    grouping_source <- NA_character_
+    reconciled <- match_region_keys(
+      unique(as.character(br[[region_var]])), boundary_labels
+    )
+    if (length(unique(reconciled$to)) < length(unique(survey_map$regkey))) {
+      grouped <- group_regions_to_boundary(br, region_var, boundary_labels,
+                                           survey, registry)
+      if (!is.null(grouped)) {
+        br$region_grouped <- grouped$values
+        region_var <- "region_grouped"
+        grouping_source <- grouped$source
+        message("  ", survey$svkey, ": rolled regions up to the boundary via ",
+                grouped$source)
+      }
+    }
+
     mortality <- mortality_by_region(br, region_var)
     covariates <- region_covariates(br, region_var)
     if (is.null(mortality) || is.null(covariates)) next
@@ -323,6 +390,7 @@ build_from_raw <- function() {
     merge_quality[[survey$svkey]] <- data.frame(
       svkey = survey$svkey, iso3 = survey$iso3, year = survey$year,
       region_var = region_var,
+      grouping_source = grouping_source,
       n_boundary = length(boundary_keys),
       n_recode = length(unique(crosswalk$from)) + length(unmatched_recode),
       matched_exact = sum(crosswalk$how == "exact"),
