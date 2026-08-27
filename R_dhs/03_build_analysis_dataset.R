@@ -309,7 +309,12 @@ build_from_raw <- function() {
     # and record what could not be reconciled so the loss is auditable rather
     # than silent.
     boundary_keys <- unique(survey_map$regkey)
-    crosswalk <- match_region_keys(region$regkey, boundary_keys)
+    # Reconcile from the raw labels, not the collapsed keys: word order and
+    # language can only be normalised while the word boundaries survive.
+    crosswalk <- match_region_keys(
+      unique(as.character(br[[region_var]])),
+      unique(as.character(survey_map$region))
+    )
     position <- match(region$regkey, crosswalk$from)
     unmatched_recode <- sort(unique(region$regkey[is.na(position)]))
     region$regkey <- crosswalk$to[position]
@@ -321,7 +326,11 @@ build_from_raw <- function() {
       n_boundary = length(boundary_keys),
       n_recode = length(unique(crosswalk$from)) + length(unmatched_recode),
       matched_exact = sum(crosswalk$how == "exact"),
+      matched_synonym = sum(crosswalk$how == "synonym"),
+      matched_canonical = sum(crosswalk$how == "canonical"),
       matched_prefix = sum(crosswalk$how == "prefix"),
+      matched_fuzzy = sum(crosswalk$how == "fuzzy"),
+      matched_elimination = sum(crosswalk$how == "elimination"),
       unmatched_recode = length(unmatched_recode),
       unmatched_boundary = length(setdiff(boundary_keys, crosswalk$to)),
       dropped_recode_regions = paste(unmatched_recode, collapse = "; "),
@@ -355,7 +364,11 @@ build_from_raw <- function() {
               row.names = FALSE)
     message(
       "Region merge: ", sum(quality$matched_exact), " exact, ",
-      sum(quality$matched_prefix), " reconciled by prefix, ",
+      sum(quality$matched_synonym), " synonym, ",
+      sum(quality$matched_canonical), " canonical, ",
+      sum(quality$matched_prefix), " prefix, ",
+      sum(quality$matched_fuzzy), " fuzzy, ",
+      sum(quality$matched_elimination), " by elimination; ",
       sum(quality$unmatched_boundary), " boundary regions unmatched across ",
       sum(quality$unmatched_boundary > 0), " surveys. See ",
       "results/dhs_rebuild/region_merge_quality.csv"

@@ -125,54 +125,234 @@ survey_key <- function(filename) {
   paste0(substr(x, 1, 2), substr(x, 5, 8))
 }
 
-# Recode region labels and boundary labels often differ in ways that are purely
-# lexical: an older recode truncates its labels ("extreme nor" for
-# "Extreme-Nord"), names a region in short form where the boundary spells it out
-# ("north" against "Northern"), or appends a generic noun ("central region"
-# against "Central"). Exact key matching drops every one of those regions with
-# no diagnostic.
+# --- reconciling region names between a recode and its boundary --------------
+# A recode and its boundary routinely name the same region differently, and
+# exact key matching drops every such region silently. Five kinds of difference
+# occur in this corpus:
 #
-# After the exact matches, pair a leftover recode key with a leftover boundary
-# key when one is a prefix of the other - but only when the pairing is
-# unambiguous in BOTH directions and the two sides describe the same number of
-# units. The equal-count condition is what makes this safe. Where a boundary
-# merges several recode regions (Mali 2001 folds Kidal, Gao and Timbouctou into
-# one polygon; Tanzania 2004 reports 26 regions against 8 zones) a prefix
-# pairing would attach one region's mortality to a polygon covering several, so
-# those surveys are refused and their regions stay unmatched rather than being
-# silently mis-assigned.
-match_region_keys <- function(recode_keys, boundary_keys, min_prefix = 4L) {
-  clean <- function(x) unique(x[!is.na(x) & nzchar(x)])
-  recode_keys <- clean(recode_keys)
-  boundary_keys <- clean(boundary_keys)
-  exact <- intersect(recode_keys, boundary_keys)
-  out <- data.frame(from = exact, to = exact,
-                    how = rep("exact", length(exact)),
-                    stringsAsFactors = FALSE)
-  if (length(recode_keys) != length(boundary_keys)) return(out)
+#   language    an English boundary against a French or Portuguese recode
+#               ("nord" for North, "regiao norte" for North)
+#   word order  "Cuanza Norte" against "North Cuanza", "Kigali Ville" against
+#               "Kigali City"
+#   qualifier   "Centre (sans Ouagadougou)" against "Centre"; "Maritime
+#               (sans agglomeration de Lome)" against "Maritime excluding
+#               Greater Lome area"
+#   spelling    "Matebeleland" for "Matabeleland", "Liberville" for
+#               "Libreville", "extreme nor" truncated from "Extreme-Nord"
+#   renaming    Namibia's Caprivi became Zambezi; Mauritanian boundaries carry
+#               the English translation of the Arabic name
+#
+# Six stages run in order, each removing what it matched before the next runs.
+# Nothing is ever guessed: every stage requires its pairing to be unique in both
+# directions, and the three heuristic stages additionally require the two sides
+# to describe the same number of units. That equal-count condition is what stops
+# a mis-assignment where one boundary polygon spans several recode regions -
+# Mali 2001 folds Kidal, Gao and Timbouctou into one polygon, Tanzania 2004
+# reports 26 regions against 8 zones - and in both a pairing would attach one
+# region's mortality to a polygon covering several.
 
-  remaining_recode <- setdiff(recode_keys, exact)
-  remaining_boundary <- setdiff(boundary_keys, exact)
-  if (!length(remaining_recode) || !length(remaining_boundary)) return(out)
+# Words carrying no geographic content. "et"/"and" matter: they let
+# "Tiris Zemour et Inchiri" agree with "Tiris Zemour and Inchiri".
+REGION_STOPWORDS <- c(
+  "de", "du", "des", "da", "do", "dos", "das", "d", "la", "le", "les", "el",
+  "of", "the", "and", "et", "e", "y", "a", "o", "au", "aux",
+  "region", "regiao", "regioes", "regions", "province", "provincia",
+  "provincias", "provinces", "state", "states", "zone", "zones", "pvk"
+)
 
-  candidates <- lapply(remaining_recode, function(key) {
-    remaining_boundary[
-      (nchar(key) >= min_prefix & startsWith(remaining_boundary, key)) |
-        (nchar(remaining_boundary) >= min_prefix &
-           startsWith(key, remaining_boundary))
-    ]
-  })
-  names(candidates) <- remaining_recode
+# French and Portuguese forms folded onto one English token. Deliberately
+# minimal: only words that actually occur in these region names, and NOT the
+# English inflections (northern, southern), which the prefix stage already
+# reconciles and which can be genuine distinct regions.
+REGION_TOKEN_LEXICON <- c(
+  nord = "north", norte = "north",
+  sud = "south", sul = "south",
+  est = "east", leste = "east", este = "east",
+  ouest = "west", oeste = "west",
+  centre = "central", center = "central", centro = "central",
+  extreme = "far",
+  ville = "city", cidade = "city",
+  grande = "greater", agglomeration = "area",
+  hiperendemica = "hyperendemic", hiperendemico = "hyperendemic",
+  mesoendemica = "mesoendemic", mesoendemico = "mesoendemic",
+  estavel = "stable", instavel = "unstable"
+)
 
-  for (key in remaining_recode) {
-    hit <- candidates[[key]]
-    if (length(hit) != 1L) next
-    suitors <- sum(vapply(candidates, function(x) hit %in% x, logical(1)))
-    if (suitors != 1L) next
-    out <- rbind(out, data.frame(from = key, to = hit, how = "prefix",
-                                 stringsAsFactors = FALSE))
+# A word introducing an exclusion clause; it and everything after it is dropped.
+REGION_EXCLUSION_WORDS <- c(
+  "sans", "without", "excluding", "excl", "exclu", "exceto", "sem",
+  "notsurveyed"
+)
+
+# Pairs no rule could derive. Each is an official rename or a boundary carrying
+# the English translation of a local name, so they are applied unconditionally
+# rather than being gated like the heuristic stages.
+REGION_NAME_SYNONYMS <- as.data.frame(rbind(
+  # Namibia renamed Caprivi to Zambezi in 2013; the recode predates the boundary.
+  c("caprivi", "zambezi"),
+  # Comoros: recodes use the French names, boundaries the Comorian ones.
+  c("moheli", "mwali"),
+  c("anjouan", "ndzuwani"),
+  c("ndzouani", "ndzuwani"),
+  c("grandecomore", "ngazidja"),
+  # Mauritania: boundaries translate the Arabic names.
+  c("hodhechargui", "easternbasinregion"),
+  c("hodhelchargui", "easternbasinregion"),
+  c("hodhgharbi", "westernbasinregion"),
+  c("hodhelgharbi", "westernbasinregion"),
+  # Ethiopian recodes abbreviate Benishangul-Gumuz.
+  c("bengumz", "benishangulgumuz")
+), stringsAsFactors = FALSE)
+names(REGION_NAME_SYNONYMS) <- c("recode", "boundary")
+
+# Accented letters are folded to their base letter directly rather than through
+# iconv's TRANSLIT, which on macOS writes the diacritic as a SEPARATE ASCII
+# character ("regiao" comes back as "regi~ao"). That is harmless for rkey(),
+# which strips punctuation, but here it would split a word in two and destroy
+# the token.
+REGION_ACCENTED <- paste0(
+  "àáâãäåèéêë",
+  "ìíîïòóôõö",
+  "ùúûüçñýÿ"
+)
+REGION_UNACCENTED <- "aaaaaaeeeeiiiiooooouuuucnyy"
+
+# Reduce a raw region label to a sorted bag of meaningful, language-normalised
+# tokens, so that word order and language stop mattering.
+region_tokens <- function(label) {
+  text <- as.character(label)
+  if (nzchar(.CP1250_TO_LATIN1$from)) {
+    text <- chartr(.CP1250_TO_LATIN1$from, .CP1250_TO_LATIN1$to, text)
   }
-  out
+  text <- tolower(text)
+  text <- chartr(REGION_ACCENTED, REGION_UNACCENTED, text)
+  text <- gsub("[^a-z0-9]+", " ", text)
+  tokens <- strsplit(trimws(text), " +")[[1]]
+  tokens <- tokens[nzchar(tokens)]
+
+  clause <- which(tokens %in% REGION_EXCLUSION_WORDS)
+  if (length(clause)) {
+    tokens <- if (clause[1] == 1L) character(0) else tokens[seq_len(clause[1] - 1L)]
+  }
+  tokens <- tokens[!tokens %in% REGION_STOPWORDS]
+
+  translated <- REGION_TOKEN_LEXICON[tokens]
+  tokens <- ifelse(is.na(translated), tokens, translated)
+
+  # Split written-together compass compounds so "Northeast" agrees with
+  # "nord-est" once both halves are translated.
+  tokens <- unlist(lapply(tokens, function(token) {
+    parts <- regmatches(token, regexec("^(north|south)(east|west)$", token))[[1]]
+    if (length(parts) == 3L) parts[2:3] else token
+  }))
+  sort(unique(tokens))
+}
+
+region_signature <- function(labels) {
+  vapply(labels, function(label) paste(region_tokens(label), collapse = ""),
+         character(1), USE.NAMES = FALSE)
+}
+
+match_region_keys <- function(recode_labels, boundary_labels,
+                              min_prefix = 3L, max_edits = 2L) {
+  frame <- function(labels) {
+    labels <- as.character(labels)
+    labels <- labels[!is.na(labels) & nzchar(trimws(labels))]
+    out <- data.frame(label = labels, key = rkey(labels),
+                      stringsAsFactors = FALSE)
+    out <- out[nzchar(out$key) & !is.na(out$key), , drop = FALSE]
+    out[!duplicated(out$key), , drop = FALSE]
+  }
+  recode <- frame(recode_labels)
+  boundary <- frame(boundary_labels)
+  pairs <- data.frame(from = character(0), to = character(0),
+                      how = character(0), stringsAsFactors = FALSE)
+  if (!nrow(recode) || !nrow(boundary)) return(pairs)
+
+  equal_counts <- nrow(recode) == nrow(boundary)
+  take <- function(from_keys, to_keys, how) {
+    if (!length(from_keys)) return(invisible(NULL))
+    pairs <<- rbind(pairs, data.frame(from = from_keys, to = to_keys,
+                                      how = rep(how, length(from_keys)),
+                                      stringsAsFactors = FALSE))
+    recode <<- recode[!recode$key %in% from_keys, , drop = FALSE]
+    boundary <<- boundary[!boundary$key %in% to_keys, , drop = FALSE]
+  }
+
+  # 1. exact
+  exact <- intersect(recode$key, boundary$key)
+  take(exact, exact, "exact")
+
+  # 2. curated synonyms
+  if (nrow(recode) && nrow(boundary)) {
+    hit <- REGION_NAME_SYNONYMS[
+      REGION_NAME_SYNONYMS$recode %in% recode$key &
+        REGION_NAME_SYNONYMS$boundary %in% boundary$key, , drop = FALSE
+    ]
+    hit <- hit[!duplicated(hit$recode) & !duplicated(hit$boundary), , drop = FALSE]
+    take(hit$recode, hit$boundary, "synonym")
+  }
+
+  # 3. language- and order-insensitive token signature. Ungated by unit count,
+  #    because equal signatures are evidence rather than a heuristic, but the
+  #    signature must be unique on both sides so the pairing stays one to one.
+  if (nrow(recode) && nrow(boundary)) {
+    recode$signature <- region_signature(recode$label)
+    boundary$signature <- region_signature(boundary$label)
+    shared <- intersect(
+      recode$signature[!duplicated(recode$signature) &
+                         !(duplicated(recode$signature, fromLast = TRUE))],
+      boundary$signature[!duplicated(boundary$signature) &
+                           !(duplicated(boundary$signature, fromLast = TRUE))]
+    )
+    shared <- shared[nzchar(shared)]
+    if (length(shared)) {
+      take(recode$key[match(shared, recode$signature)],
+           boundary$key[match(shared, boundary$signature)], "canonical")
+    }
+  }
+
+  # 4. prefix, 5. edit distance, 6. elimination - heuristics, so equal counts
+  #    are required.
+  if (equal_counts && nrow(recode) && nrow(boundary)) {
+    unique_pairing <- function(candidates, how) {
+      for (key in names(candidates)) {
+        if (!key %in% recode$key) next
+        hit <- intersect(candidates[[key]], boundary$key)
+        if (length(hit) != 1L) next
+        suitors <- sum(vapply(candidates, function(x) hit %in% x, logical(1)))
+        if (suitors != 1L) next
+        take(key, hit, how)
+      }
+    }
+
+    prefix_candidates <- lapply(recode$key, function(key) {
+      boundary$key[
+        (nchar(key) >= min_prefix & startsWith(boundary$key, key)) |
+          (nchar(boundary$key) >= min_prefix & startsWith(key, boundary$key))
+      ]
+    })
+    names(prefix_candidates) <- recode$key
+    unique_pairing(prefix_candidates, "prefix")
+
+    if (nrow(recode) && nrow(boundary)) {
+      fuzzy_candidates <- lapply(recode$key, function(key) {
+        distance <- as.integer(utils::adist(key, boundary$key))
+        allowed <- pmin(max_edits,
+                        ceiling(0.25 * pmin(nchar(key), nchar(boundary$key))))
+        boundary$key[distance <= allowed & distance > 0L]
+      })
+      names(fuzzy_candidates) <- recode$key
+      unique_pairing(fuzzy_candidates, "fuzzy")
+    }
+
+    # A single leftover on each side is settled by elimination, not guessed.
+    if (nrow(recode) == 1L && nrow(boundary) == 1L) {
+      take(recode$key, boundary$key, "elimination")
+    }
+  }
+
+  pairs
 }
 
 best_region_var <- function(br, target_keys, prefer = "v024") {
