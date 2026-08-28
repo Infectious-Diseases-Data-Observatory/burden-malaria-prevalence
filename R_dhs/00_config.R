@@ -811,9 +811,20 @@ MODEL_SPECS <- data.frame(
   time_interaction = c(FALSE, FALSE, TRUE, TRUE, TRUE)
 )
 
+# Whether the prevalence slope is allowed to vary by country. Set to FALSE:
+# a country-specific random slope is not interpretable alongside the
+# population-average effect the burden extrapolation needs, and the fixed slope
+# is the quantity actually reported. The cost is that inference is no longer
+# protected against slope heterogeneity between countries - regions within a
+# country are treated as independent evidence about one common slope, which
+# narrows the interval on that slope. `07_sensitivity_model_structure.R` and
+# `15_specification_forest.R` both carry the with-slope fit as a sensitivity so
+# the size of that effect stays visible.
+INCLUDE_COUNTRY_PFPR_SLOPE <- FALSE
+
 model_formula <- function(
     specification,
-    include_country_slope = TRUE,
+    include_country_slope = INCLUDE_COUNTRY_PFPR_SLOPE,
     spline_k = 6,
     year_k = 8) {
   prevalence <- switch(
@@ -854,7 +865,7 @@ fit_ridge_gam <- function(
     specification,
     method = "ML",
     preprocessing = NULL,
-    include_country_slope = TRUE,
+    include_country_slope = INCLUDE_COUNTRY_PFPR_SLOPE,
     spline_k = 6,
     year_k = 8) {
   required_packages("mgcv")

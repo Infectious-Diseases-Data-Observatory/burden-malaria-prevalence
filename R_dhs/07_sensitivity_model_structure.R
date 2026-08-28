@@ -47,13 +47,16 @@ configurations <- list(
   primary_structure = list(
     catalog = catalog,
     preprocessing = bundle$preprocessing,
-    include_country_slope = TRUE,
+    include_country_slope = INCLUDE_COUNTRY_PFPR_SLOPE,
     spline_k = 6
   ),
-  no_country_pfpr_slope = list(
+  # The primary model no longer lets the prevalence slope vary by country, so
+  # the informative contrast is now the other way round: what re-admitting it
+  # would do.
+  with_country_pfpr_slope = list(
     catalog = catalog,
     preprocessing = bundle$preprocessing,
-    include_country_slope = FALSE,
+    include_country_slope = TRUE,
     spline_k = 6
   ),
   regional_covariates_only = list(
@@ -62,7 +65,7 @@ configurations <- list(
       bundle$preprocessing,
       regional_catalog$variable
     ),
-    include_country_slope = TRUE,
+    include_country_slope = INCLUDE_COUNTRY_PFPR_SLOPE,
     spline_k = 6
   ),
   national_covariates_only = list(
@@ -71,7 +74,7 @@ configurations <- list(
       bundle$preprocessing,
       national_catalog$variable
     ),
-    include_country_slope = TRUE,
+    include_country_slope = INCLUDE_COUNTRY_PFPR_SLOPE,
     spline_k = 6
   )
 )
@@ -80,13 +83,13 @@ if (grepl("spline", bundle$selected_specification)) {
   configurations$spline_k4 <- list(
     catalog = catalog,
     preprocessing = bundle$preprocessing,
-    include_country_slope = TRUE,
+    include_country_slope = INCLUDE_COUNTRY_PFPR_SLOPE,
     spline_k = 4
   )
   configurations$spline_k8 <- list(
     catalog = catalog,
     preprocessing = bundle$preprocessing,
-    include_country_slope = TRUE,
+    include_country_slope = INCLUDE_COUNTRY_PFPR_SLOPE,
     spline_k = 8
   )
 }

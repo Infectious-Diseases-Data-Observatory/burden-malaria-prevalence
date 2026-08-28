@@ -57,7 +57,7 @@ fit_log_gaussian_gam <- function(data, outcome, specification, preprocessing) {
   model <- mgcv::gam(formula, family = gaussian(), method = "REML", paraPen = penalty, data = dd)
   list(model = model, data = dd, preprocessing = ridge$preprocessing,
        specification = specification, outcome = outcome,
-       include_country_slope = TRUE, spline_k = 6, year_k = 8)
+       include_country_slope = INCLUDE_COUNTRY_PFPR_SLOPE, spline_k = 6, year_k = 8)
 }
 
 ## ---- refit the linear PfPR summary under each specification ----------------
@@ -66,7 +66,7 @@ lin <- function(fit) {
   data.frame(est = r$pct_change_per_10, lo = r$pct_change_lo, hi = r$pct_change_hi,
              n = r$n, p = r$pfpr_p)
 }
-nb_fit <- function(flag, cat, pp, slope = TRUE) {
+nb_fit <- function(flag, cat, pp, slope = INCLUDE_COUNTRY_PFPR_SLOPE) {
   fit_ridge_gam(analysis[flag, , drop = FALSE], OUT, cat, LIN,
                 method = "REML", preprocessing = pp, include_country_slope = slope)
 }
@@ -86,8 +86,8 @@ add("Restrict to PfPR₂₋₁₀ 5–40%", "Analysis sample",
     lin(nb_fit(sample_flags$restricted_pfpr_5_to_40, catalog, bundle$preprocessing)))
 add("Complete cases (all covariates)", "Analysis sample",
     lin(nb_fit(sample_flags$complete_case, catalog, bundle$preprocessing)))
-add("No country PfPR random slope", "Model structure",
-    lin(nb_fit(sample_flags$primary, catalog, bundle$preprocessing, slope = FALSE)))
+add("With country PfPR random slope", "Model structure",
+    lin(nb_fit(sample_flags$primary, catalog, bundle$preprocessing, slope = TRUE)))
 add("Log-Gaussian likelihood (log-rate)", "Likelihood",
     lin(fit_log_gaussian_gam(analysis[sample_flags$primary, , drop = FALSE], OUT, LIN, bundle$preprocessing)))
 

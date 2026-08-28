@@ -393,7 +393,7 @@ ridge <- make_ridge_matrix(z, catalog, bundle$preprocessing)
 z$G <- ridge$matrix
 penalty <- list(G = list(diag(ncol(ridge$matrix))))
 z$deaths <- round(z$postneonatal_mortality / 1000 * z$exposure)
-common <- ~ G + s(year_c, k = 8) + s(country, bs = "re") + s(country, pfpr10, bs = "re") +
+common <- ~ G + s(year_c, k = 8) + s(country, bs = "re") +
   offset(log(exposure))
 pooled_spline <- mgcv::gam(update(common, deaths ~ s(pfpr10, k = 6) + .),
   family = mgcv::nb(), method = "ML", paraPen = penalty, data = z)

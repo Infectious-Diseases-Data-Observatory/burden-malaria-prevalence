@@ -76,6 +76,7 @@ run_script("26_audit_survey_coverage.R")
 # Mortality horizon x prevalence lag. Needs the lagged PfPR panel that script 17
 # builds, so it runs after it.
 run_script("27_horizon_lag_selection.R")
+run_script("28_survey_map.R")
 
 legacy_validation_inputs <- c(
   file.path(REPO_ROOT, "results", "penalized_models.rds"),

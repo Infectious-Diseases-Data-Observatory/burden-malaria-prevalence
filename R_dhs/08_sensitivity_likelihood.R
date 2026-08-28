@@ -50,7 +50,7 @@ fit_log_gaussian_gam <- function(
     preprocessing = ridge$preprocessing,
     specification = specification,
     outcome = outcome,
-    include_country_slope = TRUE,
+    include_country_slope = INCLUDE_COUNTRY_PFPR_SLOPE,
     spline_k = 6,
     year_k = 8
   )
