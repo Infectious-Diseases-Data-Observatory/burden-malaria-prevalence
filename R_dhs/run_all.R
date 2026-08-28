@@ -77,6 +77,7 @@ run_script("26_audit_survey_coverage.R")
 # builds, so it runs after it.
 run_script("27_horizon_lag_selection.R")
 run_script("28_survey_map.R")
+run_script("29_subgroup_fits.R")
 
 legacy_validation_inputs <- c(
   file.path(REPO_ROOT, "results", "penalized_models.rds"),
