@@ -63,7 +63,7 @@ p <- ggplot() +
       EF, EB, 2.4, 0.8, size = 4.0) +
 
   box(6.7, 3.3,
-      "MAIN ANALYSIS: ridge-penalised NB-GAM\n17 covariates (regional DHS, WUENIC, HIV, World Bank)\ncountry random intercept + PfPR slope · offset",
+      "MAIN ANALYSIS: ridge-penalised NB-GAM\n18 covariates (regional DHS, WUENIC, HIV, World Bank)\ncountry random intercept · offset",
       MF, MB, 4.5, 1.05) +
   box(15.3, 3.3,
       "National burden extrapolation\nselected model × national MAP PfPR (2024)\n× IGME all-cause mortality × live births\n→ vs IHME (GBD 2025) & WHO (WMR 2025)",

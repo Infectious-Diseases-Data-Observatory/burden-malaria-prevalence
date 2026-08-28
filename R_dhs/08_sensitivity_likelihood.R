@@ -3,7 +3,7 @@
 # Test sensitivity to the negative-binomial count likelihood by modelling the
 # log mortality rate with Gaussian errors. The alternative retains the primary
 # sample, ridge-penalised covariate block, PfPR/time structure, smooth calendar
-# year, and country random intercept and PfPR slope.
+# year, and country random intercept.
 #
 # This is the rebuilt equivalent of the manuscript's log-normal mixed-model
 # sensitivity while changing only the outcome likelihood/scale.

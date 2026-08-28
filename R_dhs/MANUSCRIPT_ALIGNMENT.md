@@ -20,8 +20,11 @@ IHME/WHO comparisons and trial triangulation are outside this rebuild.
   spline), the neonatal prevalence smooth is linear (edf 1.00) and null
   (p=0.37).
 - All primary models use a negative-binomial likelihood, log-exposure offset,
-  smooth calendar year, country random intercepts and country random linear
-  PfPR slopes.
+  smooth calendar year and country random intercepts. The country-specific
+  random PfPR slope was removed from the primary structure (see
+  INCLUDE_COUNTRY_PFPR_SLOPE in 00_config.R) and is carried only as a
+  structural sensitivity, in script 07 (arm `with_country_pfpr_slope`) and
+  script 15 (arm "With country PfPR random slope").
 
 ## Statements requiring revision
 

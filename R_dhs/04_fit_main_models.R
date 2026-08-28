@@ -12,7 +12,6 @@
 #   * ridge-penalised transformed/standardised eligible covariates
 #   * smooth calendar year
 #   * country random intercept
-#   * country random linear PfPR slope
 #   * log-exposure offset
 #
 # Models are compared using ML on an identical sample for both post-neonatal

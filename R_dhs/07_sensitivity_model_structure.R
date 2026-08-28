@@ -5,7 +5,7 @@
 #
 # Comparisons:
 #   * selected primary structure
-#   * selected structure without a country random PfPR slope
+#   * selected structure WITH a country random PfPR slope re-admitted
 #   * survey-region covariates only
 #   * national covariates only
 #   * lower/higher spline basis dimension when the selected model is nonlinear

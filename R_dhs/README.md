@@ -36,7 +36,7 @@ that should be updated in the current manuscript after the rebuild is accepted.
   eligible block is ridge penalised.
 - Model comparison: linear versus spline PfPR, each with versus without a
   PfPR-by-calendar-time interaction, plus a full `te(PfPR, year)` surface. All
-  include country random intercepts, random linear PfPR slopes and a
+  include country random intercepts and a
   log-exposure offset. The four decomposed specifications include a separate
   smooth calendar-year term; the full tensor surface contains the year main
   effect.
