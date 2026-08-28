@@ -24,17 +24,17 @@ geometry: margin=0.9in
 
 - **Neonatal mortality, the negative control, shows no such association.** The
   ridge-linear neonatal estimate is +1.3% per 10 PfPR points (95% CI −0.7% to
-  +3.4%; `p=0.20`), and the selected prevalence term for neonatal mortality is
+  +3.4%; `p=0.21`), and the selected prevalence term for neonatal mortality is
   effectively flat. This, together with the stability under HIV and vaccine
   adjustment, reduces the concern that the main result simply reflects broad
   differences in child survival between higher- and lower-prevalence settings.
 
 - **A prevalence-by-time interaction now fits best — a change from the earlier,
   smaller panel.** The linear PfPR term with a time interaction is selected by
-  AIC ahead of the full `te(PfPR, year)` surface (ΔAIC 3.5), a spline
-  time-interaction (ΔAIC 4.0), the additive spline `s(PfPR)+s(year)` (ΔAIC 6.1)
-  and the linear no-interaction form (ΔAIC 12.9). The interaction is +0.0042 per
-  year (`p=2.4e-05`), where on the 936-region-year panel it had been borderline
+  AIC ahead of the full `te(PfPR, year)` surface (ΔAIC 3.1), a spline
+  time-interaction (ΔAIC 4.2), the additive spline `s(PfPR)+s(year)` (ΔAIC 7.0)
+  and the linear no-interaction form (ΔAIC 13.6). The interaction is +0.0042 per
+  year (`p=1.8e-05`), where on the 936-region-year panel it had been borderline
   and the time-stable spline was selected. Population-average
   malaria-attributable fractions of post-neonatal mortality are 7%, 22% and 34%
   at 10%, 30% and 50% PfPR2-10 (versus a 1% counterfactual), down from 14%, 34%
@@ -42,14 +42,14 @@ geometry: margin=0.9in
   interaction is admitted, this selection matters more than the modest change in
   the dose-response itself.
 
-- **The preferred model estimates about 543,000 malaria-attributable
+- **The preferred model estimates about 546,000 malaria-attributable
   post-neonatal deaths in 2024 — the same order as IHME and WHO.** The 95%
-  uncertainty interval is 336,000–716,000, propagating both the fitted
+  uncertainty interval is 348,000–712,000, propagating both the fitted
   attributable-fraction (model-parameter) uncertainty and the all-cause
   post-neonatal mortality uncertainty (from the IHME/GBD relative interval); the
-  2000 estimate is 640,000. Across the three time structures the 2024 total
-  ranges from 477,000 to 547,000. The point estimate is about 27% higher than
-  the IHME/GBD 2024 estimate (about 428,000) and about 22% higher than an
+  2000 estimate is 633,000. Across the three time structures the 2024 total
+  ranges from 474,000 to 548,000. The point estimate is about 28% higher than
+  the IHME/GBD 2024 estimate (about 428,000) and about 23% higher than an
   approximate WHO under-five figure (about 446,000); the intervals
   overlap. This is not a
   validation against a common estimand: the model captures direct and indirect
@@ -71,20 +71,26 @@ Recodes, sub-Saharan Africa, 2000–2024; AIS excluded). Each region receives th
 population-weighted MAP PfPR2-10 estimate for the survey year; regional
 all-under-five and neonatal mortality come from birth histories via the DHS
 synthetic-cohort life-table method, and post-neonatal mortality is their
-difference. The assembled panel has 1,125 region-years (119 surveys, 36
+difference. The assembled panel has 1,128 region-years (120 surveys, 36
 countries); the primary sample requires country-mean PfPR2-10 above 1% and
-regional PfPR2-10 at least 1%, plus positive outcomes/exposure, giving **1,108
-region-years (117 surveys, 35 countries)**. The full data flow is shown in the
+regional PfPR2-10 at least 1%, plus positive outcomes/exposure, giving **1,111
+region-years (118 surveys, 35 countries)**. The full data flow is shown in the
 [analysis-flow diagram](#analysis-flow).
 
 **Panel coverage.** The panel is now assembled from the DHS survey registry
 rather than inherited from an earlier aggregate. Three faults in that path were
-repaired — a Windows-1250 mis-decoding of accented region names, an empty `v022`
-that made `chmort` abort for four surveys, and a MAP regional extraction that
-had never completed — and recode region names are now reconciled against
+repaired — a Windows-1250 mis-decoding of accented region names, a `v022` that
+made `chmort` abort for five surveys (empty in four, and populated but with
+clusters not nested within strata in Malawi 2004), and a MAP regional extraction
+that had never completed — and recode region names are now reconciled against
 boundary names across language, word order, spelling, qualifier clauses and
 granularity. Together these took the panel from 936 region-years (106 surveys)
-to 1,125 (119 surveys).
+to 1,128 (120 surveys).
+
+Of the 1,134 survey regions for which MAP publishes a prevalence estimate,
+**1,128 (99.5%) merge into the panel**. Only 995 of those joined on an exact key;
+the rest were reconciled by token signature (78), prefix (22), edit distance
+(18), a curated synonym table (7) or elimination (5).
 
 This matters for interpretation, not only for coverage: the linear
 no-interaction estimate fell at every step as coverage improved (+8.5%, +8.30%,
@@ -126,7 +132,7 @@ sample) and are imputed with a provenance flag. Source choices are in
 **Model.** Approximate death counts (rate × birth exposure) are modelled with a
 negative-binomial GAM: `offset(log(exposure))`, the ridge covariate block,
 country random intercepts and country-specific random linear PfPR slopes. Five
-PfPR/time specifications are compared by ML/AIC on the same 1,108 observations,
+PfPR/time specifications are compared by ML/AIC on the same 1,111 observations,
 and the selected form is refitted by REML for post-neonatal, all-under-five and
 neonatal mortality.
 
@@ -137,25 +143,25 @@ PfPR2-10 is associated with:
 
 | Outcome | Change in mortality | 95% CI | p-value |
 |---|---:|---:|---:|
-| Post-neonatal | +7.49% | +4.17% to +10.90% | <0.001 |
-| All under-five | +5.26% | +2.73% to +7.86% | <0.001 |
-| Neonatal (negative control) | +1.34% | −0.72% to +3.45% | 0.20 |
+| Post-neonatal | +7.48% | +4.19% to +10.87% | <0.001 |
+| All under-five | +5.25% | +2.74% to +7.82% | <0.001 |
+| Neonatal (negative control) | +1.33% | −0.74% to +3.44% | 0.21 |
 
 ![Modelled change in mortality versus 1% PfPR for the three outcomes. The
 post-neonatal and all-under-five associations rise with prevalence; the
 neonatal negative control stays flat and its interval spans
 zero.](results/dhs_rebuild/figure3_negative_control_curves.png){width=88%}
 
-Five specifications are compared by AIC on the 1,108-observation post-neonatal
+Five specifications are compared by AIC on the 1,111-observation post-neonatal
 sample:
 
 | Model | Specification | AIC | ΔAIC |
 |---|---|---:|---:|
-| Linear, interaction | `PfPR + PfPR × year + s(year)` | 8556.01 | 0.00 |
-| Full tensor surface | `te(PfPR, year)` | 8559.47 | 3.46 |
-| Spline, `ti` interaction | `s(PfPR) + s(year) + ti(PfPR, year)` | 8560.01 | 4.00 |
-| Spline, no interaction | `s(PfPR) + s(year)` | 8562.08 | 6.07 |
-| Linear, no interaction | `PfPR + s(year)` | 8568.90 | 12.89 |
+| Linear, interaction | `PfPR + PfPR × year + s(year)` | 8588.61 | 0.00 |
+| Full tensor surface | `te(PfPR, year)` | 8591.74 | 3.13 |
+| Spline, `ti` interaction | `s(PfPR) + s(year) + ti(PfPR, year)` | 8592.82 | 4.22 |
+| Spline, no interaction | `s(PfPR) + s(year)` | 8595.58 | 6.97 |
+| Linear, no interaction | `PfPR + s(year)` | 8602.23 | 13.62 |
 
 An independent AIC comparison for neonatal mortality selects an effectively
 linear, flat prevalence term; it selects the linear no-interaction form, whose
@@ -168,9 +174,9 @@ post-neonatal mortality (country random effects set to zero; reference year
 
 | PfPR2-10 | Attributable fraction | 95% interval |
 |---:|---:|---:|
-| 10% | 7.3% | 4.6%–9.9% |
-| 30% | 21.7% | 14.2%–28.6% |
-| 50% | 33.9% | 22.8%–43.4% |
+| 10% | 7.3% | 4.7%–9.9% |
+| 30% | 21.8% | 14.2%–28.6% |
+| 50% | 33.9% | 22.9%–43.4% |
 
 ## Robustness
 
@@ -178,10 +184,10 @@ Robustness is the central message: the association barely moves across covariate
 blocks, samples, model structures and likelihood.
 
 - **Covariate adjustment.** Child HIV prevalence is itself the strongest single
-  predictor of post-neonatal mortality in the block (+14.1% per standard
+  predictor of post-neonatal mortality in the block (+13.9% per standard
   deviation), yet adding it leaves the malaria estimate essentially unchanged.
   The regional block alone and the full regional-plus-national block give a
-  similar attributable fraction (22.5% and 21.5% at 30% PfPR).
+  similar attributable fraction (22.5% and 21.6% at 30% PfPR).
 
 ![Ridge-standardized conditional associations for the 17 covariates in the
 best-fitting post-neonatal model (percentage change per 1 SD after
@@ -190,11 +196,11 @@ effects).](results/dhs_rebuild/figure5_covariate_forest.png){width=90%}
 
 - **Samples, structure and likelihood.** The attributable fraction at 30% PfPR
   stays near 22% across alternative samples (21.4% including sub-1% regions,
-  25.8% on the 5–40% range, 23.1% on complete cases) and across model-structure
-  choices (18.7% without country-specific PfPR slopes, 22.5% with regional
+  25.8% on the 5–40% range, 23.2% on complete cases) and across model-structure
+  choices (18.8% without country-specific PfPR slopes, 22.5% with regional
   covariates only); it rises materially only in a national-covariates-only model
-  that fits far worse (33.6%). A log-Gaussian rate model is less precise and its
-  interval spans zero (+5.3% per 10 PfPR points, 95% CI −1.6% to +12.8%;
+  that fits far worse (33.7%). A log-Gaussian rate model is less precise and its
+  interval spans zero (+5.3% per 10 PfPR points, 95% CI −1.7% to +12.8%;
   `p=0.14`).
 
 ## External validation: bednet trials
@@ -225,9 +231,9 @@ so the under-five comparator applies WHO's ~75% age-share statement.
 
 | Source | Deaths |
 |---|---:|
-| Selected model (full `te` surface) | **543,000** |
-| Spline, `ti` interaction | 547,000 |
-| Spline, no time interaction | 477,000 |
+| Selected model (full `te` surface) | **546,000** |
+| Spline, `ti` interaction | 548,000 |
+| Spline, no time interaction | 474,000 |
 | IHME/GBD SSA under-five, 2024 | 428,000 |
 | WHO African-region all-age, 2024 | 579,000 |
 | WHO African-region under-five proxy, 2024 | 434,000 |
@@ -241,14 +247,14 @@ post-neonatal malaria deaths from 2000 to 2024 fall by:
 
 | Model | 2000 | 2024 | Change |
 |---|---:|---:|---:|
-| Full `te` surface (selected) | 640,000 | 543,000 | −15% |
-| Spline `ti` interaction | 693,000 | 546,000 | −21% |
-| Spline, no time interaction | 961,000 | 476,000 | −50% |
+| Full `te` surface (selected) | 633,000 | 546,000 | −14% |
+| Spline `ti` interaction | 698,000 | 548,000 | −21% |
+| Spline, no time interaction | 958,000 | 474,000 | −51% |
 
 The spread across these three structures is the headline uncertainty in the
 trend, and it is wide: a time-stable attributable fraction implies the burden
 halved over the period, whereas the time-varying structures — which let the
-attributable fraction rise gradually — imply a decline of only 15–21%. On the
+attributable fraction rise gradually — imply a decline of only 14–21%. On the
 936-region-year panel the time-stable form was selected and the −52% figure was
 the headline; on the fuller panel it is the worst-fitting of the five
 specifications, so the smaller declines should now carry more weight.
@@ -258,29 +264,29 @@ time structures.](results/dhs_rebuild/time_surface_burden_timeseries.png){width=
 
 ### Country differences from IHME {#country-differences}
 
-The aggregate is now about 27% above IHME (model ≈543,000 vs IHME ≈428,000 in
-2024, a ratio of 1.27), and the country-level differences are larger still
+The aggregate is now about 28% above IHME (model ≈546,000 vs IHME ≈428,000 in
+2024, a ratio of 1.28), and the country-level differences are larger still
 (AIC-selected full `te` surface; ten countries with the largest absolute
 difference from IHME/GBD, all for 2024):
 
 | Country | Model | IHME 2024 | Model/IHME |
 |---|---:|---:|---:|
-| DR Congo | 126,000 | 61,800 | 2.05 |
-| Nigeria | 200,000 | 138,100 | 1.45 |
-| Chad | 13,400 | 4,900 | 2.73 |
-| Mozambique | 14,900 | 10,300 | 1.44 |
-| Benin | 9,900 | 7,400 | 1.34 |
-| Guinea | 9,500 | 7,100 | 1.35 |
-| Niger | 22,700 | 20,300 | 1.11 |
-| Central African Republic | 6,100 | 3,900 | 1.58 |
-| South Sudan | 6,600 | 4,800 | 1.38 |
-| Togo | 2,800 | 1,900 | 1.48 |
+| DR Congo | 127,300 | 61,800 | 2.06 |
+| Nigeria | 201,600 | 138,100 | 1.46 |
+| Chad | 13,500 | 4,900 | 2.75 |
+| Mozambique | 15,000 | 10,300 | 1.45 |
+| Benin | 9,900 | 7,400 | 1.35 |
+| Guinea | 9,600 | 7,100 | 1.36 |
+| Niger | 22,800 | 20,300 | 1.12 |
+| Central African Republic | 6,100 | 3,900 | 1.59 |
+| South Sudan | 6,600 | 4,800 | 1.39 |
+| Togo | 2,800 | 1,900 | 1.49 |
 
 The pattern differs from the earlier panel in a way worth noting: previously the
 model's excess over IHME in DR Congo and Nigeria was offset by lower estimates
 elsewhere, which kept the aggregates close. On the rebuilt panel the ten largest
 differences all run in the same direction, so the aggregate sits well above IHME
-rather than near it. DR Congo alone accounts for about 65,000 of the 115,000
+rather than near it. DR Congo alone accounts for about 65,000 of the 118,000
 aggregate excess. (IHME/GBD malaria estimates are unavailable for Sudan and
 South Africa, so the IHME total covers 41 of the 43 countries; both contribute
 negligibly.)
@@ -306,7 +312,7 @@ remaining limitations are:
 - the log-Gaussian likelihood sensitivity is positive but its interval spans
   zero, so the exact effect size remains uncertain;
 - the historical trend is not well identified. The five specifications are
-  separated by only ~13 AIC points yet imply declines from 15% to 50% over
+  separated by only ~14 AIC points yet imply declines from 14% to 51% over
   2000–2024, and the selection flipped from the time-stable spline to a
   time-interaction form when the panel was completed. The trend should be read
   as a range, not a point;

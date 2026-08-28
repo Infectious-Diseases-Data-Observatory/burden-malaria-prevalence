@@ -484,37 +484,48 @@ pick_named <- function(x, keys) {
   unname(x[keys])
 }
 
-# DHS.rates takes the sample strata from v022. A few recodes ship it empty
-# (DR Congo 2007 and Senegal 2008 among them), and chmort then aborts with
-# "missing values in `strata'", which silently cost us the whole survey. Fall
-# back to the next usable stratum definition: v023 where the recode populates
-# it, otherwise the standard DHS design stratification of region by urban/rural.
-# Only the rate and the weighted exposure are read out of chmort, and neither
-# depends on the stratification - it enters the standard errors alone - so the
-# fallback cannot move the point estimates.
-strata_variable <- function(br) {
+# DHS.rates takes the sample strata from v022, and two different things go wrong
+# with it. Some recodes ship v022 entirely empty (DR Congo 2007, Senegal 2008),
+# and chmort aborts with "missing values in `strata'". Others ship it populated
+# but malformed: Malawi 2004's clusters are not nested within its strata, and
+# chmort aborts with "clusters not nested in strata at top level". Either way the
+# whole survey used to vanish with no diagnostic.
+#
+# So rather than picking one stratum up front, try each candidate in turn and
+# keep the first that chmort accepts. v022 is always tried first, so every survey
+# whose v022 works is unaffected. Only the rate and the weighted exposure are
+# read out of chmort, and neither depends on the stratification - it enters the
+# standard errors alone - so the fallback cannot move the point estimates.
+strata_candidates <- function(br) {
   usable <- function(v) v %in% names(br) && !all(is.na(br[[v]]))
-  if (usable("v022")) return("v022")
-  if (usable("v023")) return("v023")
-  if (all(c("v024", "v025") %in% names(br))) return(NA_character_)
-  NULL
+  candidates <- character(0)
+  if (usable("v022")) candidates <- c(candidates, "v022")
+  if (usable("v023")) candidates <- c(candidates, "v023")
+  candidates
 }
 
 mortality_by_region <- function(br, region_var) {
   required_packages("DHS.rates")
   if (!region_var %in% names(br)) return(NULL)
-  strata <- strata_variable(br)
-  if (is.null(strata)) return(NULL)
-  if (is.na(strata)) {
-    br$strata_fallback <- as.integer(factor(paste(br$v024, br$v025)))
-    strata <- "strata_fallback"
+
+  candidates <- strata_candidates(br)
+  # Last resort: the standard DHS design stratification of region by residence.
+  if (all(c("v024", "v025") %in% names(br))) {
+    br$strata_design <- as.integer(factor(paste(br$v024, br$v025)))
+    candidates <- c(candidates, "strata_design")
   }
-  rates <- tryCatch(
-    suppressMessages(
-      DHS.rates::chmort(br, Class = region_var, Strata = strata)
-    ),
-    error = function(e) NULL
-  )
+  if (!length(candidates)) return(NULL)
+
+  rates <- NULL
+  for (stratum in candidates) {
+    rates <- tryCatch(
+      suppressMessages(
+        DHS.rates::chmort(br, Class = region_var, Strata = stratum)
+      ),
+      error = function(e) NULL
+    )
+    if (!is.null(rates)) break
+  }
   if (is.null(rates)) return(NULL)
 
   u5 <- rates[
