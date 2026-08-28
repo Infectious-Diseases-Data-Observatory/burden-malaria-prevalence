@@ -515,6 +515,20 @@ for (horizon in HORIZONS) {
              p = coefficients[row, 4])
     }
 
+    # Attributable fractions at the reporting anchors, twice: under whichever
+    # model AIC picked for this cell, and under one fixed structure. The second
+    # is what isolates the effect of the horizon, because the first also moves
+    # whenever the selection flips between cells.
+    anchors_of <- function(fit) {
+      if (is.null(fit)) return(rep(NA_real_, 3))
+      values <- tryCatch(af_from_model(fit$model, c(10, 30, 50)),
+                         error = function(e) NULL)
+      if (is.null(values)) return(rep(NA_real_, 3))
+      values$af
+    }
+    af_selected <- anchors_of(fits[[names(ordered)[1]]])
+    af_common <- anchors_of(fits[["spline_no_interaction"]])
+
     cell_results[[length(cell_results) + 1L]] <- data.frame(
       horizon_months = horizon, prevalence_lag_years = lag,
       n = nrow(frame), countries = length(unique(frame$iso3)),
@@ -526,6 +540,10 @@ for (horizon in HORIZONS) {
       aic_selected = unname(ordered[1]),
       linear_pct_change_per_10 = summary_row$pct,
       linear_pfpr_p = summary_row$p,
+      af10_selected = af_selected[1], af30_selected = af_selected[2],
+      af50_selected = af_selected[3],
+      af10_spline = af_common[1], af30_spline = af_common[2],
+      af50_spline = af_common[3],
       stringsAsFactors = FALSE
     )
     message(sprintf("  horizon %2dm, lag %dy: n=%4d -> %s (next %s by %.1f AIC)",
@@ -552,4 +570,16 @@ write.csv(table_wide,
 
 message("\nPreferred specification by mortality horizon and prevalence lag:")
 print(table_wide, row.names = FALSE)
+
+message("\nAttributable fraction at 10 / 30 / 50% PfPR, by horizon and lag.")
+message("  'selected' uses each cell's own AIC winner; 'spline' holds the ",
+        "structure fixed at spline_no_interaction.")
+anchor_report <- selection[, c("horizon_months", "prevalence_lag_years",
+                               "selected", "af10_selected", "af30_selected",
+                               "af50_selected", "af10_spline", "af30_spline",
+                               "af50_spline")]
+for (column in grep("^af", names(anchor_report), value = TRUE)) {
+  anchor_report[[column]] <- round(100 * anchor_report[[column]], 1)
+}
+print(anchor_report, row.names = FALSE)
 message("\nWrote horizon_lag_model_selection.csv and horizon_lag_selection_table.csv")
