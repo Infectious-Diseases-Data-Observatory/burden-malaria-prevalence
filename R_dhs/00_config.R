@@ -49,6 +49,15 @@ DHS_START_YEAR <- 2000L
 DHS_END_YEAR   <- 2025L
 PFPR_FLOOR     <- 1
 MAX_MISSING    <- 0.05
+# Cut year for the era subgroup splits. 2013 rather than 2010: it is the median
+# region-year of the panel and halves the rows the models are fitted on almost
+# exactly (553 before, 558 after), where a 2010 cut gives 367 against 744 and
+# leaves the earlier era both less precise and with fewer distinct years for the
+# calendar smooth. It is also the year the panel is centred on.
+ERA_CUT <- 2013L
+ERA_EARLY <- paste("before", ERA_CUT)
+ERA_LATE <- paste(ERA_CUT, "onwards")
+
 AF_REFERENCE   <- 1
 
 MAP_DATASET_ID <- "Malaria__202508_Global_Pf_Parasite_Rate"

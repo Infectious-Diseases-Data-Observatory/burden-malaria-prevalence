@@ -63,7 +63,7 @@ WEST <- c("BEN", "BFA", "CIV", "CPV", "GHA", "GIN", "GMB", "GNB", "LBR", "MLI",
           "MRT", "NER", "NGA", "SEN", "SLE", "TGO")
 analysis$region_group <- ifelse(analysis$iso3 %in% WEST, "West",
                                 "Central & East")
-analysis$era <- ifelse(analysis$year < 2010, "before 2010", "2010 onwards")
+analysis$era <- ifelse(analysis$year < ERA_CUT, ERA_EARLY, ERA_LATE)
 
 ridge <- make_ridge_matrix(analysis, catalog, bundle$preprocessing)
 covariates <- as.data.frame(ridge$matrix)
@@ -98,16 +98,14 @@ priors <- c(
 subsets <- list(
   list(label = "all data", split = "reference",
        rows = rep(TRUE, nrow(model_data))),
-  list(label = "before 2010", split = "era",
-       rows = model_data$era == "before 2010"),
-  list(label = "2010 onwards", split = "era",
-       rows = model_data$era == "2010 onwards"),
+  list(label = ERA_EARLY, split = "era", rows = model_data$era == ERA_EARLY),
+  list(label = ERA_LATE, split = "era", rows = model_data$era == ERA_LATE),
   list(label = "West", split = "region",
        rows = model_data$region_group == "West"),
   list(label = "Central & East", split = "region",
        rows = model_data$region_group == "Central & East")
 )
-for (era in c("before 2010", "2010 onwards")) {
+for (era in c(ERA_EARLY, ERA_LATE)) {
   for (region in c("West", "Central & East")) {
     subsets[[length(subsets) + 1L]] <- list(
       label = paste0(region, ", ", era), split = "era x region",

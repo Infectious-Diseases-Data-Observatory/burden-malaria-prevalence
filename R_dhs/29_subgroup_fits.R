@@ -59,7 +59,7 @@ SUBREGION_MAP <- c(
   ZWE = "Central & East")
 
 analysis$region_group <- unname(SUBREGION_MAP[analysis$iso3])
-analysis$era <- ifelse(analysis$year < 2010, "before 2010", "2010 onwards")
+analysis$era <- ifelse(analysis$year < ERA_CUT, ERA_EARLY, ERA_LATE)
 analysis <- analysis[!is.na(analysis$region_group), , drop = FALSE]
 
 COMMON_SPEC <- "spline_no_interaction"
@@ -170,13 +170,13 @@ fit_subset <- function(data, label, split) {
 message("Fitting subgroups")
 subsets <- list(
   list(label = "all data", split = "reference", rows = rep(TRUE, nrow(analysis))),
-  list(label = "before 2010", split = "era", rows = analysis$era == "before 2010"),
-  list(label = "2010 onwards", split = "era", rows = analysis$era == "2010 onwards"),
+  list(label = ERA_EARLY, split = "era", rows = analysis$era == ERA_EARLY),
+  list(label = ERA_LATE, split = "era", rows = analysis$era == ERA_LATE),
   list(label = "West", split = "region", rows = analysis$region_group == "West"),
   list(label = "Central & East", split = "region",
        rows = analysis$region_group == "Central & East")
 )
-for (era in c("before 2010", "2010 onwards")) {
+for (era in c(ERA_EARLY, ERA_LATE)) {
   for (region in c("West", "Central & East")) {
     subsets[[length(subsets) + 1L]] <- list(
       label = paste0(region, ", ", era), split = "era x region",
@@ -235,8 +235,9 @@ interaction_test <- function(data, term, label) {
 message("Interaction tests")
 analysis$era_region <- factor(
   paste0(analysis$region_group, ", ", analysis$era),
-  levels = c("Central & East, before 2010", "Central & East, 2010 onwards",
-             "West, before 2010", "West, 2010 onwards")
+  levels = c(paste0("Central & East, ", ERA_EARLY),
+             paste0("Central & East, ", ERA_LATE),
+             paste0("West, ", ERA_EARLY), paste0("West, ", ERA_LATE))
 )
 tests <- rbind(
   interaction_test(analysis, "era", "prevalence x era"),
