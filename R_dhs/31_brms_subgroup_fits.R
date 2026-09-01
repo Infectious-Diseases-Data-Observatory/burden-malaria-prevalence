@@ -144,6 +144,8 @@ af_posterior <- function(fit, data, prevalence) {
 template <- NULL
 rows_out <- list()
 smoothness_out <- list()
+fits_kept <- list()
+data_kept <- list()
 
 for (s in subsets) {
   data <- model_data[s$rows, , drop = FALSE]
@@ -201,6 +203,8 @@ for (s in subsets) {
     saveRDS(fingerprint, meta_file)
   }
   if (is.null(template)) template <- fit
+  fits_kept[[s$label]] <- fit
+  data_kept[[s$label]] <- data
 
   parameters <- posterior::summarise_draws(posterior::as_draws_df(fit))
   key <- parameters[grepl("^b_|^sds_|^sd_|^shape", parameters$variable), ]
@@ -323,6 +327,68 @@ plot <- ggplot2::ggplot(summary_table,
 ggplot2::ggsave(file.path(RESULTS_DIR, "figure13_brms_subgroup_af.png"), plot,
                 width = 11, height = 4.6, dpi = 200)
 
+## ---- dose-response curves, drawn only where each cell has data --------------
+# Same encoding as the anchor figure: line type carries region, colour depth
+# carries period. Each curve is clipped to its own 2nd-98th percentile of
+# observed prevalence, because extending it further would draw extrapolation as
+# though it were estimated - and three of the four cells have almost no data
+# above 50% (see the distribution figure below).
+curve_rows <- list()
+for (s in subsets) {
+  if (is.null(fits_kept[[s$label]])) next
+  data <- data_kept[[s$label]]
+  observed <- data$pfpr10 * 10
+  grid <- seq(max(AF_REFERENCE, stats::quantile(observed, 0.02)),
+              stats::quantile(observed, 0.98), length.out = 40)
+  values <- af_posterior(fits_kept[[s$label]], data, grid)
+  curve_rows[[s$label]] <- data.frame(
+    subset = s$label, split = s$split, region = s$region, era = s$era,
+    prevalence = grid, af = colMeans(values),
+    lo = apply(values, 2, stats::quantile, 0.025),
+    hi = apply(values, 2, stats::quantile, 0.975),
+    stringsAsFactors = FALSE
+  )
+}
+curves <- do.call(rbind, curve_rows)
+curves$region <- factor(curves$region,
+                        levels = c(ALL_REGIONS, "Central & East", "West"))
+curves$era <- factor(curves$era, levels = c(ALL_YEARS, ERA_EARLY, ERA_LATE))
+curves$split <- factor(curves$split,
+                       levels = c("reference", "era", "region", "era x region"))
+write.csv(curves, file.path(RESULTS_DIR, "brms_subgroup_curves.csv"),
+          row.names = FALSE)
+
+curve_colours <- setNames(c("grey45", "#8FBEDD", "#123F63"),
+                          c(ALL_YEARS, ERA_EARLY, ERA_LATE))
+curve_lines <- setNames(c("dotted", "solid", "dashed"),
+                        c(ALL_REGIONS, "Central & East", "West"))
+curve_plot <- ggplot2::ggplot(
+  curves[curves$split != "reference", , drop = FALSE],
+  ggplot2::aes(prevalence, 100 * af, colour = era, fill = era,
+               linetype = region, group = subset)
+) +
+  ggplot2::geom_ribbon(ggplot2::aes(ymin = 100 * lo, ymax = 100 * hi),
+                       alpha = 0.13, colour = NA) +
+  ggplot2::geom_line(linewidth = 0.85) +
+  ggplot2::facet_wrap(~split, nrow = 1) +
+  ggplot2::scale_colour_manual(values = curve_colours, name = "Period") +
+  ggplot2::scale_fill_manual(values = curve_colours, guide = "none") +
+  ggplot2::scale_linetype_manual(values = curve_lines, name = "Region") +
+  ggplot2::guides(colour = ggplot2::guide_legend(order = 1),
+                  linetype = ggplot2::guide_legend(
+                    order = 2, override.aes = list(colour = "grey30"))) +
+  ggplot2::labs(
+    x = "MAP PfPR2-10 (%)",
+    y = "Malaria-attributable fraction of\npost-neonatal mortality (%)",
+    title = "Subgroup dose-response, fitted in Stan",
+    subtitle = paste("Each curve spans only the prevalence range its own",
+                     "subgroup observes;\nbands are 95% credible intervals")
+  ) +
+  ggplot2::theme_minimal(base_size = 10) +
+  ggplot2::theme(legend.position = "bottom")
+ggplot2::ggsave(file.path(RESULTS_DIR, "figure15_brms_subgroup_curves.png"),
+                curve_plot, width = 11, height = 4.6, dpi = 200)
+
 ## ---- what prevalence each cell actually observes -----------------------------
 # The attributable fractions above are read off at 10, 30 and 50% prevalence,
 # but a cell can only speak to the range it contains. This shows the exposure
@@ -387,5 +453,6 @@ ggplot2::ggsave(file.path(RESULTS_DIR, "figure14_prevalence_distribution.png"),
 
 message("\nWrote brms_subgroup_summary.csv, brms_subgroup_smoothness.csv, ",
         "figure13_brms_subgroup_af.png, ",
-        "subgroup_prevalence_distribution.csv and ",
-        "figure14_prevalence_distribution.png")
+        "subgroup_prevalence_distribution.csv, ",
+        "figure14_prevalence_distribution.png, brms_subgroup_curves.csv and ",
+        "figure15_brms_subgroup_curves.png")

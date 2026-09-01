@@ -82,6 +82,7 @@ run_script("29_subgroup_fits.R")
 # when the panel changes, so this costs about two minutes on a warm cache.
 run_script("30_brms_tensor_model.R")
 run_script("31_brms_subgroup_fits.R")
+run_script("32_brms_three_way.R")
 
 legacy_validation_inputs <- c(
   file.path(REPO_ROOT, "results", "penalized_models.rds"),
