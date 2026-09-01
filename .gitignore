@@ -43,3 +43,7 @@ results/_*.log
 !results/*.csv
 # rendered summary is tracked & shared (other *.pdf stay ignored)
 !SUMMARY.pdf
+
+# Sampled brms fit: 8MB, regenerable by R_dhs/30_brms_tensor_model.R
+results/dhs_rebuild/brms_tensor_fit.rds
+results/dhs_rebuild/brms_tensor_fit_meta.rds

@@ -78,6 +78,9 @@ run_script("26_audit_survey_coverage.R")
 run_script("27_horizon_lag_selection.R")
 run_script("28_survey_map.R")
 run_script("29_subgroup_fits.R")
+# Bayesian refit of the tensor surface. Caches its sampled fit and refits only
+# when the panel changes, so this costs about two minutes on a warm cache.
+run_script("30_brms_tensor_model.R")
 
 legacy_validation_inputs <- c(
   file.path(REPO_ROOT, "results", "penalized_models.rds"),
