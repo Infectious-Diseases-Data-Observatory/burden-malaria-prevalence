@@ -323,5 +323,69 @@ plot <- ggplot2::ggplot(summary_table,
 ggplot2::ggsave(file.path(RESULTS_DIR, "figure13_brms_subgroup_af.png"), plot,
                 width = 11, height = 4.6, dpi = 200)
 
-message("\nWrote brms_subgroup_summary.csv, brms_subgroup_smoothness.csv and ",
-        "figure13_brms_subgroup_af.png")
+## ---- what prevalence each cell actually observes -----------------------------
+# The attributable fractions above are read off at 10, 30 and 50% prevalence,
+# but a cell can only speak to the range it contains. This shows the exposure
+# distribution behind each 2 x 2 cell, with the three anchors marked, so it is
+# obvious where an anchor is interpolation and where it is extrapolation.
+distribution <- model_data
+distribution$prevalence <- distribution$pfpr10 * 10
+distribution$region <- factor(distribution$region_group,
+                              levels = c("West", "Central & East"))
+distribution$era <- factor(distribution$era, levels = c(ERA_EARLY, ERA_LATE))
+
+cell_summary <- do.call(rbind, lapply(
+  split(distribution, list(distribution$region, distribution$era), drop = TRUE),
+  function(d) data.frame(
+    region = d$region[1], era = d$era[1],
+    surveys = length(unique(d$svkey)), regions = nrow(d),
+    median_prevalence = stats::median(d$prevalence),
+    pct_at_or_above_30 = 100 * mean(d$prevalence >= 30),
+    pct_at_or_above_50 = 100 * mean(d$prevalence >= 50),
+    stringsAsFactors = FALSE
+  )))
+write.csv(cell_summary,
+          file.path(RESULTS_DIR, "subgroup_prevalence_distribution.csv"),
+          row.names = FALSE)
+message("\nPrevalence actually observed in each cell:")
+print(transform(cell_summary,
+                median_prevalence = round(median_prevalence, 1),
+                pct_at_or_above_30 = round(pct_at_or_above_30, 1),
+                pct_at_or_above_50 = round(pct_at_or_above_50, 1)),
+      row.names = FALSE)
+
+cell_summary$annotation <- sprintf(
+  "%d surveys, %d regions\nmedian %.0f%%\n%.0f%% at or above 30%%\n%.0f%% at or above 50%%",
+  cell_summary$surveys, cell_summary$regions, cell_summary$median_prevalence,
+  cell_summary$pct_at_or_above_30, cell_summary$pct_at_or_above_50)
+
+era_fill <- setNames(c("#8FBEDD", "#123F63"), c(ERA_EARLY, ERA_LATE))
+distribution_plot <- ggplot2::ggplot(distribution,
+                                     ggplot2::aes(prevalence, fill = era)) +
+  ggplot2::geom_histogram(binwidth = 5, boundary = 0, colour = "white",
+                          linewidth = 0.2) +
+  ggplot2::geom_vline(xintercept = ANCHORS, linetype = "dashed",
+                      colour = "grey35", linewidth = 0.4) +
+  ggplot2::geom_text(data = cell_summary,
+                     ggplot2::aes(x = Inf, y = Inf, label = annotation),
+                     hjust = 1.05, vjust = 1.25, size = 2.7, colour = "grey25",
+                     inherit.aes = FALSE) +
+  ggplot2::facet_grid(region ~ era) +
+  ggplot2::scale_fill_manual(values = era_fill, guide = "none") +
+  ggplot2::scale_x_continuous(breaks = c(0, ANCHORS, 75, 100)) +
+  ggplot2::labs(
+    x = "MAP PfPR2-10 (%)", y = "Survey regions",
+    title = "Prevalence observed in each era-by-region cell",
+    subtitle = paste("Dashed lines are the 10, 30 and 50% anchors the",
+                     "attributable fractions are reported at")
+  ) +
+  ggplot2::theme_minimal(base_size = 10) +
+  ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
+                 strip.text = ggplot2::element_text(face = "bold"))
+ggplot2::ggsave(file.path(RESULTS_DIR, "figure14_prevalence_distribution.png"),
+                distribution_plot, width = 9, height = 5.6, dpi = 200)
+
+message("\nWrote brms_subgroup_summary.csv, brms_subgroup_smoothness.csv, ",
+        "figure13_brms_subgroup_af.png, ",
+        "subgroup_prevalence_distribution.csv and ",
+        "figure14_prevalence_distribution.png")
