@@ -75,6 +75,7 @@ model_data <- data.frame(
   pfpr10 = analysis$pfpr10,
   year_c = analysis$year_c,
   country = factor(analysis$iso3),
+  svkey = analysis$svkey,
   region_group = analysis$region_group,
   era = analysis$era,
   stringsAsFactors = FALSE
@@ -207,6 +208,7 @@ for (s in subsets) {
     column <- values[, j]
     rows_out[[length(rows_out) + 1L]] <- data.frame(
       split = s$split, subset = s$label, n = nrow(data),
+      surveys = length(unique(data$svkey)),
       countries = nlevels(data$country), prevalence = ANCHORS[j],
       af = mean(column),
       lo = unname(stats::quantile(column, 0.025)),
@@ -268,7 +270,10 @@ print(transform(smoothness, sds_mean = round(sds_mean, 2),
 ## ---- figure ------------------------------------------------------------------
 # Carry the subgroup size onto the axis: the intervals differ enormously across
 # these subsets and n is most of the reason why.
-summary_table$label <- sprintf("%s  (n = %d)", summary_table$subset,
+# n is given in surveys - a country-year, so Senegal 2010 and Senegal 2023 count
+# two - with the region-years the model is actually fitted on in brackets.
+summary_table$label <- sprintf("%s  (n = %d surveys, %d regions)",
+                               summary_table$subset, summary_table$surveys,
                                summary_table$n)
 summary_table$label <- factor(summary_table$label,
                               levels = rev(unique(summary_table$label)))
