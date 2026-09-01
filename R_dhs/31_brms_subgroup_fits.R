@@ -266,8 +266,12 @@ print(transform(smoothness, sds_mean = round(sds_mean, 2),
       row.names = FALSE)
 
 ## ---- figure ------------------------------------------------------------------
-summary_table$label <- factor(summary_table$subset,
-                              levels = rev(unique(summary_table$subset)))
+# Carry the subgroup size onto the axis: the intervals differ enormously across
+# these subsets and n is most of the reason why.
+summary_table$label <- sprintf("%s  (n = %d)", summary_table$subset,
+                               summary_table$n)
+summary_table$label <- factor(summary_table$label,
+                              levels = rev(unique(summary_table$label)))
 plot <- ggplot2::ggplot(summary_table,
                         ggplot2::aes(100 * af, label, colour = split)) +
   ggplot2::geom_errorbarh(ggplot2::aes(xmin = 100 * lo, xmax = 100 * hi),
