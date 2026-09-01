@@ -538,6 +538,21 @@ pick_named <- function(x, keys) {
   unname(x[keys])
 }
 
+# Reference window for the mortality outcome, in months, passed to
+# DHS.rates::chmort as Period. 12 rather than the DHS default of 60.
+#
+# The exposure is MAP prevalence in the SURVEY year, so a 60-month mortality
+# window centres the outcome about 2.5 years before the exposure it is regressed
+# on. A 12-month window nearly removes that mismatch. 27_horizon_lag_selection.R
+# shows the dose-response is stable across horizons once the model structure is
+# held fixed, so this costs little in the estimate; what it costs is precision,
+# roughly doubling the interval on a regional rate (median 95% width 69.5 per
+# 1000 against 35.7 at 60 months). The neonatal negative control is cleanest
+# here: +0.09% per 10 PfPR points, p = 0.94, against +1.33%, p = 0.21 at 60.
+#
+# Sensitivity across 12, 24, 36, 48 and 60 months lives in script 27.
+CHMORT_PERIOD <- 12L
+
 # DHS.rates takes the sample strata from v022, and two different things go wrong
 # with it. Some recodes ship v022 entirely empty (DR Congo 2007, Senegal 2008),
 # and chmort aborts with "missing values in `strata'". Others ship it populated
@@ -574,7 +589,8 @@ mortality_by_region <- function(br, region_var) {
   for (stratum in candidates) {
     rates <- tryCatch(
       suppressMessages(
-        DHS.rates::chmort(br, Class = region_var, Strata = stratum)
+        DHS.rates::chmort(br, Class = region_var, Strata = stratum,
+                        Period = CHMORT_PERIOD)
       ),
       error = function(e) NULL
     )
