@@ -95,20 +95,26 @@ priors <- c(
   brms::prior(gamma(0.01, 0.01), class = "shape")
 )
 
+ALL_REGIONS <- "Both regions"
+ALL_YEARS <- "All years"
+
 subsets <- list(
-  list(label = "all data", split = "reference",
-       rows = rep(TRUE, nrow(model_data))),
-  list(label = ERA_EARLY, split = "era", rows = model_data$era == ERA_EARLY),
-  list(label = ERA_LATE, split = "era", rows = model_data$era == ERA_LATE),
-  list(label = "West", split = "region",
+  list(label = "all data", split = "reference", region = ALL_REGIONS,
+       era = ALL_YEARS, rows = rep(TRUE, nrow(model_data))),
+  list(label = ERA_EARLY, split = "era", region = ALL_REGIONS,
+       era = ERA_EARLY, rows = model_data$era == ERA_EARLY),
+  list(label = ERA_LATE, split = "era", region = ALL_REGIONS,
+       era = ERA_LATE, rows = model_data$era == ERA_LATE),
+  list(label = "West", split = "region", region = "West", era = ALL_YEARS,
        rows = model_data$region_group == "West"),
-  list(label = "Central & East", split = "region",
-       rows = model_data$region_group == "Central & East")
+  list(label = "Central & East", split = "region", region = "Central & East",
+       era = ALL_YEARS, rows = model_data$region_group == "Central & East")
 )
 for (era in c(ERA_EARLY, ERA_LATE)) {
   for (region in c("West", "Central & East")) {
     subsets[[length(subsets) + 1L]] <- list(
       label = paste0(region, ", ", era), split = "era x region",
+      region = region, era = era,
       rows = model_data$era == era & model_data$region_group == region
     )
   }
@@ -205,7 +211,8 @@ for (s in subsets) {
   for (j in seq_along(ANCHORS)) {
     column <- values[, j]
     rows_out[[length(rows_out) + 1L]] <- data.frame(
-      split = s$split, subset = s$label, n = nrow(data),
+      split = s$split, subset = s$label, region = s$region, era = s$era,
+      n = nrow(data),
       surveys = length(unique(data$svkey)),
       countries = nlevels(data$country), prevalence = ANCHORS[j],
       af = mean(column),
@@ -275,24 +282,44 @@ summary_table$label <- sprintf("%s  (n = %d surveys, %d regions)",
                                summary_table$n)
 summary_table$label <- factor(summary_table$label,
                               levels = rev(unique(summary_table$label)))
+# Region is carried by line type and era by colour depth, so the 2 x 2 can be
+# read off the plot without going back to the labels.
+summary_table$region <- factor(summary_table$region,
+                               levels = c(ALL_REGIONS, "Central & East", "West"))
+summary_table$era <- factor(summary_table$era,
+                            levels = c(ALL_YEARS, ERA_EARLY, ERA_LATE))
+era_colours <- setNames(c("grey45", "#8FBEDD", "#123F63"),
+                        c(ALL_YEARS, ERA_EARLY, ERA_LATE))
+region_lines <- setNames(c("dotted", "solid", "dashed"),
+                         c(ALL_REGIONS, "Central & East", "West"))
+
 plot <- ggplot2::ggplot(summary_table,
-                        ggplot2::aes(100 * af, label, colour = split)) +
-  ggplot2::geom_errorbarh(ggplot2::aes(xmin = 100 * lo, xmax = 100 * hi),
-                          height = 0.25, linewidth = 0.6) +
-  ggplot2::geom_point(size = 2) +
+                        ggplot2::aes(100 * af, label, colour = era)) +
+  ggplot2::geom_errorbarh(ggplot2::aes(xmin = 100 * lo, xmax = 100 * hi,
+                                       linetype = region),
+                          height = 0.28, linewidth = 0.7) +
+  ggplot2::geom_point(size = 2.4) +
   ggplot2::facet_wrap(~prevalence, nrow = 1,
                       labeller = ggplot2::labeller(
                         prevalence = function(x) paste0("PfPR ", x, "%"))) +
+  ggplot2::scale_colour_manual(values = era_colours, name = "Period") +
+  ggplot2::scale_linetype_manual(values = region_lines, name = "Region") +
+  ggplot2::guides(
+    colour = ggplot2::guide_legend(order = 1),
+    linetype = ggplot2::guide_legend(
+      order = 2, override.aes = list(colour = "grey30"))
+  ) +
   ggplot2::labs(
     x = "Malaria-attributable fraction of post-neonatal mortality (%)",
-    y = NULL, colour = NULL,
+    y = NULL,
     title = "Subgroup attributable fractions, fitted in Stan",
-    subtitle = paste("Identical structure in every subgroup; bands are 95%",
+    subtitle = paste("Identical structure in every subgroup; bars are 95%",
                      "credible intervals\nand include uncertainty in the",
                      "smoothness of the prevalence curve")
   ) +
   ggplot2::theme_minimal(base_size = 10) +
-  ggplot2::theme(legend.position = "bottom")
+  ggplot2::theme(legend.position = "bottom",
+                 panel.grid.major.y = ggplot2::element_line(colour = "grey93"))
 ggplot2::ggsave(file.path(RESULTS_DIR, "figure13_brms_subgroup_af.png"), plot,
                 width = 11, height = 4.6, dpi = 200)
 
