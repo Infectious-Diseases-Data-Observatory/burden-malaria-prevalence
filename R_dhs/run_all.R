@@ -19,10 +19,12 @@ args <- commandArgs(trailingOnly = TRUE)
 legacy_mode <- "--from-legacy-aggregate" %in% args
 analysis_only <- "--analysis-only" %in% args
 
-run_script <- function(script, trailing = character(0), fatal = TRUE) {
+run_script <- function(script, trailing = character(0), fatal = TRUE,
+                       env = character(0)) {
   path <- file.path("R_dhs", script)
-  message("\n=== Running ", path, " ", paste(trailing, collapse = " "), " ===")
-  status <- system2("Rscript", c(path, trailing))
+  message("\n=== Running ", paste(c(env, path, trailing), collapse = " "),
+          " ===")
+  status <- system2("Rscript", c(path, trailing), env = env)
   if (identical(status, 0L)) return(invisible(TRUE))
   if (fatal) stop(path, " failed with status ", status)
   message(
@@ -83,6 +85,10 @@ run_script("29_subgroup_fits.R")
 run_script("30_brms_tensor_model.R")
 run_script("31_brms_subgroup_fits.R")
 run_script("32_brms_three_way.R")
+# The same two programs refitted to neonatal mortality, the negative control.
+# Their outputs carry a "_neonatal" suffix; see brms_outcome() in 00_config.R.
+run_script("30_brms_tensor_model.R", env = "BRMS_OUTCOME=neonatal")
+run_script("31_brms_subgroup_fits.R", env = "BRMS_OUTCOME=neonatal")
 
 legacy_validation_inputs <- c(
   file.path(REPO_ROOT, "results", "penalized_models.rds"),

@@ -26,6 +26,11 @@
 #   results/dhs_rebuild/brms_subgroup_summary.csv
 #   results/dhs_rebuild/brms_subgroup_smoothness.csv
 #   results/dhs_rebuild/figure13_brms_subgroup_af.png
+#   results/dhs_rebuild/brms_subgroup_curves.csv
+#   results/dhs_rebuild/figure15_brms_subgroup_curves.png
+#   results/dhs_rebuild/figure14_prevalence_distribution.png (primary run only)
+#   Each gains a "_neonatal" suffix when BRMS_OUTCOME=neonatal (the negative
+#   control); see brms_outcome() in 00_config.R.
 # =============================================================================
 
 source("R_dhs/00_config.R")
@@ -44,7 +49,11 @@ ANCHORS <- c(10, 30, 50)
 # Fixed for every subgroup: the narrowest era spans only nine calendar years,
 # and holding it constant also lets one compiled program serve all the fits.
 YEAR_K <- 6L
-CACHE <- file.path(DATA_DIR, "brms_subgroup_cache")
+OUTCOME <- brms_outcome()
+out_file <- function(stem, ext) {
+  file.path(RESULTS_DIR, paste0(stem, OUTCOME$suffix, ".", ext))
+}
+CACHE <- file.path(DATA_DIR, paste0("brms_subgroup_cache", OUTCOME$suffix))
 dir.create(CACHE, showWarnings = FALSE, recursive = TRUE)
 
 bundle <- readRDS(MODEL_BUNDLE_RDS)
@@ -53,8 +62,8 @@ catalog$included_in_main <- as.logical(catalog$included_in_main)
 
 analysis <- read_analysis_data()
 analysis <- analysis[as.logical(analysis$main_sample), , drop = FALSE]
-analysis <- analysis[is.finite(analysis$postneonatal_mortality) &
-                       analysis$postneonatal_mortality > 0 &
+analysis <- analysis[is.finite(analysis[[OUTCOME$column]]) &
+                       analysis[[OUTCOME$column]] > 0 &
                        is.finite(analysis$exposure) & analysis$exposure > 0 &
                        is.finite(analysis$pfpr10) & is.finite(analysis$year_c),
                      , drop = FALSE]
@@ -70,7 +79,7 @@ covariates <- as.data.frame(ridge$matrix)
 names(covariates) <- make.names(colnames(ridge$matrix))
 
 model_data <- data.frame(
-  deaths = round(analysis$postneonatal_mortality / 1000 * analysis$exposure),
+  deaths = round(analysis[[OUTCOME$column]] / 1000 * analysis$exposure),
   log_exposure = log(analysis$exposure),
   pfpr10 = analysis$pfpr10,
   year_c = analysis$year_c,
@@ -137,7 +146,9 @@ af_posterior <- function(fit, data, prevalence) {
   low$pfpr10 <- AF_REFERENCE / 10
   linear_high <- brms::posterior_linpred(fit, newdata = high, re_formula = NA)
   linear_low <- brms::posterior_linpred(fit, newdata = low, re_formula = NA)
-  pmax(1 - exp(-(linear_high - linear_low)), 0)
+  af <- 1 - exp(-(linear_high - linear_low))
+  # Clipped at zero for the primary outcome only; see 30_brms_tensor_model.R.
+  if (OUTCOME$clip) pmax(af, 0) else af
 }
 
 ## ---- fit every subgroup on one compiled program -----------------------------
@@ -240,28 +251,32 @@ for (s in subsets) {
 
 summary_table <- do.call(rbind, rows_out)
 write.csv(summary_table,
-          file.path(RESULTS_DIR, "brms_subgroup_summary.csv"), row.names = FALSE)
+          out_file("brms_subgroup_summary", "csv"), row.names = FALSE)
 smoothness <- do.call(rbind, smoothness_out)
 write.csv(smoothness,
-          file.path(RESULTS_DIR, "brms_subgroup_smoothness.csv"),
+          out_file("brms_subgroup_smoothness", "csv"),
           row.names = FALSE)
 
 ## ---- does the posterior span what ML and REML disagreed about? -------------
-mgcv_reference <- read.csv(file.path(RESULTS_DIR, "subgroup_fits_summary.csv"),
-                           stringsAsFactors = FALSE)
-comparison <- merge(
-  summary_table[, c("subset", "prevalence", "af", "lo", "hi")],
-  data.frame(
-    subset = rep(mgcv_reference$subset, 3),
-    prevalence = rep(ANCHORS, each = nrow(mgcv_reference)),
-    mgcv_reml = c(mgcv_reference$af10_common, mgcv_reference$af30_common,
-                  mgcv_reference$af50_common),
-    stringsAsFactors = FALSE
-  ),
-  by = c("subset", "prevalence")
-)
-comparison$reml_inside_credible <- comparison$mgcv_reml >= comparison$lo &
-  comparison$mgcv_reml <= comparison$hi
+# Script 29 fits post-neonatal mortality only, so this check belongs to the
+# primary run.
+if (OUTCOME$name == "postneonatal") {
+  mgcv_reference <- read.csv(file.path(RESULTS_DIR, "subgroup_fits_summary.csv"),
+                             stringsAsFactors = FALSE)
+  comparison <- merge(
+    summary_table[, c("subset", "prevalence", "af", "lo", "hi")],
+    data.frame(
+      subset = rep(mgcv_reference$subset, 3),
+      prevalence = rep(ANCHORS, each = nrow(mgcv_reference)),
+      mgcv_reml = c(mgcv_reference$af10_common, mgcv_reference$af30_common,
+                    mgcv_reference$af50_common),
+      stringsAsFactors = FALSE
+    ),
+    by = c("subset", "prevalence")
+  )
+  comparison$reml_inside_credible <- comparison$mgcv_reml >= comparison$lo &
+    comparison$mgcv_reml <= comparison$hi
+}
 
 message("\nDiagnostics: ", sum(summary_table$divergent_transitions > 0) / 3,
         " subgroups with divergent transitions; worst R-hat ",
@@ -303,6 +318,8 @@ plot <- ggplot2::ggplot(summary_table,
                                        linetype = region),
                           height = 0.28, linewidth = 0.7) +
   ggplot2::geom_point(size = 2.4) +
+  (if (OUTCOME$clip) NULL else
+     ggplot2::geom_vline(xintercept = 0, colour = "grey55", linewidth = 0.4)) +
   ggplot2::facet_wrap(~prevalence, nrow = 1,
                       labeller = ggplot2::labeller(
                         prevalence = function(x) paste0("PfPR ", x, "%"))) +
@@ -314,9 +331,10 @@ plot <- ggplot2::ggplot(summary_table,
       order = 2, override.aes = list(colour = "grey30"))
   ) +
   ggplot2::labs(
-    x = "Malaria-attributable fraction of post-neonatal mortality (%)",
+    x = paste0("Malaria-attributable fraction of ", OUTCOME$label, " (%)"),
     y = NULL,
-    title = "Subgroup attributable fractions, fitted in Stan",
+    title = paste0("Subgroup attributable fractions, fitted in Stan",
+                   OUTCOME$title_suffix),
     subtitle = paste("Identical structure in every subgroup; bars are 95%",
                      "credible intervals\nand include uncertainty in the",
                      "smoothness of the prevalence curve")
@@ -324,7 +342,7 @@ plot <- ggplot2::ggplot(summary_table,
   ggplot2::theme_minimal(base_size = 10) +
   ggplot2::theme(legend.position = "bottom",
                  panel.grid.major.y = ggplot2::element_line(colour = "grey93"))
-ggplot2::ggsave(file.path(RESULTS_DIR, "figure13_brms_subgroup_af.png"), plot,
+ggplot2::ggsave(out_file("figure13_brms_subgroup_af", "png"), plot,
                 width = 11, height = 4.6, dpi = 200)
 
 ## ---- dose-response curves, drawn only where each cell has data --------------
@@ -355,7 +373,7 @@ curves$region <- factor(curves$region,
 curves$era <- factor(curves$era, levels = c(ALL_YEARS, ERA_EARLY, ERA_LATE))
 curves$split <- factor(curves$split,
                        levels = c("reference", "era", "region", "era x region"))
-write.csv(curves, file.path(RESULTS_DIR, "brms_subgroup_curves.csv"),
+write.csv(curves, out_file("brms_subgroup_curves", "csv"),
           row.names = FALSE)
 
 curve_colours <- setNames(c("grey45", "#8FBEDD", "#123F63"),
@@ -370,6 +388,8 @@ curve_plot <- ggplot2::ggplot(
   ggplot2::geom_ribbon(ggplot2::aes(ymin = 100 * lo, ymax = 100 * hi),
                        alpha = 0.13, colour = NA) +
   ggplot2::geom_line(linewidth = 0.85) +
+  (if (OUTCOME$clip) NULL else
+     ggplot2::geom_hline(yintercept = 0, colour = "grey55", linewidth = 0.4)) +
   ggplot2::facet_wrap(~split, nrow = 1) +
   ggplot2::scale_colour_manual(values = curve_colours, name = "Period") +
   ggplot2::scale_fill_manual(values = curve_colours, guide = "none") +
@@ -379,14 +399,15 @@ curve_plot <- ggplot2::ggplot(
                     order = 2, override.aes = list(colour = "grey30"))) +
   ggplot2::labs(
     x = "MAP PfPR2-10 (%)",
-    y = "Malaria-attributable fraction of\npost-neonatal mortality (%)",
-    title = "Subgroup dose-response, fitted in Stan",
+    y = paste0("Malaria-attributable fraction of\n", OUTCOME$label, " (%)"),
+    title = paste0("Subgroup dose-response, fitted in Stan",
+                   OUTCOME$title_suffix),
     subtitle = paste("Each curve spans only the prevalence range its own",
                      "subgroup observes;\nbands are 95% credible intervals")
   ) +
   ggplot2::theme_minimal(base_size = 10) +
   ggplot2::theme(legend.position = "bottom")
-ggplot2::ggsave(file.path(RESULTS_DIR, "figure15_brms_subgroup_curves.png"),
+ggplot2::ggsave(out_file("figure15_brms_subgroup_curves", "png"),
                 curve_plot, width = 11, height = 4.6, dpi = 200)
 
 ## ---- what prevalence each cell actually observes -----------------------------
@@ -394,65 +415,73 @@ ggplot2::ggsave(file.path(RESULTS_DIR, "figure15_brms_subgroup_curves.png"),
 # but a cell can only speak to the range it contains. This shows the exposure
 # distribution behind each 2 x 2 cell, with the three anchors marked, so it is
 # obvious where an anchor is interpolation and where it is extrapolation.
-distribution <- model_data
-distribution$prevalence <- distribution$pfpr10 * 10
-distribution$region <- factor(distribution$region_group,
-                              levels = c("West", "Central & East"))
-distribution$era <- factor(distribution$era, levels = c(ERA_EARLY, ERA_LATE))
+# The analysis sample is the same for both outcomes, so this is drawn once,
+# on the primary run.
+if (OUTCOME$name == "postneonatal") {
+  distribution <- model_data
+  distribution$prevalence <- distribution$pfpr10 * 10
+  distribution$region <- factor(distribution$region_group,
+                                levels = c("West", "Central & East"))
+  distribution$era <- factor(distribution$era, levels = c(ERA_EARLY, ERA_LATE))
 
-cell_summary <- do.call(rbind, lapply(
-  split(distribution, list(distribution$region, distribution$era), drop = TRUE),
-  function(d) data.frame(
-    region = d$region[1], era = d$era[1],
-    surveys = length(unique(d$svkey)), regions = nrow(d),
-    median_prevalence = stats::median(d$prevalence),
-    pct_at_or_above_30 = 100 * mean(d$prevalence >= 30),
-    pct_at_or_above_50 = 100 * mean(d$prevalence >= 50),
-    stringsAsFactors = FALSE
-  )))
-write.csv(cell_summary,
-          file.path(RESULTS_DIR, "subgroup_prevalence_distribution.csv"),
-          row.names = FALSE)
-message("\nPrevalence actually observed in each cell:")
-print(transform(cell_summary,
-                median_prevalence = round(median_prevalence, 1),
-                pct_at_or_above_30 = round(pct_at_or_above_30, 1),
-                pct_at_or_above_50 = round(pct_at_or_above_50, 1)),
-      row.names = FALSE)
+  cell_summary <- do.call(rbind, lapply(
+    split(distribution, list(distribution$region, distribution$era), drop = TRUE),
+    function(d) data.frame(
+      region = d$region[1], era = d$era[1],
+      surveys = length(unique(d$svkey)), regions = nrow(d),
+      median_prevalence = stats::median(d$prevalence),
+      pct_at_or_above_30 = 100 * mean(d$prevalence >= 30),
+      pct_at_or_above_50 = 100 * mean(d$prevalence >= 50),
+      stringsAsFactors = FALSE
+    )))
+  write.csv(cell_summary,
+            file.path(RESULTS_DIR, "subgroup_prevalence_distribution.csv"),
+            row.names = FALSE)
+  message("\nPrevalence actually observed in each cell:")
+  print(transform(cell_summary,
+                  median_prevalence = round(median_prevalence, 1),
+                  pct_at_or_above_30 = round(pct_at_or_above_30, 1),
+                  pct_at_or_above_50 = round(pct_at_or_above_50, 1)),
+        row.names = FALSE)
 
-cell_summary$annotation <- sprintf(
-  "%d surveys, %d regions\nmedian %.0f%%\n%.0f%% at or above 30%%\n%.0f%% at or above 50%%",
-  cell_summary$surveys, cell_summary$regions, cell_summary$median_prevalence,
-  cell_summary$pct_at_or_above_30, cell_summary$pct_at_or_above_50)
+  cell_summary$annotation <- sprintf(
+    "%d surveys, %d regions\nmedian %.0f%%\n%.0f%% at or above 30%%\n%.0f%% at or above 50%%",
+    cell_summary$surveys, cell_summary$regions, cell_summary$median_prevalence,
+    cell_summary$pct_at_or_above_30, cell_summary$pct_at_or_above_50)
 
-era_fill <- setNames(c("#8FBEDD", "#123F63"), c(ERA_EARLY, ERA_LATE))
-distribution_plot <- ggplot2::ggplot(distribution,
-                                     ggplot2::aes(prevalence, fill = era)) +
-  ggplot2::geom_histogram(binwidth = 5, boundary = 0, colour = "white",
-                          linewidth = 0.2) +
-  ggplot2::geom_vline(xintercept = ANCHORS, linetype = "dashed",
-                      colour = "grey35", linewidth = 0.4) +
-  ggplot2::geom_text(data = cell_summary,
-                     ggplot2::aes(x = Inf, y = Inf, label = annotation),
-                     hjust = 1.05, vjust = 1.25, size = 2.7, colour = "grey25",
-                     inherit.aes = FALSE) +
-  ggplot2::facet_grid(region ~ era) +
-  ggplot2::scale_fill_manual(values = era_fill, guide = "none") +
-  ggplot2::scale_x_continuous(breaks = c(0, ANCHORS, 75, 100)) +
-  ggplot2::labs(
-    x = "MAP PfPR2-10 (%)", y = "Survey regions",
-    title = "Prevalence observed in each era-by-region cell",
-    subtitle = paste("Dashed lines are the 10, 30 and 50% anchors the",
-                     "attributable fractions are reported at")
-  ) +
-  ggplot2::theme_minimal(base_size = 10) +
-  ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
-                 strip.text = ggplot2::element_text(face = "bold"))
-ggplot2::ggsave(file.path(RESULTS_DIR, "figure14_prevalence_distribution.png"),
-                distribution_plot, width = 9, height = 5.6, dpi = 200)
+  era_fill <- setNames(c("#8FBEDD", "#123F63"), c(ERA_EARLY, ERA_LATE))
+  distribution_plot <- ggplot2::ggplot(distribution,
+                                       ggplot2::aes(prevalence, fill = era)) +
+    ggplot2::geom_histogram(binwidth = 5, boundary = 0, colour = "white",
+                            linewidth = 0.2) +
+    ggplot2::geom_vline(xintercept = ANCHORS, linetype = "dashed",
+                        colour = "grey35", linewidth = 0.4) +
+    ggplot2::geom_text(data = cell_summary,
+                       ggplot2::aes(x = Inf, y = Inf, label = annotation),
+                       hjust = 1.05, vjust = 1.25, size = 2.7, colour = "grey25",
+                       inherit.aes = FALSE) +
+    ggplot2::facet_grid(region ~ era) +
+    ggplot2::scale_fill_manual(values = era_fill, guide = "none") +
+    ggplot2::scale_x_continuous(breaks = c(0, ANCHORS, 75, 100)) +
+    ggplot2::labs(
+      x = "MAP PfPR2-10 (%)", y = "Survey regions",
+      title = "Prevalence observed in each era-by-region cell",
+      subtitle = paste("Dashed lines are the 10, 30 and 50% anchors the",
+                       "attributable fractions are reported at")
+    ) +
+    ggplot2::theme_minimal(base_size = 10) +
+    ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
+                   strip.text = ggplot2::element_text(face = "bold"))
+  ggplot2::ggsave(file.path(RESULTS_DIR, "figure14_prevalence_distribution.png"),
+                  distribution_plot, width = 9, height = 5.6, dpi = 200)
+}
 
-message("\nWrote brms_subgroup_summary.csv, brms_subgroup_smoothness.csv, ",
-        "figure13_brms_subgroup_af.png, ",
-        "subgroup_prevalence_distribution.csv, ",
-        "figure14_prevalence_distribution.png, brms_subgroup_curves.csv and ",
-        "figure15_brms_subgroup_curves.png")
+message("\nWrote ", basename(out_file("brms_subgroup_summary", "csv")), ", ",
+        basename(out_file("brms_subgroup_smoothness", "csv")), ", ",
+        basename(out_file("figure13_brms_subgroup_af", "png")), ", ",
+        basename(out_file("brms_subgroup_curves", "csv")), " and ",
+        basename(out_file("figure15_brms_subgroup_curves", "png")),
+        if (OUTCOME$name == "postneonatal") {
+          paste0(", plus subgroup_prevalence_distribution.csv and ",
+                 "figure14_prevalence_distribution.png")
+        } else "")

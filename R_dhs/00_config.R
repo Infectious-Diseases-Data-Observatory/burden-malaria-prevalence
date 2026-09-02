@@ -1072,3 +1072,29 @@ read_analysis_data <- function() {
     stop("Analysis dataset not found. Run R_dhs/03_build_analysis_dataset.R.")
   }
 }
+
+## ---- which outcome the brms scripts (30-31) model ---------------------------
+# Post-neonatal mortality is the primary outcome. Setting BRMS_OUTCOME=neonatal
+# in the environment refits the identical Stan programs to neonatal mortality,
+# the negative control, and every output file gains a "_neonatal" suffix so the
+# primary results are never overwritten. The neonatal attributable fraction is
+# deliberately NOT clipped at zero: a control should be allowed to sit on zero
+# with its interval straddling it, and clipping would push the summary above
+# zero by construction.
+brms_outcome <- function() {
+  choice <- tolower(Sys.getenv("BRMS_OUTCOME", "postneonatal"))
+  table <- list(
+    postneonatal = list(name = "postneonatal",
+                        column = "postneonatal_mortality",
+                        label = "post-neonatal mortality", suffix = "",
+                        title_suffix = "", clip = TRUE),
+    neonatal = list(name = "neonatal", column = "nnmr",
+                    label = "neonatal mortality", suffix = "_neonatal",
+                    title_suffix = " (neonatal negative control)",
+                    clip = FALSE)
+  )
+  if (!choice %in% names(table)) {
+    stop("BRMS_OUTCOME must be one of: ", paste(names(table), collapse = ", "))
+  }
+  table[[choice]]
+}

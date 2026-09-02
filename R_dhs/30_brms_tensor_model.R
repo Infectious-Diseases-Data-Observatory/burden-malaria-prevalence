@@ -35,6 +35,8 @@
 #   results/dhs_rebuild/brms_tensor_diagnostics.csv
 #   results/dhs_rebuild/brms_af_anchors.csv
 #   results/dhs_rebuild/figure12_brms_af_surface.png
+#   Each gains a "_neonatal" suffix when BRMS_OUTCOME=neonatal (the negative
+#   control); see brms_outcome() in 00_config.R.
 # =============================================================================
 
 source("R_dhs/00_config.R")
@@ -46,7 +48,11 @@ WARMUP <- 1000L
 ADAPT_DELTA <- 0.95
 RIDGE_PRIOR_SCALE <- 1
 ANCHORS <- c(10, 30, 50)
-FIT_RDS <- file.path(RESULTS_DIR, "brms_tensor_fit.rds")
+OUTCOME <- brms_outcome()
+out_file <- function(stem, ext) {
+  file.path(RESULTS_DIR, paste0(stem, OUTCOME$suffix, ".", ext))
+}
+FIT_RDS <- out_file("brms_tensor_fit", "rds")
 
 bundle <- if (file.exists(MODEL_BUNDLE_RDS)) readRDS(MODEL_BUNDLE_RDS) else NULL
 catalog <- read.csv(COVARIATE_CSV, stringsAsFactors = FALSE)
@@ -54,8 +60,8 @@ catalog$included_in_main <- as.logical(catalog$included_in_main)
 
 analysis <- read_analysis_data()
 analysis <- analysis[as.logical(analysis$main_sample), , drop = FALSE]
-analysis <- analysis[is.finite(analysis$postneonatal_mortality) &
-                       analysis$postneonatal_mortality > 0 &
+analysis <- analysis[is.finite(analysis[[OUTCOME$column]]) &
+                       analysis[[OUTCOME$column]] > 0 &
                        is.finite(analysis$exposure) & analysis$exposure > 0 &
                        is.finite(analysis$pfpr10) & is.finite(analysis$year_c),
                      , drop = FALSE]
@@ -68,7 +74,7 @@ covariates <- as.data.frame(ridge$matrix)
 names(covariates) <- make.names(colnames(ridge$matrix))
 
 model_data <- data.frame(
-  deaths = round(analysis$postneonatal_mortality / 1000 * analysis$exposure),
+  deaths = round(analysis[[OUTCOME$column]] / 1000 * analysis$exposure),
   log_exposure = log(analysis$exposure),
   pfpr10 = analysis$pfpr10,
   year_c = analysis$year_c,
@@ -76,9 +82,9 @@ model_data <- data.frame(
   stringsAsFactors = FALSE
 )
 model_data <- cbind(model_data, covariates)
-message("brms tensor model: ", nrow(model_data), " region-years, ",
-        nlevels(model_data$country), " countries, ", ncol(covariates),
-        " covariates.")
+message("brms tensor model, ", OUTCOME$label, ": ", nrow(model_data),
+        " region-years, ", nlevels(model_data$country), " countries, ",
+        ncol(covariates), " covariates.")
 
 ## ---- the model --------------------------------------------------------------
 formula <- brms::bf(paste(
@@ -153,7 +159,7 @@ write.csv(cbind(diagnostics,
                 key[key$variable %in% grep("^sds_|^sd_", key$variable,
                                            value = TRUE),
                     c("variable", "mean", "q5", "q95", "rhat")]),
-          file.path(RESULTS_DIR, "brms_tensor_diagnostics.csv"),
+          out_file("brms_tensor_diagnostics", "csv"),
           row.names = FALSE)
 
 message("\nSmoothness parameters (the penalisation, with its uncertainty):")
@@ -176,7 +182,11 @@ af_draws <- function(prevalence, year) {
   low <- brms::posterior_linpred(fit, newdata = frame(rep(AF_REFERENCE,
                                                           length(prevalence))),
                                  re_formula = NA)
-  pmax(1 - exp(-(high - low)), 0)
+  af <- 1 - exp(-(high - low))
+  # The primary outcome is clipped at zero, matching the mgcv pipeline. The
+  # negative control is not: a null effect should sit on zero with the interval
+  # straddling it (see brms_outcome() in 00_config.R).
+  if (OUTCOME$clip) pmax(af, 0) else af
 }
 
 years <- sort(unique(round(model_data$year_c)))
@@ -193,7 +203,7 @@ for (year in years) {
   }
 }
 anchors <- do.call(rbind, anchor_rows)
-write.csv(anchors, file.path(RESULTS_DIR, "brms_af_anchors.csv"),
+write.csv(anchors, out_file("brms_af_anchors", "csv"),
           row.names = FALSE)
 
 centre_year <- round(stats::median(years))
@@ -223,21 +233,26 @@ plot <- ggplot2::ggplot(shown, ggplot2::aes(prevalence, 100 * af,
   ggplot2::geom_ribbon(ggplot2::aes(ymin = 100 * lo, ymax = 100 * hi),
                        alpha = 0.15, colour = NA) +
   ggplot2::geom_line(linewidth = 0.9) +
+  (if (OUTCOME$clip) NULL else
+     ggplot2::geom_hline(yintercept = 0, colour = "grey55", linewidth = 0.4)) +
   ggplot2::labs(
     x = "PfPR2-10 (%)",
-    y = "Malaria-attributable fraction of\npost-neonatal mortality (%)",
-    title = "Prevalence-by-time surface, fitted in Stan",
+    y = paste0("Malaria-attributable fraction of\n", OUTCOME$label, " (%)"),
+    title = paste0("Prevalence-by-time surface, fitted in Stan",
+                   OUTCOME$title_suffix),
     subtitle = paste("t2(pfpr10, year_c) with the smoothness estimated rather",
                      "than plugged in;\nbands are 95% credible intervals and",
                      "include uncertainty in how smooth the surface is"),
     colour = "Year", fill = "Year"
   ) +
   ggplot2::theme_minimal(base_size = 10)
-ggplot2::ggsave(file.path(RESULTS_DIR, "figure12_brms_af_surface.png"), plot,
+ggplot2::ggsave(out_file("figure12_brms_af_surface", "png"), plot,
                 width = 7.5, height = 5, dpi = 200)
 
-message("\nWrote brms_tensor_fit.rds, brms_tensor_diagnostics.csv, ",
-        "brms_af_anchors.csv and figure12_brms_af_surface.png")
+message("\nWrote ", basename(FIT_RDS), ", ",
+        basename(out_file("brms_tensor_diagnostics", "csv")), ", ",
+        basename(out_file("brms_af_anchors", "csv")), " and ",
+        basename(out_file("figure12_brms_af_surface", "png")))
 
 # A note on the ridge block. normal(0, RIDGE_PRIOR_SCALE) fixes the shrinkage
 # rather than estimating it, which is the one place this fit is LESS adaptive
