@@ -111,6 +111,9 @@ run_script("40_build_person_time.R")
 run_script("41_extract_map_window_years.R")
 run_script("42_person_time_models.R")
 if (with_person_time_brms) run_script("43_person_time_brms.R")
+run_script("44_deaths_by_age.R")
+run_script("45_person_time_data_and_curves.R")
+run_script("46_person_time_covariate_forest.R")
 
 legacy_validation_inputs <- c(
   file.path(REPO_ROOT, "results", "penalized_models.rds"),
