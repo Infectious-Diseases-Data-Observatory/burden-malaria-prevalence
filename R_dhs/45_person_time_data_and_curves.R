@@ -3,9 +3,11 @@
 # it is fitted to shown above it.
 #
 # Top row: one point per survey region, MAP PfPR2-10 (person-time-weighted over
-# the region's windows) against weighted deaths in the age band summed over the
-# five 12-month windows, on a common axis so the concentration of deaths in the
-# first month of life is visible. Bottom row: the smooth prevalence effect per
+# the region's windows) against the band's death rate per 1,000 child-years over
+# the five 12-month windows, with each panel on its own scale because the
+# neonatal rate is an order of magnitude above the rest; point size is the
+# child-years behind the rate, and each panel states the band's total deaths and
+# share of all under-5 deaths. Bottom row: the smooth prevalence effect per
 # band from script 42 (hazard ratio against 1% prevalence). Both rows read
 # script 42's outputs; nothing is refitted here.
 #
@@ -30,6 +32,8 @@ model_data$pfpr_pm <- model_data$pfpr * model_data$person_months_w
 regions <- aggregate(cbind(deaths_w, person_months_w, pfpr_pm) ~ svkey + regkey + age6,
                      model_data, sum)
 regions$pfpr <- regions$pfpr_pm / regions$person_months_w
+regions$child_years <- regions$person_months_w / 12
+regions$rate <- 1000 * regions$deaths_w / regions$child_years
 regions$age_group <- factor(regions$age6, levels = AGE6)
 shares <- aggregate(deaths_w ~ age_group, regions, sum)
 shares$share <- shares$deaths_w / sum(shares$deaths_w)
@@ -39,16 +43,17 @@ n_regions <- length(unique(paste(regions$svkey, regions$regkey)))
 n_above_60 <- length(unique(paste(regions$svkey, regions$regkey)[regions$pfpr > 60]))
 regions <- regions[regions$pfpr <= 60, ]
 
-top <- ggplot2::ggplot(regions, ggplot2::aes(pfpr, deaths_w)) +
-  ggplot2::geom_point(alpha = 0.25, size = 0.7, colour = "#1D6F8B") +
+top <- ggplot2::ggplot(regions, ggplot2::aes(pfpr, rate)) +
+  ggplot2::geom_point(ggplot2::aes(size = child_years), alpha = 0.25, colour = "#1D6F8B") +
   ggplot2::geom_text(data = shares, ggplot2::aes(x = 60, y = Inf, label = label),
                      hjust = 1, vjust = 1.3, size = 2.7, colour = "grey25", inherit.aes = FALSE) +
-  ggplot2::facet_wrap(~age_group, nrow = 1) +
+  ggplot2::facet_wrap(~age_group, nrow = 1, scales = "free_y") +
   ggplot2::scale_x_continuous(limits = c(0, 60)) +
-  ggplot2::labs(x = NULL, y = "Weighted deaths in the band,\nfive windows summed",
-                title = "Observed deaths against prevalence, one point per survey region",
-                subtitle = sprintf(paste("%s survey regions (%d with prevalence above 60%% not shown);",
-                                         "prevalence is the person-time-weighted MAP PfPR2-10 over the region's windows"),
+  ggplot2::scale_size_area(max_size = 3, guide = "none") +
+  ggplot2::labs(x = NULL, y = "Deaths per 1,000 child-years in the band,\nfive windows combined",
+                title = "Observed death rate against prevalence, one point per survey region",
+                subtitle = sprintf(paste("%s survey regions (%d with prevalence above 60%% not shown); point size is child-years at risk;",
+                                         "each panel on its own scale; prevalence is the person-time-weighted MAP PfPR2-10 over the region's windows"),
                                    format(n_regions, big.mark = ","), n_above_60)) +
   ggplot2::theme_minimal(base_size = 10) +
   ggplot2::theme(axis.text.x = ggplot2::element_blank())
