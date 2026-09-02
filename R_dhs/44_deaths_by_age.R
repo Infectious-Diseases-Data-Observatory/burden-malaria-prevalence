@@ -106,8 +106,8 @@ plot <- ggplot2::ggplot(by_age, ggplot2::aes(age_months, deaths_w / 1e3)) +
                 title = "Under-5 deaths by age at death, 60 months before interview",
                 subtitle = sprintf(paste0(
                   "%d DHS/MIS surveys, %.0f thousand weighted deaths; dotted lines are the weighted deciles.\n",
-                  "Ages from the second birthday are recorded in years, so those deaths sit at 24, 36 and 48 exactly;",
-                  " the spike at 12 mixes 'one year' with 12 months"),
+                  "Ages from the second birthday are recorded in years, so those deaths sit at 24, 36 and 48;\n",
+                  "the spike at 12 mixes 'one year' with exactly 12 months"),
                   length(rows), sum(by_age$deaths_w) / 1e3)) +
   ggplot2::theme_minimal(base_size = 11)
 ggplot2::ggsave(file.path(RESULTS_DIR, "figure25_deaths_by_age.png"), plot,
