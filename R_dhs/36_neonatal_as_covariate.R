@@ -136,18 +136,21 @@ scatter <- ggplot2::ggplot(pairs, ggplot2::aes(nnmr, postneonatal)) +
   ggplot2::geom_point(size = 0.8, alpha = 0.6, colour = "#1D6F8B") +
   ggplot2::geom_smooth(method = "lm", formula = y ~ x, se = FALSE,
                        colour = "#B2182B", linewidth = 0.7) +
+  # hjust = 0 keeps every line of the label left-aligned; the padding comes from
+  # the axis expansion rather than a negative hjust, which shifts long lines.
   ggplot2::geom_text(data = labels, ggplot2::aes(x = -Inf, y = Inf, label = text),
-                     hjust = -0.08, vjust = 1.2, size = 3, colour = "grey25",
+                     hjust = 0, vjust = 1.2, size = 3, colour = "grey25",
                      inherit.aes = FALSE) +
+  ggplot2::scale_x_continuous(expand = ggplot2::expansion(mult = c(0.06, 0.04))) +
   ggplot2::facet_wrap(~window, nrow = 1, scales = "free") +
   ggplot2::labs(
     x = "Neonatal mortality (deaths per 1000 live births)",
     y = "Post-neonatal under-5 mortality\n(deaths per 1000)",
     title = "Neonatal against post-neonatal mortality, one point per survey region",
-    subtitle = paste("Bars are 95% delete-one-cluster jackknife intervals;",
-                     "red line is the least-squares fit.",
-                     "The corrected correlation divides r by the square root of",
-                     "the two reliabilities implied by the jackknife errors")) +
+    subtitle = paste0("Bars are 95% delete-one-cluster jackknife intervals; ",
+                      "red line is the least-squares fit.\n",
+                      "The corrected correlation divides r by the square root of ",
+                      "the two reliabilities implied by the jackknife errors")) +
   ggplot2::theme_minimal(base_size = 10)
 ggplot2::ggsave(file.path(RESULTS_DIR, "figure19_neonatal_vs_postneonatal.png"),
                 scatter, width = 9.5, height = 4.4, dpi = 200)

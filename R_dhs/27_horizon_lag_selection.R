@@ -480,8 +480,9 @@ horizon_pair_figure <- function(estimates, file, short, long = 60L) {
     ggplot2::geom_point(size = 0.8, alpha = 0.6, colour = "#1D6F8B") +
     ggplot2::geom_text(data = agreement,
                        ggplot2::aes(x = -Inf, y = Inf, label = label),
-                       hjust = -0.08, vjust = 1.25, size = 3, colour = "grey25",
+                       hjust = 0, vjust = 1.25, size = 3, colour = "grey25",
                        inherit.aes = FALSE) +
+    ggplot2::scale_x_continuous(expand = ggplot2::expansion(mult = c(0.06, 0.04))) +
     ggplot2::facet_wrap(~outcome, nrow = 1, scales = "free") +
     ggplot2::labs(
       x = sprintf("%d-month window (deaths per 1000)", long),
