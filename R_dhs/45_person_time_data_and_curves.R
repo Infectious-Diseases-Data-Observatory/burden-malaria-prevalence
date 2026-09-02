@@ -52,8 +52,9 @@ top <- ggplot2::ggplot(regions, ggplot2::aes(pfpr, rate)) +
   ggplot2::scale_size_area(max_size = 3, guide = "none") +
   ggplot2::labs(x = NULL, y = "Deaths per 1,000 child-years in the band,\nfive windows combined",
                 title = "Observed death rate against prevalence, one point per survey region",
-                subtitle = sprintf(paste("%s survey regions (%d with prevalence above 60%% not shown); point size is child-years at risk;",
-                                         "each panel on its own scale; prevalence is the person-time-weighted MAP PfPR2-10 over the region's windows"),
+                subtitle = sprintf(paste0("%s survey regions (%d with prevalence above 60%% not shown); ",
+                                          "point size is child-years at risk; each panel on its own scale.\n",
+                                          "Prevalence is the person-time-weighted MAP PfPR2-10 over the region's windows"),
                                    format(n_regions, big.mark = ","), n_above_60)) +
   ggplot2::theme_minimal(base_size = 10) +
   ggplot2::theme(axis.text.x = ggplot2::element_blank())
