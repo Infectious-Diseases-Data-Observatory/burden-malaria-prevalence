@@ -1,0 +1,37 @@
+"grouping","age_group","structure","label","edf","AIC","dAIC"
+"four groups","0-3 months","linear","Linear prevalence effect",97.9318743229032,39499.3840773319,2.95404611319827
+"four groups","0-3 months","smooth","Smooth prevalence effect",99.7333032277399,39496.4300312187,0
+"four groups","0-3 months","linear_time","Linear effect changing with calendar year",98.8550440964502,39500.7931464327,4.3631152139933
+"four groups","0-3 months","within_between","Between-region and within-region prevalence",98.8111005862873,39501.2673890223,4.83735780358984
+"four groups","3-12 months","linear","Linear prevalence effect",113.697434396267,32648.2315567767,8.81712256033643
+"four groups","3-12 months","smooth","Smooth prevalence effect",115.052938588525,32639.4144342164,0
+"four groups","3-12 months","linear_time","Linear effect changing with calendar year",114.553107291184,32649.8637656375,10.4493314210667
+"four groups","3-12 months","within_between","Between-region and within-region prevalence",114.769306582005,32647.3874982066,7.97306399020817
+"four groups","1-2 years","linear","Linear prevalence effect",110.765476898183,18133.4667710476,44.8955157252967
+"four groups","1-2 years","smooth","Smooth prevalence effect",113.109342276542,18088.5712553223,0
+"four groups","1-2 years","linear_time","Linear effect changing with calendar year",111.614055966101,18135.2132149106,46.6419595882871
+"four groups","1-2 years","within_between","Between-region and within-region prevalence",111.639813119705,18132.5748063761,44.0035510538619
+"four groups","2-5 years","linear","Linear prevalence effect",112.606353676653,40374.0383019943,102.837480801849
+"four groups","2-5 years","smooth","Smooth prevalence effect",113.697683114787,40271.2008211924,0
+"four groups","2-5 years","linear_time","Linear effect changing with calendar year",109.948468663491,40367.9496225648,96.7488013723705
+"four groups","2-5 years","within_between","Between-region and within-region prevalence",113.611866863281,40373.4116005872,102.210779394816
+"neonatal split","0 months","linear","Linear prevalence effect",102.10235534558,24418.3277939023,4.28873020607716
+"neonatal split","0 months","smooth","Smooth prevalence effect",103.968072139399,24414.0390636962,0
+"neonatal split","0 months","linear_time","Linear effect changing with calendar year",102.911428317638,24419.7030867046,5.66402300839036
+"neonatal split","0 months","within_between","Between-region and within-region prevalence",103.040663828235,24420.4091276577,6.37006396143261
+"neonatal split","1-2 months","linear","Linear prevalence effect",75.1901817065976,14698.8073455236,0
+"neonatal split","1-2 months","smooth","Smooth prevalence effect",75.1952809212079,14701.93321441,3.12586888644364
+"neonatal split","1-2 months","linear_time","Linear effect changing with calendar year",73.6690808081432,14701.0021513265,2.19480580289746
+"neonatal split","1-2 months","within_between","Between-region and within-region prevalence",76.2211632317697,14699.7084843039,0.901138780260226
+"neonatal split","3-11 months","linear","Linear prevalence effect",113.697434396267,32648.2315567767,8.81712256033643
+"neonatal split","3-11 months","smooth","Smooth prevalence effect",115.052938588525,32639.4144342164,0
+"neonatal split","3-11 months","linear_time","Linear effect changing with calendar year",114.553107291184,32649.8637656375,10.4493314210667
+"neonatal split","3-11 months","within_between","Between-region and within-region prevalence",114.769306582005,32647.3874982066,7.97306399020817
+"neonatal split","12-23 months","linear","Linear prevalence effect",110.765476898183,18133.4667710476,44.8955157252967
+"neonatal split","12-23 months","smooth","Smooth prevalence effect",113.109342276542,18088.5712553223,0
+"neonatal split","12-23 months","linear_time","Linear effect changing with calendar year",111.614055966101,18135.2132149106,46.6419595882871
+"neonatal split","12-23 months","within_between","Between-region and within-region prevalence",111.639813119705,18132.5748063761,44.0035510538619
+"neonatal split","24-59 months","linear","Linear prevalence effect",112.606353676653,40374.0383019943,102.837480801849
+"neonatal split","24-59 months","smooth","Smooth prevalence effect",113.697683114787,40271.2008211924,0
+"neonatal split","24-59 months","linear_time","Linear effect changing with calendar year",109.948468663491,40367.9496225648,96.7488013723705
+"neonatal split","24-59 months","within_between","Between-region and within-region prevalence",113.611866863281,40373.4116005872,102.210779394816

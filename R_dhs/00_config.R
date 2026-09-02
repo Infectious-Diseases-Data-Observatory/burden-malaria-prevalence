@@ -1111,3 +1111,41 @@ brms_outcome <- function() {
   }
   table[[choice]]
 }
+
+## ---- age segments and region resolution shared by the life-table scripts ------
+# DHS.rates::chmort's eight age segments (months), used by 27_horizon_lag_selection.R
+# and by the person-time build in 40_build_person_time.R.
+UNDER5_SEGMENTS <- list(c(0, 1), c(1, 3), c(3, 6), c(6, 12),
+                        c(12, 24), c(24, 36), c(36, 48), c(48, 60))
+# The four age groups the prevalence effect is allowed to differ across in the
+# person-time model: 0-3 months, 3-12 months, 1-2 years, 2-5 years. Each is a
+# union of whole segments above.
+AGE_GROUPS <- c("0-3 months", "3-12 months", "1-2 years", "2-5 years")
+segment_age_group <- function(lower) {
+  factor(ifelse(lower < 3, AGE_GROUPS[1],
+         ifelse(lower < 12, AGE_GROUPS[2],
+         ifelse(lower < 24, AGE_GROUPS[3], AGE_GROUPS[4]))),
+         levels = AGE_GROUPS)
+}
+
+# Resolve a survey's recode regions to the panel's boundary region keys exactly
+# as 03_build_analysis_dataset.R does, including the roll-up of finer recode
+# regions to coarser boundary units. Returns one regkey (or NA) per recode row.
+survey_region_vector <- function(br, survey_map, survey, registry) {
+  boundary_labels <- unique(as.character(survey_map$region))
+  region_var <- best_region_var(br, boundary_labels)
+  reconciled <- match_region_keys(
+    unique(as.character(br[[region_var]])), boundary_labels
+  )
+  if (length(unique(reconciled$to)) < length(unique(survey_map$regkey))) {
+    grouped <- group_regions_to_boundary(br, region_var, boundary_labels,
+                                         survey, registry)
+    if (!is.null(grouped)) {
+      br$region_grouped <- grouped$values
+      region_var <- "region_grouped"
+      reconciled <- match_region_keys(unique(grouped$values), boundary_labels)
+    }
+  }
+  keys <- rkey(as.character(br[[region_var]]))
+  reconciled$to[match(keys, reconciled$from)]
+}

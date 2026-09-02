@@ -1,0 +1,59 @@
+"grouping","age_group","sensitivity","pct_per_10","pct_lo","pct_hi"
+"four groups","0-3 months","primary (NB, windows 1-5, lag 0)",1.87269390585836,0.643319524546837,3.11708529353021
+"four groups","0-3 months","windows 1-4 only",1.63951242512397,0.301584846847724,2.99528668256728
+"four groups","0-3 months","window 1 only (12 months before interview)",0.927109576109864,-1.24465238992453,3.14663148782068
+"four groups","0-3 months","prevalence lagged one year",1.35112362556384,0.0464854764092415,2.6727746731938
+"four groups","0-3 months","Poisson likelihood",1.40664444086169,0.388528908554187,2.43508544808544
+"four groups","0-3 months","no survey intercept",2.08484376258764,0.916142305914813,3.26707985369672
+"four groups","3-12 months","primary (NB, windows 1-5, lag 0)",5.9322485709294,4.21447326196236,7.67833810458842
+"four groups","3-12 months","windows 1-4 only",5.94996210559877,4.05882276023497,7.87547055036919
+"four groups","3-12 months","window 1 only (12 months before interview)",8.2462698020418,5.08024068874195,11.5076902113699
+"four groups","3-12 months","prevalence lagged one year",5.28953232628462,3.45827596900286,7.15320271535527
+"four groups","3-12 months","Poisson likelihood",5.92705329702501,4.4996298197405,7.3739748125994
+"four groups","3-12 months","no survey intercept",5.18417444528376,3.57844642273313,6.81479531544364
+"four groups","1-2 years","primary (NB, windows 1-5, lag 0)",7.19659378646467,4.98662076586651,9.45308683710231
+"four groups","1-2 years","windows 1-4 only",7.02554313700758,4.59806985948421,9.50935231557584
+"four groups","1-2 years","window 1 only (12 months before interview)",10.8977545177106,6.64022349203381,15.3252642797499
+"four groups","1-2 years","prevalence lagged one year",7.10416430861334,4.74011996905848,9.52156647935105
+"four groups","1-2 years","Poisson likelihood",6.94839373583191,5.19958886588097,8.72627018777414
+"four groups","1-2 years","no survey intercept",7.46801472180745,5.34665813463222,9.63208888398352
+"four groups","2-5 years","primary (NB, windows 1-5, lag 0)",4.6576596418678,2.93457501707273,6.4095880310026
+"four groups","2-5 years","windows 1-4 only",4.43015853464479,2.50913719829968,6.38717981280534
+"four groups","2-5 years","window 1 only (12 months before interview)",6.21312100149511,2.54178719831573,10.0159006499502
+"four groups","2-5 years","prevalence lagged one year",4.53277585818104,2.66972497460691,6.42963377294812
+"four groups","2-5 years","Poisson likelihood",5.50929814587038,4.08700729217217,6.95102381016732
+"four groups","2-5 years","no survey intercept",4.16717703866163,2.55643685167461,5.8032153349592
+"neonatal split","0 months","primary (NB, windows 1-5, lag 0)",0.794801040207971,-0.523699016500156,2.13077704226539
+"neonatal split","0 months","windows 1-4 only",0.401390350522823,-1.02385268114776,1.84715668759932
+"neonatal split","0 months","window 1 only (12 months before interview)",-0.0580619606545207,-2.41991602928391,2.36095904629372
+"neonatal split","0 months","prevalence lagged one year",0.073613530526595,-1.31417475113336,1.48091785017737
+"neonatal split","0 months","Poisson likelihood",0.641226187640842,-0.478892694848898,1.77395210742028
+"neonatal split","0 months","no survey intercept",1.05255750261999,-0.208105177780327,2.32914602946892
+"neonatal split","1-2 months","primary (NB, windows 1-5, lag 0)",4.72102711967679,2.23689044936777,7.2655229711938
+"neonatal split","1-2 months","windows 1-4 only",4.73770608399877,2.03091714132742,7.51630371550138
+"neonatal split","1-2 months","window 1 only (12 months before interview)",2.76500617101452,-0.877084269685424,6.5409185708498
+"neonatal split","1-2 months","prevalence lagged one year",4.6453923294663,2.00734768746966,7.35166028763512
+"neonatal split","1-2 months","Poisson likelihood",4.69365251785665,2.4748714987185,6.96047447755794
+"neonatal split","1-2 months","no survey intercept",4.65134718097042,2.23487618745877,7.12493500467002
+"neonatal split","3-11 months","primary (NB, windows 1-5, lag 0)",5.9322485709294,4.21447326196236,7.67833810458842
+"neonatal split","3-11 months","windows 1-4 only",5.94996210559877,4.05882276023497,7.87547055036919
+"neonatal split","3-11 months","window 1 only (12 months before interview)",8.2462698020418,5.08024068874195,11.5076902113699
+"neonatal split","3-11 months","prevalence lagged one year",5.28953232628462,3.45827596900286,7.15320271535527
+"neonatal split","3-11 months","Poisson likelihood",5.92705329702501,4.4996298197405,7.3739748125994
+"neonatal split","3-11 months","no survey intercept",5.18417444528376,3.57844642273313,6.81479531544364
+"neonatal split","12-23 months","primary (NB, windows 1-5, lag 0)",7.19659378646467,4.98662076586651,9.45308683710231
+"neonatal split","12-23 months","windows 1-4 only",7.02554313700758,4.59806985948421,9.50935231557584
+"neonatal split","12-23 months","window 1 only (12 months before interview)",10.8977545177106,6.64022349203381,15.3252642797499
+"neonatal split","12-23 months","prevalence lagged one year",7.10416430861334,4.74011996905848,9.52156647935105
+"neonatal split","12-23 months","Poisson likelihood",6.94839373583191,5.19958886588097,8.72627018777414
+"neonatal split","12-23 months","no survey intercept",7.46801472180745,5.34665813463222,9.63208888398352
+"neonatal split","24-59 months","primary (NB, windows 1-5, lag 0)",4.6576596418678,2.93457501707273,6.4095880310026
+"neonatal split","24-59 months","windows 1-4 only",4.43015853464479,2.50913719829968,6.38717981280534
+"neonatal split","24-59 months","window 1 only (12 months before interview)",6.21312100149511,2.54178719831573,10.0159006499502
+"neonatal split","24-59 months","prevalence lagged one year",4.53277585818104,2.66972497460691,6.42963377294812
+"neonatal split","24-59 months","Poisson likelihood",5.50929814587038,4.08700729217217,6.95102381016732
+"neonatal split","24-59 months","no survey intercept",4.16717703866163,2.55643685167461,5.8032153349592
+"four groups","0-3 months","joint model, shared random effects and covariates (artefact)",-4.50702960364955,-5.54400305440207,-3.45867186844354
+"four groups","3-12 months","joint model, shared random effects and covariates (artefact)",6.69065479369528,5.4700999371222,7.92533454593825
+"four groups","1-2 years","joint model, shared random effects and covariates (artefact)",10.7612320245587,9.27929573961115,12.2632648441496
+"four groups","2-5 years","joint model, shared random effects and covariates (artefact)",8.0491569185366,6.85292810291998,9.25877763089129

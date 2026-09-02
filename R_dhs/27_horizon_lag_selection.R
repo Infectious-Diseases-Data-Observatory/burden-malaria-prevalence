@@ -44,8 +44,7 @@ set.seed(20260828)
 
 HORIZONS <- c(12L, 24L, 36L, 48L, 60L)
 LAGS <- 0:2
-UNDER5_SEGMENTS <- list(c(0, 1), c(1, 3), c(3, 6), c(6, 12),
-                        c(12, 24), c(24, 36), c(36, 48), c(48, 60))
+# UNDER5_SEGMENTS comes from 00_config.R (shared with script 40).
 HORIZON_CACHE <- file.path(DATA_DIR, "horizon_mortality_cache")
 HORIZON_CSV <- file.path(RESULTS_DIR, "horizon_mortality_estimates.csv")
 PFPR_LONG_CSV <- file.path(DERIVED_DIR, "map_pfpr_lagged_long.csv")
@@ -174,25 +173,7 @@ region_rates_jk <- function(sums) {
   result
 }
 
-## ---- resolve a survey's regions exactly as the panel does --------------------
-survey_region_vector <- function(br, survey_map, survey, registry) {
-  boundary_labels <- unique(as.character(survey_map$region))
-  region_var <- best_region_var(br, boundary_labels)
-  reconciled <- match_region_keys(
-    unique(as.character(br[[region_var]])), boundary_labels
-  )
-  if (length(unique(reconciled$to)) < length(unique(survey_map$regkey))) {
-    grouped <- group_regions_to_boundary(br, region_var, boundary_labels,
-                                         survey, registry)
-    if (!is.null(grouped)) {
-      br$region_grouped <- grouped$values
-      region_var <- "region_grouped"
-      reconciled <- match_region_keys(unique(grouped$values), boundary_labels)
-    }
-  }
-  keys <- rkey(as.character(br[[region_var]]))
-  reconciled$to[match(keys, reconciled$from)]
-}
+## survey_region_vector() lives in 00_config.R (shared with script 40).
 
 ## ---- validate against chmort before trusting anything -----------------------
 validate_estimator <- function(registry, map, checks = 3L) {

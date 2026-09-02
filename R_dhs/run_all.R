@@ -22,6 +22,8 @@ analysis_only <- "--analysis-only" %in% args
 # models ten times each, about an hour on a 10-core machine, so it only runs
 # when asked for.
 with_kfold <- "--kfold" %in% args
+# The Stan refit of the person-time models (script 43) takes about an hour.
+with_person_time_brms <- "--person-time-brms" %in% args
 
 run_script <- function(script, trailing = character(0), fatal = TRUE,
                        env = character(0)) {
@@ -100,6 +102,15 @@ run_script("34_brms_model_ladder.R")
 if (with_kfold) run_script("35_brms_ladder_kfold.R")
 run_script("36_neonatal_as_covariate.R")
 run_script("37_burden_trend_brms.R")
+# The person-time design: deaths and person-months by region, 12-month window
+# and age segment, each window paired with the MAP prevalence of its own year,
+# one negative-binomial model per age group. Script 40 reads every recode
+# (about ten minutes cold, seconds warm), 41 re-extracts MAP over the window
+# years, 42 fits.
+run_script("40_build_person_time.R")
+run_script("41_extract_map_window_years.R")
+run_script("42_person_time_models.R")
+if (with_person_time_brms) run_script("43_person_time_brms.R")
 
 legacy_validation_inputs <- c(
   file.path(REPO_ROOT, "results", "penalized_models.rds"),
