@@ -851,7 +851,8 @@ model_formula <- function(
     specification,
     include_country_slope = INCLUDE_COUNTRY_PFPR_SLOPE,
     spline_k = 6,
-    year_k = 8) {
+    year_k = 8,
+    extra_terms = NULL) {
   prevalence <- switch(
     specification,
     linear_no_interaction = "pfpr10",
@@ -877,6 +878,10 @@ model_formula <- function(
     if (!identical(specification, "full_te_surface")) {
       sprintf("s(year_c, k=%d)", year_k)
     },
+    # Additional unpenalised terms, e.g. a standardised auxiliary outcome used
+    # as a covariate (36_neonatal_as_covariate.R). Standardised so that zero is
+    # the mean, which is where newdata_at_mean() evaluates them.
+    extra_terms,
     random_terms,
     "offset(log(exposure))"
   )
@@ -892,7 +897,8 @@ fit_ridge_gam <- function(
     preprocessing = NULL,
     include_country_slope = INCLUDE_COUNTRY_PFPR_SLOPE,
     spline_k = 6,
-    year_k = 8) {
+    year_k = 8,
+    extra_terms = NULL) {
   required_packages("mgcv")
   keep <- is.finite(data[[outcome]]) & data[[outcome]] > 0 &
     is.finite(data$exposure) & data$exposure > 0 &
@@ -911,7 +917,8 @@ fit_ridge_gam <- function(
       specification,
       include_country_slope = include_country_slope,
       spline_k = spline_k,
-      year_k = year_k
+      year_k = year_k,
+      extra_terms = extra_terms
     ),
     family = mgcv::nb(),
     method = method,
@@ -926,7 +933,8 @@ fit_ridge_gam <- function(
     outcome = outcome,
     include_country_slope = include_country_slope,
     spline_k = spline_k,
-    year_k = year_k
+    year_k = year_k,
+    extra_terms = extra_terms
   )
 }
 
@@ -1014,6 +1022,11 @@ newdata_at_mean <- function(model, pfpr10, year_c = 0) {
   )
   out$G <- matrix(0, nrow = n, ncol = length(g_names))
   colnames(out$G) <- g_names
+  # Any further model variable (an extra_terms covariate) is held at zero, its
+  # standardised mean, so the prediction stays population-average.
+  extra <- setdiff(all.vars(stats::formula(model)),
+                   c("deaths", "pfpr10", "year_c", "G", "country", "exposure"))
+  for (v in extra) if (!v %in% names(out)) out[[v]] <- 0
   out
 }
 
