@@ -38,6 +38,7 @@ effects$lo <- 100 * (exp(effects$estimate - 1.96 * effects$se) - 1)
 effects$hi <- 100 * (exp(effects$estimate + 1.96 * effects$se) - 1)
 effects <- merge(effects, labels, by = "variable", all.x = TRUE)
 effects$label[is.na(effects$label)] <- effects$variable[is.na(effects$label)]
+effects$label[effects$variable == "polstab"] <- "Political stability (WGI)"
 effects$level[is.na(effects$level)] <- "unknown"
 effects$age_band <- factor(effects$age_band, levels = AGE6B)
 rownames(effects) <- NULL
