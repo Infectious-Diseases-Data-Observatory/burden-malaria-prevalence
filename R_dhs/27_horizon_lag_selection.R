@@ -33,6 +33,7 @@
 #   results/dhs_rebuild/horizon_estimator_validation.csv
 #   results/dhs_rebuild/figure8_horizon_scatter_postneonatal.png
 #   results/dhs_rebuild/figure9_horizon_scatter_neonatal.png
+#   results/dhs_rebuild/figure8b_horizon_<CHMORT_PERIOD>_vs_60.png
 #   results/dhs_rebuild/horizon_lag_model_selection.csv
 #   results/dhs_rebuild/horizon_lag_selection_table.csv
 # =============================================================================
@@ -350,9 +351,9 @@ message("Horizon estimates: ", nrow(horizon_estimates), " region-horizons across
         basename(HORIZON_CSV))
 
 ## ---- Part 2: the horizons against each other, with intervals ----------------
-# Each shorter window is plotted against the 60-month window the main analysis
-# uses, so the question the plot answers is "what would change if we shortened
-# the recall period".
+# Each shorter window is plotted against the 60-month window - DHS.rates'
+# default, and the window earlier iterations of this analysis used - so the
+# plot answers "what changes as the recall period shortens".
 horizon_scatter <- function(estimates, outcome, label, file) {
   reference <- estimates[estimates$horizon_months == 60L, , drop = FALSE]
   reference <- reference[, c("svkey", "regkey",
@@ -433,6 +434,74 @@ agreement <- rbind(
 )
 write.csv(agreement, file.path(RESULTS_DIR, "horizon_agreement_summary.csv"),
           row.names = FALSE)
+
+## ---- the primary window against the 60-month window, both outcomes ----------
+# The main analysis uses CHMORT_PERIOD (12 months). Sixty months is DHS.rates'
+# default and the window earlier iterations of this analysis used, so that one
+# pairwise comparison is drawn on its own here, for both outcomes side by side.
+horizon_pair_figure <- function(estimates, file, short, long = 60L) {
+  one <- function(outcome, label) {
+    take <- function(months, prefix) {
+      d <- estimates[estimates$horizon_months == months,
+                     c("svkey", "regkey", outcome, paste0(outcome, "_lo"),
+                       paste0(outcome, "_hi")), drop = FALSE]
+      names(d)[3:5] <- paste0(prefix, c("", "_lo", "_hi"))
+      d
+    }
+    d <- merge(take(short, "short"), take(long, "long"),
+               by = c("svkey", "regkey"))
+    d$outcome <- label
+    d
+  }
+  paired <- rbind(one("postneonatal", "Post-neonatal mortality"),
+                  one("nnmr", "Neonatal mortality"))
+  paired$outcome <- factor(paired$outcome,
+                           levels = c("Post-neonatal mortality",
+                                      "Neonatal mortality"))
+  agreement <- do.call(rbind, lapply(split(paired, paired$outcome), function(d) {
+    data.frame(outcome = as.character(d$outcome[1]), n = nrow(d),
+               correlation = stats::cor(d$short, d$long, use = "complete.obs"),
+               median_ratio = stats::median(d$short / d$long, na.rm = TRUE),
+               stringsAsFactors = FALSE)
+  }))
+  agreement$outcome <- factor(agreement$outcome, levels = levels(paired$outcome))
+  agreement$label <- sprintf("n = %d survey regions\nr = %.2f\nmedian ratio %.2f",
+                             agreement$n, agreement$correlation,
+                             agreement$median_ratio)
+  plot <- ggplot2::ggplot(paired, ggplot2::aes(long, short)) +
+    ggplot2::geom_abline(slope = 1, intercept = 0, linetype = "dashed",
+                         colour = "grey40") +
+    ggplot2::geom_errorbar(ggplot2::aes(ymin = short_lo, ymax = short_hi),
+                           colour = "grey70", linewidth = 0.2, alpha = 0.35,
+                           width = 0) +
+    ggplot2::geom_errorbar(ggplot2::aes(xmin = long_lo, xmax = long_hi),
+                           colour = "grey70", linewidth = 0.2, alpha = 0.35,
+                           width = 0, orientation = "y") +
+    ggplot2::geom_point(size = 0.8, alpha = 0.6, colour = "#1D6F8B") +
+    ggplot2::geom_text(data = agreement,
+                       ggplot2::aes(x = -Inf, y = Inf, label = label),
+                       hjust = -0.08, vjust = 1.25, size = 3, colour = "grey25",
+                       inherit.aes = FALSE) +
+    ggplot2::facet_wrap(~outcome, nrow = 1, scales = "free") +
+    ggplot2::labs(
+      x = sprintf("%d-month window (deaths per 1000)", long),
+      y = sprintf("%d-month window (deaths per 1000)", short),
+      title = sprintf(
+        "Mortality over the %d-month window against the %d-month window",
+        short, long),
+      subtitle = paste("One point per survey region; bars are 95%",
+                       "delete-one-cluster jackknife intervals.",
+                       "Dashed line is equality.")) +
+    ggplot2::theme_minimal(base_size = 10)
+  ggplot2::ggsave(file, plot, width = 9, height = 4.4, dpi = 200)
+  message("  wrote ", basename(file))
+  agreement[, c("outcome", "n", "correlation", "median_ratio")]
+}
+pair_agreement <- horizon_pair_figure(
+  horizon_estimates,
+  file.path(RESULTS_DIR, sprintf("figure8b_horizon_%d_vs_60.png", CHMORT_PERIOD)),
+  short = CHMORT_PERIOD)
+print(pair_agreement, row.names = FALSE)
 
 ## ---- Part 3: model selection across horizon and lag -------------------------
 # The analysis sample is held fixed at the main-sample definition throughout, so

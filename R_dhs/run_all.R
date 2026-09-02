@@ -141,5 +141,8 @@ if (file.exists(MODEL_BUNDLE_RDS)) {
   message("\nModel bundle absent; skipping script 12 (RCT triangulation).")
 }
 run_script("13_ihme_share.R")
+# Copy the curated key figures into "Key results/" with a README. Runs last so
+# it always collects the figures this pass produced.
+run_script("33_key_results.R")
 
 message("\nRebuilt DHS/MIS analysis complete. Outputs: ", RESULTS_DIR)
