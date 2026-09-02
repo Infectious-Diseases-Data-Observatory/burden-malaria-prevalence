@@ -18,6 +18,10 @@ source("R_dhs/00_config.R")
 args <- commandArgs(trailingOnly = TRUE)
 legacy_mode <- "--from-legacy-aggregate" %in% args
 analysis_only <- "--analysis-only" %in% args
+# The survey-grouped 10-fold cross-validation (script 35) refits three brms
+# models ten times each, about an hour on a 10-core machine, so it only runs
+# when asked for.
+with_kfold <- "--kfold" %in% args
 
 run_script <- function(script, trailing = character(0), fatal = TRUE,
                        env = character(0)) {
@@ -89,6 +93,13 @@ run_script("32_brms_three_way.R")
 # Their outputs carry a "_neonatal" suffix; see brms_outcome() in 00_config.R.
 run_script("30_brms_tensor_model.R", env = "BRMS_OUTCOME=neonatal")
 run_script("31_brms_subgroup_fits.R", env = "BRMS_OUTCOME=neonatal")
+# The model ladder (additive / linear-in-time / full surface) with PSIS-LOO,
+# the neonatal-covariate check and the burden trend with credible bands. All
+# cache their fits and refit only when the panel changes.
+run_script("34_brms_model_ladder.R")
+if (with_kfold) run_script("35_brms_ladder_kfold.R")
+run_script("36_neonatal_as_covariate.R")
+run_script("37_burden_trend_brms.R")
 
 legacy_validation_inputs <- c(
   file.path(REPO_ROOT, "results", "penalized_models.rds"),
@@ -141,6 +152,9 @@ if (file.exists(MODEL_BUNDLE_RDS)) {
   message("\nModel bundle absent; skipping script 12 (RCT triangulation).")
 }
 run_script("13_ihme_share.R")
+# Main-text manuscript figures, drawn from the saved bundle and script 10's
+# burden inputs.
+run_script("14_manuscript_figures.R")
 # Copy the curated key figures into "Key results/" with a README. Runs last so
 # it always collects the figures this pass produced.
 run_script("33_key_results.R")

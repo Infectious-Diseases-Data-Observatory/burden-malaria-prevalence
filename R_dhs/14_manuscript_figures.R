@@ -254,7 +254,9 @@ cat("saved: figure4_burden_vs_ihme_who.png (3-panel: burden + PfPR + all-cause P
 
 decl <- function(s) { z <- burden[burden$source == s, ]; z <- z[order(z$year), ]
   100 * (1 - z$deaths[z$year == 2024] / z$deaths[z$year == 2000]) }
-cat(sprintf("2000->2024 decline: ours %.0f%% (%.0fk->%.0fk); IHME %.0f%%; WHO %.0f%%\n",
-  decl("Our model (prevalence)"),
+# decl() is 100 * (1 - 2024 / 2000), so a negative value is an increase; the
+# message reports the signed change instead so it cannot be misread.
+cat(sprintf("2000->2024 change: ours %+.0f%% (%.0fk->%.0fk); IHME %+.0f%%; WHO %+.0f%%\n",
+  -decl("Our model (prevalence)"),
   ours$deaths[ours$year == 2000] / 1000, ours$deaths[ours$year == 2024] / 1000,
-  decl("IHME/GBD (under-5)"), decl("WHO (under-5 proxy, 0.75×all-age)")))
+  -decl("IHME/GBD (under-5)"), -decl("WHO (under-5 proxy, 0.75×all-age)")))
