@@ -14,9 +14,19 @@
 #   PfPR_r(y)   population-weighted MAP PfPR2-10 for the region in year y
 #   share(r, a) the region's share of the country's deaths in band a in the
 #               latest survey (weighted, five windows), held fixed over time
-#   D_a(y)      national all-cause deaths in band a: IGME neonatal and
-#               under-5 rates x live births, the post-neonatal total split
-#               across bands by the survey's national age-at-death shares
+#   D_a(y)      national all-cause deaths in band a. UN IGME publishes death
+#               counts for three under-5 age blocks (neonatal, 1-11 months,
+#               1-4 years); the survey's age-at-death shares split the 1-11
+#               month block into 1-3 and 4-11 months and the 1-4 year block
+#               into 12-23, 24-35 and 36-59 months. If the IGME file is absent
+#               the script falls back to IGME rates x World Bank births with a
+#               single DHS split of the post-neonatal total.
+#
+# The IGME counts come from the UN IGME 2025 "download all" archive on
+# childmortality.org (UN-IGME-2025.zip, one CSV of every indicator, sex and
+# wealth quintile, with source data). The site sits behind Cloudflare rate
+# limiting, so the fetch below uses a browser user-agent and pauses between
+# attempts; run it once and the extract is cached in data/derived_dhs.
 #
 # Uncertainty is the dose-response model's only: 1,000 draws of each band's
 # coefficients from their fitted normal approximation. MAP surfaces and the IGME
@@ -44,6 +54,49 @@ person_time <- read.csv(file.path(DERIVED_DIR, "person_time_region_window_segmen
                         stringsAsFactors = FALSE)
 person_time$band <- band_from_segment(person_time$seg_lo, c(1, 4, 12, 24, 36), AGE6B)
 national <- read.csv(file.path(DATA_DIR, "wb_mortality_timeseries.csv"), stringsAsFactors = FALSE)
+
+## ---- UN IGME 2025 death counts by age block ----------------------------------------------
+IGME_ZIP_URL <- "https://childmortality.org/wp-content/uploads/UN-IGME-2025.zip"
+IGME_DIR <- file.path(DATA_DIR, "igme")
+IGME_EXTRACT <- file.path(DERIVED_DIR, "igme_2025_nga_cod.csv")
+IGME_BLOCKS <- c(neonatal = "Neonatal deaths", months_1_11 = "Deaths age 1-11 months",
+                 years_1_4 = "Child deaths age 1 to 4")
+fetch_igme <- function() {
+  dir.create(IGME_DIR, showWarnings = FALSE, recursive = TRUE)
+  zip <- file.path(IGME_DIR, "UN-IGME-2025.zip")
+  if (!file.exists(zip)) {
+    required_packages("httr")
+    for (attempt in 1:4) {
+      r <- tryCatch(httr::GET(IGME_ZIP_URL, httr::user_agent("Mozilla/5.0"),
+                              httr::write_disk(zip, overwrite = TRUE), httr::timeout(900)),
+                    error = function(e) NULL)
+      if (!is.null(r) && httr::status_code(r) == 200L) break
+      unlink(zip); message("  UN IGME download attempt ", attempt, " refused (rate limit); pausing")
+      Sys.sleep(75)
+    }
+    if (!file.exists(zip)) stop("Could not download ", IGME_ZIP_URL)
+  }
+  csv <- unzip(zip, exdir = IGME_DIR, overwrite = TRUE)
+  x <- read.csv(csv[grepl("[.]csv$", csv)][1], stringsAsFactors = FALSE, check.names = TRUE)
+  est <- x[x$REF_AREA %in% names(COUNTRIES) & x$Sex == "Total" & x$Wealth.Quintile == "Total" &
+             x$Series.Name == "UN IGME estimate", ]
+  est$year <- floor(est$REF_DATE)
+  out <- est[, c("REF_AREA", "year", "Indicator", "OBS_VALUE", "LOWER_BOUND", "UPPER_BOUND")]
+  names(out)[1] <- "iso3"
+  write.csv(out, IGME_EXTRACT, row.names = FALSE)
+  out
+}
+igme <- tryCatch({
+  if (file.exists(IGME_EXTRACT)) read.csv(IGME_EXTRACT, stringsAsFactors = FALSE) else fetch_igme()
+}, error = function(e) { message("UN IGME counts unavailable (", conditionMessage(e), "); using rates x births"); NULL })
+igme_blocks <- function(iso3) {
+  if (is.null(igme)) return(NULL)
+  z <- igme[igme$iso3 == iso3 & igme$Indicator %in% IGME_BLOCKS, c("year", "Indicator", "OBS_VALUE")]
+  if (!nrow(z)) return(NULL)
+  w <- reshape(z, idvar = "year", timevar = "Indicator", direction = "wide")
+  names(w) <- c("year", names(IGME_BLOCKS)[match(sub("OBS_VALUE.", "", names(w)[-1]), IGME_BLOCKS)])
+  w[order(w$year), ]
+}
 fits <- readRDS(file.path(DERIVED_DIR, "person_time_model_bundle.rds"))$bands6b_smooth_fits
 model_data <- read.csv(file.path(RESULTS_DIR, "person_time_model_data.csv"), stringsAsFactors = FALSE)
 
@@ -110,11 +163,15 @@ for (iso3 in names(COUNTRIES)) {
   regions <- sort(unique(pt$regkey))
   message("  ", length(regions), " regions; ", length(unique(prevalence$year)), " years of MAP prevalence")
 
-  # regional share of deaths within each band, and national band shares within 1-59 months
+  # regional share of deaths within each band, and the survey's age-at-death shares
+  # within the two IGME post-neonatal blocks
   deaths_rb <- tapply(pt$deaths_w, list(pt$regkey, pt$band), sum)
   deaths_rb[is.na(deaths_rb)] <- 0
   share_rb <- sweep(deaths_rb, 2, colSums(deaths_rb), "/")
   band_totals <- colSums(deaths_rb)
+  infant_bands <- AGE6B[2:3]; child_bands <- AGE6B[4:6]
+  within_infant <- band_totals[infant_bands] / sum(band_totals[infant_bands])
+  within_child <- band_totals[child_bands] / sum(band_totals[child_bands])
   pn_share <- band_totals[AGE6B[-1]] / sum(band_totals[AGE6B[-1]])
 
   nat <- national[national$iso3 == iso3 & national$year %in% YEARS, ]
@@ -124,8 +181,34 @@ for (iso3 in names(COUNTRIES)) {
     nat <- rbind(nat, do.call(rbind, lapply(carried, function(y) { z <- last; z$year <- y; z })))
   }
   nat <- nat[order(nat$year), ]
-  nat$neonatal_deaths <- nat$nnmr / 1000 * nat$births
-  nat$postneonatal_deaths <- (nat$u5mr - nat$nnmr) / 1000 * nat$births
+  blocks <- igme_blocks(iso3)
+  if (!is.null(blocks)) {
+    blocks <- blocks[blocks$year %in% YEARS, ]
+    carried_igme <- setdiff(YEARS, blocks$year)
+    if (length(carried_igme)) {
+      last <- blocks[blocks$year == max(blocks$year), ]
+      blocks <- rbind(blocks, do.call(rbind, lapply(carried_igme, function(y) { z <- last; z$year <- y; z })))
+    }
+    blocks <- blocks[order(blocks$year), ]
+    stopifnot(identical(blocks$year, nat$year))
+    nat$neonatal_deaths <- blocks$neonatal
+    nat$infant_1_11_deaths <- blocks$months_1_11
+    nat$child_1_4_deaths <- blocks$years_1_4
+    nat$postneonatal_deaths <- nat$infant_1_11_deaths + nat$child_1_4_deaths
+    band_deaths <- function(band) {
+      if (band == AGE6B[1]) nat$neonatal_deaths
+      else if (band %in% infant_bands) nat$infant_1_11_deaths * within_infant[[band]]
+      else nat$child_1_4_deaths * within_child[[band]]
+    }
+    message("  all-cause deaths from UN IGME 2025 counts (three age blocks), DHS shares within blocks")
+  } else {
+    nat$neonatal_deaths <- nat$nnmr / 1000 * nat$births
+    nat$postneonatal_deaths <- (nat$u5mr - nat$nnmr) / 1000 * nat$births
+    band_deaths <- function(band) {
+      if (band == AGE6B[1]) nat$neonatal_deaths else nat$postneonatal_deaths * pn_share[[band]]
+    }
+    message("  all-cause deaths from IGME rates x World Bank births, DHS shares within 1-59 months")
+  }
 
   # prevalence by region and year, 2025 carrying 2024
   prev_wide <- tapply(prevalence$pfpr, list(prevalence$regkey, prevalence$year), mean)
@@ -142,7 +225,7 @@ for (iso3 in names(COUNTRIES)) {
     p_vec <- as.numeric(prev_wide)                        # regions x years, column-major
     af <- af_draws(fits[[band]], p_vec, band_data)        # draws x (regions*years)
     dim(af) <- c(N_DRAWS, length(regions), length(YEARS))
-    national_band <- if (band == AGE6B[1]) nat$neonatal_deaths else nat$postneonatal_deaths * pn_share[[band]]
+    national_band <- band_deaths(band)
     # deaths(draw, region, year) = AF x share(region, band) x D_band(year)
     weights <- outer(share_rb[regions, band], national_band)   # regions x years
     deaths <- sweep(af, c(2, 3), weights, "*")
@@ -227,9 +310,9 @@ plot_deaths <- ggplot2::ggplot(series, ggplot2::aes(year, malaria_deaths / 1e3))
   ggplot2::scale_y_continuous(limits = c(0, NA)) +
   ggplot2::labs(x = NULL, y = "Malaria-attributable under-5 deaths\n(thousands; dashed = ages 1-59 months)",
                 title = "Malaria-attributable under-5 deaths from the age-band person-time models",
-                subtitle = paste("Admin-1 prevalence x regional death shares x national all-cause deaths by age band;",
-                                 "band = 95% interval from the dose-response fits only.\nRight of the dotted line",
-                                 "MAP and IGME inputs are 2024 carried forward.")) +
+                subtitle = paste("Admin-1 prevalence x regional death shares x UN IGME 2025 all-cause deaths by age block",
+                                 "(DHS shares within blocks);\nband = 95% interval from the dose-response fits only.",
+                                 "Right of the dotted line MAP and IGME inputs are 2024 carried forward.")) +
   ggplot2::theme_minimal(base_size = 10)
 plot_context <- ggplot2::ggplot(series, ggplot2::aes(year)) +
   ggplot2::geom_line(ggplot2::aes(y = allcause_under5_deaths / 1e3, colour = "All-cause under-5 deaths (thousands)"), linewidth = 0.9) +
