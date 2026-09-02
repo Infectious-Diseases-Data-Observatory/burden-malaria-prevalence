@@ -20,6 +20,15 @@ figure <- function(source, target, script, shows) {
              stringsAsFactors = FALSE)
 }
 key_figures <- rbind(
+  figure("study_flow_diagram.png",
+         "study_flow_diagram.png",
+         "11_study_flow.R",
+         paste("Data and analysis flow: DHS/MIS recodes, MAP prevalence and the",
+               "national covariate series feed the survey-region panel, which is",
+               "filtered to the shared-outcome sample and analysed with the",
+               "ridge-penalised model, the Bayesian refits, the sensitivity",
+               "analyses and the national burden extrapolation. Every count is",
+               "read from the pipeline outputs.")),
   figure("figure15_brms_subgroup_curves.png",
          "subgroup_curves_postneonatal.png",
          "31_brms_subgroup_fits.R",
