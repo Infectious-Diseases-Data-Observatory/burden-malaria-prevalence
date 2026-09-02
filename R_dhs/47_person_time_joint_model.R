@@ -153,9 +153,10 @@ plot <- ggplot2::ggplot(effects, ggplot2::aes(age_band, pct_per_10, colour = eng
   ggplot2::scale_colour_manual(values = c("#B2182B", "#1D6F8B"), name = NULL) +
   ggplot2::labs(x = NULL, y = "Change in mortality hazard per +10 PfPR2-10 points (%)",
                 title = "Prevalence effect by age band: joint model against separate fits",
-                subtitle = sprintf(paste("Joint model: band-specific segment, window, calendar, covariate-ridge and",
-                                         "random-intercept terms, one shared NB dispersion.\nWald test of equal",
-                                         "slopes: chi-square %.1f on %d df, p = %.2g"), wald, length(beta) - 1, wald_p)) +
+                subtitle = sprintf(paste0("Joint model: band-specific segment, window, calendar, covariate-ridge and\n",
+                                          "random-intercept terms, one shared NB dispersion. ",
+                                          "Wald test of equal slopes: chi-square %.1f on %d df, p = %.2g"),
+                                   wald, length(beta) - 1, wald_p)) +
   ggplot2::theme_minimal(base_size = 11) +
   ggplot2::theme(legend.position = "bottom")
 ggplot2::ggsave(file.path(RESULTS_DIR, "figure31_person_time_joint_vs_separate.png"), plot,
