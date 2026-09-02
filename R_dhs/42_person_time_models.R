@@ -47,7 +47,9 @@
 #   person_time_sensitivity.csv       windows 1-4; window 1 only; lag-1 prevalence; Poisson;
 #                                     no survey intercept; joint model with shared nuisance terms
 #   figure22_person_time_age_effects.png
-#   figure23_person_time_dose_response.png
+#   figure23_person_time_dose_response.png              four primary groups
+#   figure26_person_time_dose_response_six_bands.png    <1, 1-2, 3-11, 12-23, 24-35, 36-59 months
+#   person_time_dose_response_curves.csv
 # =============================================================================
 
 source("R_dhs/00_config.R")
@@ -62,6 +64,9 @@ FIRST_MAP_YEAR <- 2000L
 LAST_MAP_YEAR <- 2024L
 BAM_THREADS <- max(1L, min(8L, parallel::detectCores() - 2L))
 AGE5 <- c("0 months", "1-2 months", "3-11 months", "12-23 months", "24-59 months")
+# A finer banding requested on 2026-09-02: <1, 1-2, 3-11, 12-23, 24-35, 36-59 months.
+AGE6 <- c("<1 month", "1-2 months", "3-11 months", "12-23 months", "24-35 months",
+          "36-59 months")
 
 bundle <- readRDS(MODEL_BUNDLE_RDS)
 year_center <- unique(bundle$year_center)[1]
@@ -119,6 +124,11 @@ model_data$age5 <- factor(ifelse(model_data$seg_lo == 0, AGE5[1],
                           ifelse(model_data$seg_lo < 3, AGE5[2],
                           ifelse(model_data$seg_lo < 12, AGE5[3],
                           ifelse(model_data$seg_lo < 24, AGE5[4], AGE5[5])))), levels = AGE5)
+model_data$age6 <- factor(ifelse(model_data$seg_lo == 0, AGE6[1],
+                          ifelse(model_data$seg_lo < 3, AGE6[2],
+                          ifelse(model_data$seg_lo < 12, AGE6[3],
+                          ifelse(model_data$seg_lo < 24, AGE6[4],
+                          ifelse(model_data$seg_lo < 36, AGE6[5], AGE6[6]))))), levels = AGE6)
 model_data$country <- factor(model_data$iso3)
 model_data$survey <- factor(model_data$svkey)
 region_mean <- tapply(model_data$pfpr10, paste(model_data$svkey, model_data$regkey), mean)
@@ -246,6 +256,8 @@ message("\nPrimary grouping (four age groups)")
 primary <- run_grouping("four groups", "age_group")
 message("\nNeonatal month separated (five groups)")
 split5 <- run_grouping("neonatal split", "age5")
+message("\nSix bands")
+bands6 <- run_grouping("six bands", "age6")
 
 ## ---- 5. the joint model with shared nuisance terms, for the record -----------------------
 message("\nJoint model with shared covariate effects and random effects")
@@ -265,7 +277,9 @@ joint_rows <- data.frame(
   pct_hi = pct(jt[jr, "Estimate"] + 1.96 * jt[jr, "Std. Error"]), stringsAsFactors = FALSE)
 
 ## ---- 6. tables -------------------------------------------------------------------------------
-collect <- function(field) rbind(do.call(rbind, primary[[field]]), do.call(rbind, split5[[field]]))
+collect <- function(field) rbind(do.call(rbind, primary[[field]]),
+                                 do.call(rbind, split5[[field]]),
+                                 do.call(rbind, bands6[[field]]))
 comparison <- collect("comparison"); effects <- collect("effects"); wb <- collect("wb")
 windows <- collect("windows"); sens <- rbind(collect("sens"), joint_rows)
 rownames(comparison) <- rownames(effects) <- rownames(wb) <- rownames(windows) <- rownames(sens) <- NULL
@@ -321,6 +335,7 @@ print(transform(sens, pct_per_10 = round(pct_per_10, 1), pct_lo = round(pct_lo, 
                 pct_hi = round(pct_hi, 1)), row.names = FALSE)
 
 ## ---- 7. figures ------------------------------------------------------------------------------
+show <- show[show$grouping != "six bands", ]
 show$age_group <- factor(show$age_group, levels = c(AGE_GROUPS, AGE5))
 show$grouping <- factor(show$grouping, levels = c("four groups", "neonatal split"),
                         labels = c("Primary: four age groups", "Neonatal month separated"))
@@ -363,32 +378,44 @@ curve_for <- function(fit, data, group) {
   data.frame(age_group = group, pfpr = p, hr = exp(est), lo = exp(est - 1.96 * se),
              hi = exp(est + 1.96 * se), stringsAsFactors = FALSE)
 }
-curves <- do.call(rbind, lapply(AGE_GROUPS, function(g)
-  curve_for(primary$fits[[g]]$smooth, model_data[model_data$age_group == g, ], g)))
-curves$age_group <- factor(curves$age_group, levels = AGE_GROUPS)
-observed <- pairing$pfpr
-plot_curves <- ggplot2::ggplot(curves, ggplot2::aes(pfpr, hr)) +
-  ggplot2::geom_ribbon(ggplot2::aes(ymin = lo, ymax = hi), fill = "#1D6F8B", alpha = 0.15) +
-  ggplot2::geom_line(colour = "#1D6F8B", linewidth = 0.9) +
-  ggplot2::geom_hline(yintercept = 1, colour = "grey55", linewidth = 0.4) +
-  ggplot2::geom_rug(data = data.frame(pfpr = observed[observed <= 60]),
-                    ggplot2::aes(x = pfpr), inherit.aes = FALSE, alpha = 0.05, sides = "b") +
-  ggplot2::facet_wrap(~age_group, nrow = 1) +
-  ggplot2::scale_y_log10() +
-  ggplot2::labs(x = "MAP PfPR2-10 in the window's own year (%)",
-                y = "Mortality hazard ratio\nversus 1% prevalence (log scale)",
-                title = "Dose-response by age group, smooth prevalence effect",
-                subtitle = "Person-time model, one fit per age group; bands are 95% CIs; rug shows region-window prevalence") +
-  ggplot2::theme_minimal(base_size = 10)
-ggplot2::ggsave(file.path(RESULTS_DIR, "figure23_person_time_dose_response.png"),
-                plot_curves, width = 11, height = 3.8, dpi = 200)
-
+dose_response_figure <- function(result, variable, levels, file, title) {
+  curves <- do.call(rbind, lapply(levels, function(g)
+    curve_for(result$fits[[g]]$smooth, model_data[model_data[[variable]] == g, ], g)))
+  curves$age_group <- factor(curves$age_group, levels = levels)
+  observed <- pairing$pfpr
+  plot <- ggplot2::ggplot(curves, ggplot2::aes(pfpr, hr)) +
+    ggplot2::geom_ribbon(ggplot2::aes(ymin = lo, ymax = hi), fill = "#1D6F8B", alpha = 0.15) +
+    ggplot2::geom_line(colour = "#1D6F8B", linewidth = 0.9) +
+    ggplot2::geom_hline(yintercept = 1, colour = "grey55", linewidth = 0.4) +
+    ggplot2::geom_rug(data = data.frame(pfpr = observed[observed <= 60]),
+                      ggplot2::aes(x = pfpr), inherit.aes = FALSE, alpha = 0.05, sides = "b") +
+    ggplot2::facet_wrap(~age_group, nrow = 1) +
+    ggplot2::scale_y_log10() +
+    ggplot2::labs(x = "MAP PfPR2-10 in the window's own year (%)",
+                  y = "Mortality hazard ratio\nversus 1% prevalence (log scale)",
+                  title = title,
+                  subtitle = "Person-time model, one fit per age band; bands are 95% CIs; rug shows region-window prevalence") +
+    ggplot2::theme_minimal(base_size = 10)
+  ggplot2::ggsave(file, plot, width = 11, height = 3.8, dpi = 200)
+  curves
+}
+curves4 <- dose_response_figure(primary, "age_group", AGE_GROUPS,
+                                file.path(RESULTS_DIR, "figure23_person_time_dose_response.png"),
+                                "Dose-response by age group, smooth prevalence effect")
+curves6 <- dose_response_figure(bands6, "age6", AGE6,
+                                file.path(RESULTS_DIR, "figure26_person_time_dose_response_six_bands.png"),
+                                "Dose-response by age band, smooth prevalence effect")
+write.csv(rbind(cbind(grouping = "four groups", curves4), cbind(grouping = "six bands", curves6)),
+          file.path(RESULTS_DIR, "person_time_dose_response_curves.csv"), row.names = FALSE)
 saveRDS(list(primary_fits = lapply(primary$fits, `[[`, "linear"),
              split_fits = lapply(split5$fits, `[[`, "linear"),
+             bands6_fits = lapply(bands6$fits, `[[`, "linear"),
              smooth_fits = lapply(primary$fits, `[[`, "smooth"),
+             bands6_smooth_fits = lapply(bands6$fits, `[[`, "smooth"),
              joint = joint, year_center = year_center),
         file.path(DERIVED_DIR, "person_time_model_bundle.rds"))
 message("\nWrote person_time_model_data.csv, person_time_model_comparison.csv, ",
         "person_time_effects.csv, person_time_within_between.csv, ",
         "person_time_window_effects.csv, person_time_sensitivity.csv, ",
-        "figure22_person_time_age_effects.png, figure23_person_time_dose_response.png")
+        "figure22_person_time_age_effects.png, figure23_person_time_dose_response.png, ",
+        "figure26_person_time_dose_response_six_bands.png, person_time_dose_response_curves.csv")
