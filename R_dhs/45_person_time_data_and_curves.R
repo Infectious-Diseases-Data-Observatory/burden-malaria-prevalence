@@ -11,30 +11,32 @@
 # band from script 42 (hazard ratio against 1% prevalence). Both rows read
 # script 42's outputs; nothing is refitted here.
 #
-# Output
-#   results/dhs_rebuild/figure27_person_time_data_and_curves.png
+# Outputs
+#   results/dhs_rebuild/figure27_person_time_data_and_curves.png     bands split at 3 months
+#   results/dhs_rebuild/figure29_person_time_data_and_curves_4m.png  bands split at 4 months
 # =============================================================================
 
 source("R_dhs/00_config.R")
 required_packages(c("ggplot2", "patchwork"))
 
-AGE6 <- c("<1 month", "1-2 months", "3-11 months", "12-23 months", "24-35 months",
-          "36-59 months")
 model_data <- read.csv(file.path(RESULTS_DIR, "person_time_model_data.csv"),
                        stringsAsFactors = FALSE)
-curves <- read.csv(file.path(RESULTS_DIR, "person_time_dose_response_curves.csv"),
-                   stringsAsFactors = FALSE)
-curves <- curves[curves$grouping == "six bands", ]
-curves$age_group <- factor(curves$age_group, levels = AGE6)
+all_curves <- read.csv(file.path(RESULTS_DIR, "person_time_dose_response_curves.csv"),
+                       stringsAsFactors = FALSE)
+
+draw <- function(grouping, variable, levels, file) {
+curves <- all_curves[all_curves$grouping == grouping, ]
+curves$age_group <- factor(curves$age_group, levels = levels)
 
 ## ---- one point per survey region, per band ------------------------------------------
 model_data$pfpr_pm <- model_data$pfpr * model_data$person_months_w
-regions <- aggregate(cbind(deaths_w, person_months_w, pfpr_pm) ~ svkey + regkey + age6,
+model_data$band <- model_data[[variable]]
+regions <- aggregate(cbind(deaths_w, person_months_w, pfpr_pm) ~ svkey + regkey + band,
                      model_data, sum)
 regions$pfpr <- regions$pfpr_pm / regions$person_months_w
 regions$child_years <- regions$person_months_w / 12
 regions$rate <- 1000 * regions$deaths_w / regions$child_years
-regions$age_group <- factor(regions$age6, levels = AGE6)
+regions$age_group <- factor(regions$band, levels = levels)
 shares <- aggregate(deaths_w ~ age_group, regions, sum)
 shares$share <- shares$deaths_w / sum(shares$deaths_w)
 shares$label <- sprintf("%s deaths\n%.0f%% of all under-5 deaths",
@@ -74,8 +76,12 @@ bottom <- ggplot2::ggplot(curves, ggplot2::aes(pfpr, hr)) +
   ggplot2::theme(strip.text = ggplot2::element_blank())
 
 combined <- top / bottom + patchwork::plot_layout(heights = c(1, 1.05))
-ggplot2::ggsave(file.path(RESULTS_DIR, "figure27_person_time_data_and_curves.png"),
-                combined, width = 12, height = 7.2, dpi = 200, bg = "white")
-message("Deaths by band: ", paste(sprintf("%s %.0f%%", shares$age_group, 100 * shares$share),
-                                 collapse = "; "))
-message("Wrote figure27_person_time_data_and_curves.png")
+ggplot2::ggsave(file, combined, width = 12, height = 7.2, dpi = 200, bg = "white")
+message(grouping, ", deaths by band: ",
+        paste(sprintf("%s %.0f%%", shares$age_group, 100 * shares$share), collapse = "; "))
+message("Wrote ", basename(file))
+}
+draw("six bands", "age6", AGE6,
+     file.path(RESULTS_DIR, "figure27_person_time_data_and_curves.png"))
+draw("six bands (4-month split)", "age6b", AGE6B,
+     file.path(RESULTS_DIR, "figure29_person_time_data_and_curves_4m.png"))

@@ -49,6 +49,7 @@
 #   figure22_person_time_age_effects.png
 #   figure23_person_time_dose_response.png              four primary groups
 #   figure26_person_time_dose_response_six_bands.png    <1, 1-2, 3-11, 12-23, 24-35, 36-59 months
+#   figure28_person_time_dose_response_six_bands_4m.png <1, 1-3, 4-11, 12-23, 24-35, 36-59 months
 #   person_time_dose_response_curves.csv
 # =============================================================================
 
@@ -64,9 +65,7 @@ FIRST_MAP_YEAR <- 2000L
 LAST_MAP_YEAR <- 2024L
 BAM_THREADS <- max(1L, min(8L, parallel::detectCores() - 2L))
 AGE5 <- c("0 months", "1-2 months", "3-11 months", "12-23 months", "24-59 months")
-# A finer banding requested on 2026-09-02: <1, 1-2, 3-11, 12-23, 24-35, 36-59 months.
-AGE6 <- c("<1 month", "1-2 months", "3-11 months", "12-23 months", "24-35 months",
-          "36-59 months")
+# AGE6 (split at 3 months) and AGE6B (split at 4 months) come from 00_config.R.
 
 bundle <- readRDS(MODEL_BUNDLE_RDS)
 year_center <- unique(bundle$year_center)[1]
@@ -124,11 +123,8 @@ model_data$age5 <- factor(ifelse(model_data$seg_lo == 0, AGE5[1],
                           ifelse(model_data$seg_lo < 3, AGE5[2],
                           ifelse(model_data$seg_lo < 12, AGE5[3],
                           ifelse(model_data$seg_lo < 24, AGE5[4], AGE5[5])))), levels = AGE5)
-model_data$age6 <- factor(ifelse(model_data$seg_lo == 0, AGE6[1],
-                          ifelse(model_data$seg_lo < 3, AGE6[2],
-                          ifelse(model_data$seg_lo < 12, AGE6[3],
-                          ifelse(model_data$seg_lo < 24, AGE6[4],
-                          ifelse(model_data$seg_lo < 36, AGE6[5], AGE6[6]))))), levels = AGE6)
+model_data$age6 <- band_from_segment(model_data$seg_lo, c(1, 3, 12, 24, 36), AGE6)
+model_data$age6b <- band_from_segment(model_data$seg_lo, c(1, 4, 12, 24, 36), AGE6B)
 model_data$country <- factor(model_data$iso3)
 model_data$survey <- factor(model_data$svkey)
 region_mean <- tapply(model_data$pfpr10, paste(model_data$svkey, model_data$regkey), mean)
@@ -256,8 +252,10 @@ message("\nPrimary grouping (four age groups)")
 primary <- run_grouping("four groups", "age_group")
 message("\nNeonatal month separated (five groups)")
 split5 <- run_grouping("neonatal split", "age5")
-message("\nSix bands")
+message("\nSix bands, split at 3 months")
 bands6 <- run_grouping("six bands", "age6")
+message("\nSix bands, split at 4 months")
+bands6b <- run_grouping("six bands (4-month split)", "age6b")
 
 ## ---- 5. the joint model with shared nuisance terms, for the record -----------------------
 message("\nJoint model with shared covariate effects and random effects")
@@ -279,7 +277,8 @@ joint_rows <- data.frame(
 ## ---- 6. tables -------------------------------------------------------------------------------
 collect <- function(field) rbind(do.call(rbind, primary[[field]]),
                                  do.call(rbind, split5[[field]]),
-                                 do.call(rbind, bands6[[field]]))
+                                 do.call(rbind, bands6[[field]]),
+                                 do.call(rbind, bands6b[[field]]))
 comparison <- collect("comparison"); effects <- collect("effects"); wb <- collect("wb")
 windows <- collect("windows"); sens <- rbind(collect("sens"), joint_rows)
 rownames(comparison) <- rownames(effects) <- rownames(wb) <- rownames(windows) <- rownames(sens) <- NULL
@@ -335,7 +334,7 @@ print(transform(sens, pct_per_10 = round(pct_per_10, 1), pct_lo = round(pct_lo, 
                 pct_hi = round(pct_hi, 1)), row.names = FALSE)
 
 ## ---- 7. figures ------------------------------------------------------------------------------
-show <- show[show$grouping != "six bands", ]
+show <- show[!grepl("^six bands", show$grouping), ]
 show$age_group <- factor(show$age_group, levels = c(AGE_GROUPS, AGE5))
 show$grouping <- factor(show$grouping, levels = c("four groups", "neonatal split"),
                         labels = c("Primary: four age groups", "Neonatal month separated"))
@@ -405,13 +404,19 @@ curves4 <- dose_response_figure(primary, "age_group", AGE_GROUPS,
 curves6 <- dose_response_figure(bands6, "age6", AGE6,
                                 file.path(RESULTS_DIR, "figure26_person_time_dose_response_six_bands.png"),
                                 "Dose-response by age band, smooth prevalence effect")
-write.csv(rbind(cbind(grouping = "four groups", curves4), cbind(grouping = "six bands", curves6)),
+curves6b <- dose_response_figure(bands6b, "age6b", AGE6B,
+                                 file.path(RESULTS_DIR, "figure28_person_time_dose_response_six_bands_4m.png"),
+                                 "Dose-response by age band (split at 4 months), smooth prevalence effect")
+write.csv(rbind(cbind(grouping = "four groups", curves4), cbind(grouping = "six bands", curves6),
+                cbind(grouping = "six bands (4-month split)", curves6b)),
           file.path(RESULTS_DIR, "person_time_dose_response_curves.csv"), row.names = FALSE)
 saveRDS(list(primary_fits = lapply(primary$fits, `[[`, "linear"),
              split_fits = lapply(split5$fits, `[[`, "linear"),
              bands6_fits = lapply(bands6$fits, `[[`, "linear"),
+             bands6b_fits = lapply(bands6b$fits, `[[`, "linear"),
              smooth_fits = lapply(primary$fits, `[[`, "smooth"),
              bands6_smooth_fits = lapply(bands6$fits, `[[`, "smooth"),
+             bands6b_smooth_fits = lapply(bands6b$fits, `[[`, "smooth"),
              joint = joint, year_center = year_center),
         file.path(DERIVED_DIR, "person_time_model_bundle.rds"))
 message("\nWrote person_time_model_data.csv, person_time_model_comparison.csv, ",

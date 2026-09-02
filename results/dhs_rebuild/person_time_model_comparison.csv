@@ -1,20 +1,20 @@
 "grouping","age_group","structure","label","edf","AIC","dAIC"
-"four groups","0-3 months","linear","Linear prevalence effect",97.9318743229032,39499.3840773319,2.95404611319827
-"four groups","0-3 months","smooth","Smooth prevalence effect",99.7333032277399,39496.4300312187,0
-"four groups","0-3 months","linear_time","Linear effect changing with calendar year",98.8550440964502,39500.7931464327,4.3631152139933
-"four groups","0-3 months","within_between","Between-region and within-region prevalence",98.8111005862873,39501.2673890223,4.83735780358984
-"four groups","3-12 months","linear","Linear prevalence effect",113.697434396267,32648.2315567767,8.81712256033643
-"four groups","3-12 months","smooth","Smooth prevalence effect",115.052938588525,32639.4144342164,0
-"four groups","3-12 months","linear_time","Linear effect changing with calendar year",114.553107291184,32649.8637656375,10.4493314210667
-"four groups","3-12 months","within_between","Between-region and within-region prevalence",114.769306582005,32647.3874982066,7.97306399020817
+"four groups","0-3 months","linear","Linear prevalence effect",97.9318743229019,39499.3840773318,2.95404611316917
+"four groups","0-3 months","smooth","Smooth prevalence effect",99.7333032277383,39496.4300312186,0
+"four groups","0-3 months","linear_time","Linear effect changing with calendar year",98.855044096446,39500.7931464328,4.36311521413882
+"four groups","0-3 months","within_between","Between-region and within-region prevalence",98.8111005862867,39501.2673890223,4.83735780364077
+"four groups","3-12 months","linear","Linear prevalence effect",114.333039711156,39264.451102041,8.96732663066359
+"four groups","3-12 months","smooth","Smooth prevalence effect",115.690576449006,39255.4837754104,0
+"four groups","3-12 months","linear_time","Linear effect changing with calendar year",115.213847987697,39265.9974239254,10.513648515036
+"four groups","3-12 months","within_between","Between-region and within-region prevalence",115.39830231841,39263.5661687321,8.08239332171797
 "four groups","1-2 years","linear","Linear prevalence effect",110.765476898183,18133.4667710476,44.8955157252967
 "four groups","1-2 years","smooth","Smooth prevalence effect",113.109342276542,18088.5712553223,0
 "four groups","1-2 years","linear_time","Linear effect changing with calendar year",111.614055966101,18135.2132149106,46.6419595882871
 "four groups","1-2 years","within_between","Between-region and within-region prevalence",111.639813119705,18132.5748063761,44.0035510538619
-"four groups","2-5 years","linear","Linear prevalence effect",112.606353676653,40374.0383019943,102.837480801849
-"four groups","2-5 years","smooth","Smooth prevalence effect",113.697683114787,40271.2008211924,0
-"four groups","2-5 years","linear_time","Linear effect changing with calendar year",109.948468663491,40367.9496225648,96.7488013723705
-"four groups","2-5 years","within_between","Between-region and within-region prevalence",113.611866863281,40373.4116005872,102.210779394816
+"four groups","2-5 years","linear","Linear prevalence effect",112.606353676656,40374.0383019942,102.837480801674
+"four groups","2-5 years","smooth","Smooth prevalence effect",113.697683114783,40271.2008211925,0
+"four groups","2-5 years","linear_time","Linear effect changing with calendar year",109.948468663489,40367.9496225647,96.7488013721595
+"four groups","2-5 years","within_between","Between-region and within-region prevalence",113.611866863275,40373.4116005872,102.210779394678
 "neonatal split","0 months","linear","Linear prevalence effect",102.10235534558,24418.3277939023,4.28873020607716
 "neonatal split","0 months","smooth","Smooth prevalence effect",103.968072139399,24414.0390636962,0
 "neonatal split","0 months","linear_time","Linear effect changing with calendar year",102.911428317638,24419.7030867046,5.66402300839036
@@ -23,18 +23,18 @@
 "neonatal split","1-2 months","smooth","Smooth prevalence effect",75.1952809212079,14701.93321441,3.12586888644364
 "neonatal split","1-2 months","linear_time","Linear effect changing with calendar year",73.6690808081432,14701.0021513265,2.19480580289746
 "neonatal split","1-2 months","within_between","Between-region and within-region prevalence",76.2211632317697,14699.7084843039,0.901138780260226
-"neonatal split","3-11 months","linear","Linear prevalence effect",113.697434396267,32648.2315567767,8.81712256033643
-"neonatal split","3-11 months","smooth","Smooth prevalence effect",115.052938588525,32639.4144342164,0
-"neonatal split","3-11 months","linear_time","Linear effect changing with calendar year",114.553107291184,32649.8637656375,10.4493314210667
-"neonatal split","3-11 months","within_between","Between-region and within-region prevalence",114.769306582005,32647.3874982066,7.97306399020817
+"neonatal split","3-11 months","linear","Linear prevalence effect",114.333039711156,39264.451102041,8.96732663066359
+"neonatal split","3-11 months","smooth","Smooth prevalence effect",115.690576449006,39255.4837754104,0
+"neonatal split","3-11 months","linear_time","Linear effect changing with calendar year",115.213847987697,39265.9974239254,10.513648515036
+"neonatal split","3-11 months","within_between","Between-region and within-region prevalence",115.39830231841,39263.5661687321,8.08239332171797
 "neonatal split","12-23 months","linear","Linear prevalence effect",110.765476898183,18133.4667710476,44.8955157252967
 "neonatal split","12-23 months","smooth","Smooth prevalence effect",113.109342276542,18088.5712553223,0
 "neonatal split","12-23 months","linear_time","Linear effect changing with calendar year",111.614055966101,18135.2132149106,46.6419595882871
 "neonatal split","12-23 months","within_between","Between-region and within-region prevalence",111.639813119705,18132.5748063761,44.0035510538619
-"neonatal split","24-59 months","linear","Linear prevalence effect",112.606353676653,40374.0383019943,102.837480801849
-"neonatal split","24-59 months","smooth","Smooth prevalence effect",113.697683114787,40271.2008211924,0
-"neonatal split","24-59 months","linear_time","Linear effect changing with calendar year",109.948468663491,40367.9496225648,96.7488013723705
-"neonatal split","24-59 months","within_between","Between-region and within-region prevalence",113.611866863281,40373.4116005872,102.210779394816
+"neonatal split","24-59 months","linear","Linear prevalence effect",112.606353676656,40374.0383019942,102.837480801674
+"neonatal split","24-59 months","smooth","Smooth prevalence effect",113.697683114783,40271.2008211925,0
+"neonatal split","24-59 months","linear_time","Linear effect changing with calendar year",109.948468663489,40367.9496225647,96.7488013721595
+"neonatal split","24-59 months","within_between","Between-region and within-region prevalence",113.611866863275,40373.4116005872,102.210779394678
 "six bands","<1 month","linear","Linear prevalence effect",102.10235534558,24418.3277939023,4.28873020607716
 "six bands","<1 month","smooth","Smooth prevalence effect",103.968072139399,24414.0390636962,0
 "six bands","<1 month","linear_time","Linear effect changing with calendar year",102.911428317638,24419.7030867046,5.66402300839036
@@ -43,10 +43,10 @@
 "six bands","1-2 months","smooth","Smooth prevalence effect",75.1952809212079,14701.93321441,3.12586888644364
 "six bands","1-2 months","linear_time","Linear effect changing with calendar year",73.6690808081432,14701.0021513265,2.19480580289746
 "six bands","1-2 months","within_between","Between-region and within-region prevalence",76.2211632317697,14699.7084843039,0.901138780260226
-"six bands","3-11 months","linear","Linear prevalence effect",113.697434396267,32648.2315567767,8.81712256033643
-"six bands","3-11 months","smooth","Smooth prevalence effect",115.052938588525,32639.4144342164,0
-"six bands","3-11 months","linear_time","Linear effect changing with calendar year",114.553107291184,32649.8637656375,10.4493314210667
-"six bands","3-11 months","within_between","Between-region and within-region prevalence",114.769306582005,32647.3874982066,7.97306399020817
+"six bands","3-11 months","linear","Linear prevalence effect",114.333039711156,39264.451102041,8.96732663066359
+"six bands","3-11 months","smooth","Smooth prevalence effect",115.690576449006,39255.4837754104,0
+"six bands","3-11 months","linear_time","Linear effect changing with calendar year",115.213847987697,39265.9974239254,10.513648515036
+"six bands","3-11 months","within_between","Between-region and within-region prevalence",115.39830231841,39263.5661687321,8.08239332171797
 "six bands","12-23 months","linear","Linear prevalence effect",110.765476898183,18133.4667710476,44.8955157252967
 "six bands","12-23 months","smooth","Smooth prevalence effect",113.109342276542,18088.5712553223,0
 "six bands","12-23 months","linear_time","Linear effect changing with calendar year",111.614055966101,18135.2132149106,46.6419595882871
@@ -55,7 +55,31 @@
 "six bands","24-35 months","smooth","Smooth prevalence effect",97.9977396934549,16088.5219106147,0
 "six bands","24-35 months","linear_time","Linear effect changing with calendar year",95.616857731009,16159.5709969532,71.0490863384894
 "six bands","24-35 months","within_between","Between-region and within-region prevalence",97.2859357963737,16160.4133833603,71.8914727455485
-"six bands","36-59 months","linear","Linear prevalence effect",99.6023112042956,24163.3349051395,38.7917316204548
-"six bands","36-59 months","smooth","Smooth prevalence effect",99.8395149332929,24124.543173519,0
-"six bands","36-59 months","linear_time","Linear effect changing with calendar year",95.2596873748834,24155.5956081287,31.0524346096208
-"six bands","36-59 months","within_between","Between-region and within-region prevalence",100.593618080019,24163.4154218071,38.8722482880476
+"six bands","36-59 months","linear","Linear prevalence effect",99.6023112042957,24163.3349051395,38.7917316204221
+"six bands","36-59 months","smooth","Smooth prevalence effect",99.839514933299,24124.5431735191,0
+"six bands","36-59 months","linear_time","Linear effect changing with calendar year",95.2596873748829,24155.5956081287,31.0524346095917
+"six bands","36-59 months","within_between","Between-region and within-region prevalence",100.593618080018,24163.4154218071,38.8722482880657
+"six bands (4-month split)","<1 month","linear","Linear prevalence effect",102.10235534558,24418.3277939023,4.28873020607716
+"six bands (4-month split)","<1 month","smooth","Smooth prevalence effect",103.968072139399,24414.0390636962,0
+"six bands (4-month split)","<1 month","linear_time","Linear effect changing with calendar year",102.911428317638,24419.7030867046,5.66402300839036
+"six bands (4-month split)","<1 month","within_between","Between-region and within-region prevalence",103.040663828235,24420.4091276577,6.37006396143261
+"six bands (4-month split)","1-3 months","linear","Linear prevalence effect",87.4907572566049,24683.0220824968,0
+"six bands (4-month split)","1-3 months","smooth","Smooth prevalence effect",88.1913246867131,24683.4294283331,0.407345836381865
+"six bands (4-month split)","1-3 months","linear_time","Linear effect changing with calendar year",88.428933600002,24684.7874998716,1.76541737483058
+"six bands (4-month split)","1-3 months","within_between","Between-region and within-region prevalence",88.4791020842376,24684.6664194909,1.64433699414076
+"six bands (4-month split)","4-11 months","linear","Linear prevalence effect",112.038865981408,29263.4379918001,6.12014557862858
+"six bands (4-month split)","4-11 months","smooth","Smooth prevalence effect",113.089854615324,29257.3178462214,0
+"six bands (4-month split)","4-11 months","linear_time","Linear effect changing with calendar year",112.768210375665,29265.4230620984,8.10521587699623
+"six bands (4-month split)","4-11 months","within_between","Between-region and within-region prevalence",113.112274965232,29260.5553328742,3.23748665279709
+"six bands (4-month split)","12-23 months","linear","Linear prevalence effect",110.765476898183,18133.4667710476,44.8955157252967
+"six bands (4-month split)","12-23 months","smooth","Smooth prevalence effect",113.109342276542,18088.5712553223,0
+"six bands (4-month split)","12-23 months","linear_time","Linear effect changing with calendar year",111.614055966101,18135.2132149106,46.6419595882871
+"six bands (4-month split)","12-23 months","within_between","Between-region and within-region prevalence",111.639813119705,18132.5748063761,44.0035510538619
+"six bands (4-month split)","24-35 months","linear","Linear prevalence effect",96.3022509441735,16158.6341009777,70.1121903629391
+"six bands (4-month split)","24-35 months","smooth","Smooth prevalence effect",97.9977396934549,16088.5219106147,0
+"six bands (4-month split)","24-35 months","linear_time","Linear effect changing with calendar year",95.616857731009,16159.5709969532,71.0490863384894
+"six bands (4-month split)","24-35 months","within_between","Between-region and within-region prevalence",97.2859357963737,16160.4133833603,71.8914727455485
+"six bands (4-month split)","36-59 months","linear","Linear prevalence effect",99.6023112042957,24163.3349051395,38.7917316204221
+"six bands (4-month split)","36-59 months","smooth","Smooth prevalence effect",99.839514933299,24124.5431735191,0
+"six bands (4-month split)","36-59 months","linear_time","Linear effect changing with calendar year",95.2596873748829,24155.5956081287,31.0524346095917
+"six bands (4-month split)","36-59 months","within_between","Between-region and within-region prevalence",100.593618080018,24163.4154218071,38.8722482880657

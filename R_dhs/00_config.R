@@ -1117,10 +1117,25 @@ brms_outcome <- function() {
 # and by the person-time build in 40_build_person_time.R.
 UNDER5_SEGMENTS <- list(c(0, 1), c(1, 3), c(3, 6), c(6, 12),
                         c(12, 24), c(24, 36), c(36, 48), c(48, 60))
+# The person-time build (script 40) uses the same segments with 3-5 months split
+# at 4, so that a band boundary at four months (maternal antibody protection
+# waning) is available. Every grouping below is a union of whole segments.
+PERSON_TIME_SEGMENTS <- list(c(0, 1), c(1, 3), c(3, 4), c(4, 6), c(6, 12),
+                             c(12, 24), c(24, 36), c(36, 48), c(48, 60))
 # The four age groups the prevalence effect is allowed to differ across in the
-# person-time model: 0-3 months, 3-12 months, 1-2 years, 2-5 years. Each is a
-# union of whole segments above.
+# person-time model: 0-3 months, 3-12 months, 1-2 years, 2-5 years.
 AGE_GROUPS <- c("0-3 months", "3-12 months", "1-2 years", "2-5 years")
+# Two six-band labellings requested on 2026-09-02: the first splits at 3 months,
+# the second at 4.
+AGE6 <- c("<1 month", "1-2 months", "3-11 months", "12-23 months", "24-35 months",
+          "36-59 months")
+AGE6B <- c("<1 month", "1-3 months", "4-11 months", "12-23 months", "24-35 months",
+           "36-59 months")
+band_from_segment <- function(lower, cuts, labels) {
+  # cuts are the lower bounds of bands 2..k; a segment belongs to the last band
+  # whose lower bound it reaches
+  factor(labels[1 + findInterval(lower, cuts)], levels = labels)
+}
 segment_age_group <- function(lower) {
   factor(ifelse(lower < 3, AGE_GROUPS[1],
          ifelse(lower < 12, AGE_GROUPS[2],

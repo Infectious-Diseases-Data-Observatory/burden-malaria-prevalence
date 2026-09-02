@@ -4,7 +4,7 @@
 # The person-time design. For every child in a Births Recode, the 60 months
 # before that child's own interview are cut into five 12-month windows (window 1
 # ends at the interview) and the child's life into DHS.rates' eight age
-# segments. A child contributes person-months to each (window, segment) cell its
+# segments with 3-5 months split at 4 (PERSON_TIME_SEGMENTS in 00_config.R). A child contributes person-months to each (window, segment) cell its
 # age and calendar time pass through, censored at the interview month or the
 # month of death, and one death to the cell in which it died. Sums are weighted
 # by the sampling weight and taken to region x window x segment, with cluster
@@ -36,7 +36,8 @@ required_packages("DHS.rates")
 
 N_WINDOWS <- 5L
 WINDOW_MONTHS <- 12L
-CACHE <- file.path(DATA_DIR, "person_time_cache")
+# Cache keyed by the segment count so a change of segmentation forces a rebuild.
+CACHE <- file.path(DATA_DIR, sprintf("person_time_cache_%dseg", length(PERSON_TIME_SEGMENTS)))
 dir.create(CACHE, showWarnings = FALSE, recursive = TRUE)
 PERSON_TIME_CSV <- file.path(DERIVED_DIR, "person_time_region_window_segment.csv")
 YEAR_SHARE_CSV <- file.path(DERIVED_DIR, "person_time_window_year_shares.csv")
@@ -81,9 +82,9 @@ person_time_survey <- function(br, region, cmc_offset = 0L) {
     lo <- hi - WINDOW_MONTHS
     window_deaths_any <- !is.na(death_month) & death_month >= lo & death_month < hi &
       death_month < v008
-    for (s in seq_along(UNDER5_SEGMENTS)) {
-      seg_lo <- UNDER5_SEGMENTS[[s]][1]
-      seg_hi <- UNDER5_SEGMENTS[[s]][2]
+    for (s in seq_along(PERSON_TIME_SEGMENTS)) {
+      seg_lo <- PERSON_TIME_SEGMENTS[[s]][1]
+      seg_hi <- PERSON_TIME_SEGMENTS[[s]][2]
       start <- pmax(b3 + seg_lo, lo)
       stop <- pmin(b3 + seg_hi, hi, end)
       months <- pmax(0L, stop - start)
