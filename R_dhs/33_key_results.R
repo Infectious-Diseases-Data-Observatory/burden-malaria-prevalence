@@ -68,7 +68,16 @@ key_figures <- rbind(
                "in the DHS/MIS surveys that tested children 6-59 months (RDT,",
                "or microscopy where available, converted to a",
                "microscopy-equivalent and age-standardised to 2-10 years), by",
-               "era of fieldwork."))
+               "era of fieldwork.")),
+  figure("figure18_brms_ladder_kfold.png",
+         "model_structure_kfold_by_survey.png",
+         "35_brms_ladder_kfold.R",
+         paste("Survey-grouped 10-fold cross-validation of how prevalence and",
+               "calendar time enter the post-neonatal model: additive",
+               "s(pfpr10) + s(year_c), the curve shifting linearly in time, and",
+               "the full t2 surface. One point per held-out survey, showing",
+               "its log predictive density relative to the additive model;",
+               "totals, standard errors and stacking weights in the subtitle."))
 )
 
 key_figures$source_path <- file.path(RESULTS_DIR, key_figures$source)
