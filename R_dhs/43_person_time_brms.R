@@ -28,7 +28,10 @@ required_packages(c("brms", "ggplot2"))
 CHAINS <- 4L
 ITERATIONS <- 2000L
 WARMUP <- 1000L
-ADAPT_DELTA <- 0.95
+# adapt_delta by band: the 4-11 month band had 90 divergent transitions at
+# 0.95 (the others 2-31), so it takes a smaller step size; the rest keep 0.95
+ADAPT_DELTA <- c(default = 0.95, "4-11 months" = 0.99)
+adapt_delta_for <- function(band) if (band %in% names(ADAPT_DELTA)) ADAPT_DELTA[[band]] else ADAPT_DELTA[["default"]]
 ANCHORS <- c(10, 30, 50)
 BANDS <- AGE6B
 CACHE <- file.path(DATA_DIR, "person_time_brms_cache")
@@ -65,19 +68,19 @@ fit_band <- function(band) {
              "offset(log_pm)")
   formula <- paste("deaths_eff ~", paste(terms, collapse = " + "))
   fingerprint <- list(rows = nrow(data), deaths = sum(data$deaths_eff), formula = formula,
-                      chains = CHAINS, iterations = ITERATIONS, adapt_delta = ADAPT_DELTA)
+                      chains = CHAINS, iterations = ITERATIONS, adapt_delta = adapt_delta_for(band))
   stem <- file.path(CACHE, make.names(band))
   if (file.exists(paste0(stem, ".rds")) && file.exists(paste0(stem, "_meta.rds")) &&
       isTRUE(all.equal(readRDS(paste0(stem, "_meta.rds")), fingerprint))) {
     message("  ", band, ": reusing cached fit")
     return(list(fit = readRDS(paste0(stem, ".rds")), data = data))
   }
-  message("  ", band, ": sampling (", nrow(data), " cells)")
+  message("  ", band, ": sampling (", nrow(data), " cells, adapt_delta ", adapt_delta_for(band), ")")
   started <- Sys.time()
   fit <- brms::brm(brms::bf(formula), data = data, family = brms::negbinomial(),
                    prior = priors, chains = CHAINS, iter = ITERATIONS, warmup = WARMUP,
                    cores = min(CHAINS, max(1L, parallel::detectCores() - 1L)),
-                   control = list(adapt_delta = ADAPT_DELTA, max_treedepth = 12),
+                   control = list(adapt_delta = adapt_delta_for(band), max_treedepth = 12),
                    seed = 20260828, refresh = 200)
   message("  ", band, ": done in ",
           round(as.numeric(difftime(Sys.time(), started, units = "mins")), 1), " minutes")
@@ -113,7 +116,7 @@ for (band in BANDS) {
   s <- posterior::summarise_draws(posterior::as_draws_df(fit))
   key <- s[grepl("^b_|^bs_|^sds_|^sd_|^shape", s$variable), ]
   nuts <- brms::nuts_params(fit)
-  row <- data.frame(age_band = band, cells = nrow(fit$data),
+  row <- data.frame(age_band = band, cells = nrow(fit$data), adapt_delta = adapt_delta_for(band),
                     divergent = sum(nuts$Parameter == "divergent__" & nuts$Value > 0),
                     max_rhat = max(key$rhat, na.rm = TRUE),
                     min_bulk_ess = min(key$ess_bulk, na.rm = TRUE), stringsAsFactors = FALSE)
@@ -133,7 +136,7 @@ message(sprintf("\nPosterior attributable fraction (%%) against %d%% prevalence:
 fmt <- function(m, lo, hi) sprintf("%.1f (%.1f-%.1f)", 100 * m, 100 * lo, 100 * hi)
 print(transform(effects, af10 = fmt(af10, af10_lo, af10_hi), af30 = fmt(af30, af30_lo, af30_hi),
                 af50 = fmt(af50, af50_lo, af50_hi), max_rhat = round(max_rhat, 3))[
-                  , c("age_band", "af10", "af30", "af50", "prob_positive30", "divergent", "max_rhat", "min_bulk_ess")],
+                  , c("age_band", "af10", "af30", "af50", "prob_positive30", "adapt_delta", "divergent", "max_rhat", "min_bulk_ess")],
       row.names = FALSE)
 
 ## ---- against mgcv --------------------------------------------------------------------------
