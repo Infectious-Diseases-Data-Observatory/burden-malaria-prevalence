@@ -10,7 +10,7 @@
 #   malaria deaths(r, a, y) = AF_a(PfPR_r(y)) x share(r, a) x D_a(y)
 #
 #   AF_a(p)     attributable fraction from band a's smooth dose-response (script
-#               42), 1 - 1/HR against the 1% reference, floored at zero
+#               42), 1 - 1/HR against the 0% reference, floored at zero
 #   PfPR_r(y)   population-weighted MAP PfPR2-10 for the region in year y
 #   share(r, a) the region's share of the country's deaths in band a in the
 #               latest survey (weighted, five windows), held fixed over time
@@ -143,7 +143,7 @@ af_draws <- function(fit, prevalence, band_data) {
     out
   }
   Xh <- predict(fit, frame(prevalence), type = "lpmatrix", discrete = FALSE)
-  Xl <- predict(fit, frame(rep(AF_REFERENCE, length(prevalence))), type = "lpmatrix", discrete = FALSE)
+  Xl <- predict(fit, frame(rep(PERSON_TIME_AF_REFERENCE, length(prevalence))), type = "lpmatrix", discrete = FALSE)
   re <- grep("^s\\(country\\)|^s\\(survey\\)", colnames(Xh))
   Xh[, re] <- 0; Xl[, re] <- 0
   dX <- Xh - Xl

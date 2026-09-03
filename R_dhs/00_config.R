@@ -59,6 +59,13 @@ ERA_EARLY <- paste("before", ERA_CUT)
 ERA_LATE <- paste(ERA_CUT, "onwards")
 
 AF_REFERENCE   <- 1
+# The person-time analysis (scripts 40-50) keeps every region whatever its
+# prevalence, so its attributable fractions are measured against 0% rather than
+# the 1% floor the region-level pipeline applies. Its dose-response is also
+# reported only as curves and attributable fractions at fixed prevalences: the
+# response saturates above roughly 30%, so a single "% per 10 points" slope is
+# not interpretable and is no longer produced.
+PERSON_TIME_AF_REFERENCE <- 0
 
 MAP_DATASET_ID <- "Malaria__202508_Global_Pf_Parasite_Rate"
 MAP_AFRICA_EXTENT <- matrix(c(-18, -35, 52, 38), nrow = 2)

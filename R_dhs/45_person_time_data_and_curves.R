@@ -8,7 +8,7 @@
 # neonatal rate is an order of magnitude above the rest; point size is the
 # child-years behind the rate, and each panel states the band's total deaths and
 # share of all under-5 deaths. Bottom row: the smooth prevalence effect per
-# band from script 42 (hazard ratio against 1% prevalence). Both rows read
+# band from script 42 (hazard ratio against 0% prevalence). Both rows read
 # script 42's outputs; nothing is refitted here.
 #
 # Outputs
@@ -69,7 +69,7 @@ bottom <- ggplot2::ggplot(curves, ggplot2::aes(pfpr, hr)) +
   ggplot2::scale_x_continuous(limits = c(0, 60)) +
   ggplot2::scale_y_log10() +
   ggplot2::labs(x = "MAP PfPR2-10 (%)",
-                y = "Mortality hazard ratio\nversus 1% prevalence (log scale)",
+                y = sprintf("Mortality hazard ratio\nversus %d%% prevalence (log scale)", PERSON_TIME_AF_REFERENCE),
                 title = "Fitted dose-response, one negative-binomial model per band",
                 subtitle = "Smooth prevalence effect with segment, window, calendar-year, covariate, country and survey terms; 95% CIs") +
   ggplot2::theme_minimal(base_size = 10) +

@@ -24,8 +24,8 @@ bundle <- readRDS(file.path(DERIVED_DIR, "person_time_model_bundle.rds"))
 labels <- read.csv(file.path(RESULTS_DIR, "ridge_covariate_effects.csv"),
                    stringsAsFactors = FALSE)[, c("variable", "label", "level")]
 
-rows <- lapply(names(bundle$bands6b_fits), function(band) {
-  fit <- bundle$bands6b_fits[[band]]
+rows <- lapply(names(bundle$bands6b_smooth_fits), function(band) {
+  fit <- bundle$bands6b_smooth_fits[[band]]
   b <- coef(fit); v <- diag(vcov(fit))
   idx <- grep("^G", names(b))
   data.frame(age_band = band, variable = sub("^G", "", names(b)[idx]),

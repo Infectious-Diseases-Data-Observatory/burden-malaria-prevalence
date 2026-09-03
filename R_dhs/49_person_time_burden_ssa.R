@@ -226,7 +226,7 @@ af_draws <- function(band, prevalence) {
     out
   }
   Xh <- predict(fit, frame(prevalence), type = "lpmatrix", discrete = FALSE)
-  Xl <- predict(fit, frame(rep(AF_REFERENCE, length(prevalence))), type = "lpmatrix", discrete = FALSE)
+  Xl <- predict(fit, frame(rep(PERSON_TIME_AF_REFERENCE, length(prevalence))), type = "lpmatrix", discrete = FALSE)
   re <- grep("^s\\(country\\)|^s\\(survey\\)", colnames(Xh))
   Xh[, re] <- 0; Xl[, re] <- 0
   pmax(1 - exp(-(band_draws[[band]] %*% t(Xh - Xl))), 0)

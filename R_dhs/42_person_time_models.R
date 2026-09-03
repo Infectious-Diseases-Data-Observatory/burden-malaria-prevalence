@@ -4,53 +4,57 @@
 #
 # Rows are region x 12-month window x DHS age segment (script 40). Each window is
 # paired with the person-time-weighted average of the annual MAP surfaces for
-# the calendar years it spans (script 41). Within an age group the model is a
+# the calendar years it spans (script 41). Within an age band the model is a
 # negative-binomial regression on deaths with log person-time as the offset:
 #
 #   log E[deaths] = log(person-months) + segment + window index
-#                 + PfPR + s(calendar year) + ridge covariate block
+#                 + s(PfPR) + s(calendar year) + ridge covariate block
 #                 + country intercept + survey intercept
 #
-# One model per age group. A single joint model with age-specific prevalence
-# slopes but SHARED covariate effects and random effects gave a strongly
-# negative neonatal slope (-6% per 10 points) while the neonatal month on its
-# own gives a null one: the shared regional level is calibrated to the older
-# ages, where mortality rises with prevalence, and the neonatal slope is pushed
-# down to compensate. Fitting each age group separately lets every nuisance term
-# differ by age and is the fully interacted version of "PfPR x age". The joint
-# model is kept as a sensitivity row so the artefact is on record.
+# One model per age band, with a smooth prevalence effect. The dose-response is
+# not linear: it rises steeply to about 30% prevalence and flattens above, so a
+# single "% change per 10 points" is not an interpretable summary and is not
+# produced. Each band's effect is reported as the hazard-ratio curve against 0%
+# prevalence and as the attributable fraction 1 - 1/HR at 10, 30 and 50%.
+# Every region is kept whatever its prevalence, which is why the reference is
+# 0% (PERSON_TIME_AF_REFERENCE) and not the 1% floor of the region-level
+# pipeline.
+#
+# Why one model per band. A single joint model with age-specific prevalence
+# effects but SHARED covariate effects and random effects gave a strongly
+# negative neonatal effect while the neonatal month on its own gives a null
+# one: the shared regional level is calibrated to the older ages, where
+# mortality rises with prevalence, and the neonatal effect is pushed down to
+# compensate. Fitting each band separately lets every nuisance term differ by
+# age and is the fully interacted version of "PfPR x age". Script 47 fits the
+# joint model with band-specific nuisance terms as a check.
 #
 # Counts. Weighted deaths are not integers, so each cell's count is the
 # design-weighted rate applied to the UNWEIGHTED person-months, rounded:
 # deaths_eff = round(deaths_w / pm_w x pm_n), with pm_n as the offset. The rate
 # is the weighted one; the information content is the person-months observed.
 #
-# Choices fixed by the analysis plan: prevalence effects by age group (0-3
-# months, 3-12 months, 1-2 years, 2-5 years); every region kept whatever its
-# prevalence; regional DHS covariates as survey-level constants (the national
-# series too, for now). The neonatal month is also separated out, because the
-# negative-control logic applies to it and not to months 1-2. Windows centred
-# before 2000 have no MAP surface and are dropped; windows straddling 1999/2000
-# or 2024/2025 borrow the nearest surface for that share.
+# Groupings: the analysis plan's four age groups (0-3 months, 3-12 months, 1-2
+# years, 2-5 years), the neonatal month separated (five groups), and two
+# six-band splits (<1, 1-2, 3-11 | <1, 1-3, 4-11, then 12-23, 24-35, 36-59
+# months). The 4-month split is the main presentation. Windows centred before
+# 2000 have no MAP surface and are dropped; windows straddling 1999/2000 or
+# 2024/2025 borrow the nearest surface for that share.
 #
 # Fits use mgcv::bam with discretised covariates (a plain gam took eight minutes
-# per fit; bam takes a second and reproduces it to four decimals). fREML is the
-# only criterion discretisation supports, so the within-group ladders are
-# compared by mgcv's AIC under fREML.
+# per fit; bam takes a second and reproduces it to four decimals).
 #
 # Outputs (results/dhs_rebuild)
 #   person_time_model_data.csv        the modelling table
-#   person_time_model_comparison.csv  AIC ladder within each age group
-#   person_time_effects.csv           hazard ratios and attributable fractions by age group
-#   person_time_within_between.csv    between-region against within-region prevalence effects
+#   person_time_effects.csv           attributable fractions at 10/30/50% by age group, all groupings
 #   person_time_window_effects.csv    recall (window index) effects by age group
-#   person_time_sensitivity.csv       windows 1-4; window 1 only; lag-1 prevalence; Poisson;
-#                                     no survey intercept; joint model with shared nuisance terms
-#   figure22_person_time_age_effects.png
-#   figure23_person_time_dose_response.png              four primary groups
-#   figure26_person_time_dose_response_six_bands.png    <1, 1-2, 3-11, 12-23, 24-35, 36-59 months
-#   figure28_person_time_dose_response_six_bands_4m.png <1, 1-3, 4-11, 12-23, 24-35, 36-59 months
-#   person_time_dose_response_curves.csv
+#   person_time_sensitivity.csv       AF at 10/30/50% under: windows 1-4; window 1 only;
+#                                     lag-1 prevalence; Poisson; no survey intercept
+#   person_time_dose_response_curves.csv  hazard ratio against 0% on a prevalence grid
+#   figure22_person_time_age_effects.png                 AF at 10/30/50% by age group
+#   figure23_person_time_dose_response.png               four primary groups
+#   figure26_person_time_dose_response_six_bands.png     <1, 1-2, 3-11, 12-23, 24-35, 36-59 months
+#   figure28_person_time_dose_response_six_bands_4m.png  <1, 1-3, 4-11, 12-23, 24-35, 36-59 months
 # =============================================================================
 
 source("R_dhs/00_config.R")
@@ -61,11 +65,13 @@ YEAR_SHARE_CSV <- file.path(DERIVED_DIR, "person_time_window_year_shares.csv")
 MAP_WINDOW_CSV <- file.path(DERIVED_DIR, "map_pfpr_window_years.csv")
 MODEL_DATA_CSV <- file.path(RESULTS_DIR, "person_time_model_data.csv")
 ANCHORS <- c(10, 30, 50)
+GRID <- seq(0, 80, by = 1)
 FIRST_MAP_YEAR <- 2000L
 LAST_MAP_YEAR <- 2024L
 BAM_THREADS <- max(1L, min(8L, parallel::detectCores() - 2L))
 AGE5 <- c("0 months", "1-2 months", "3-11 months", "12-23 months", "24-59 months")
 # AGE6 (split at 3 months) and AGE6B (split at 4 months) come from 00_config.R.
+PREVALENCE_TERM <- "s(pfpr10, k = 5)"
 
 bundle <- readRDS(MODEL_BUNDLE_RDS)
 year_center <- unique(bundle$year_center)[1]
@@ -127,6 +133,8 @@ model_data$age6 <- band_from_segment(model_data$seg_lo, c(1, 3, 12, 24, 36), AGE
 model_data$age6b <- band_from_segment(model_data$seg_lo, c(1, 4, 12, 24, 36), AGE6B)
 model_data$country <- factor(model_data$iso3)
 model_data$survey <- factor(model_data$svkey)
+# descriptive only: how much of the prevalence variation is within a region over
+# its five windows against between regions
 region_mean <- tapply(model_data$pfpr10, paste(model_data$svkey, model_data$regkey), mean)
 model_data$pfpr10_between <- as.numeric(region_mean[paste(model_data$svkey, model_data$regkey)])
 model_data$pfpr10_within <- model_data$pfpr10 - model_data$pfpr10_between
@@ -148,7 +156,7 @@ message("Prevalence across region-windows: ", paste(round(range(pairing$pfpr), 1
         round(10 * stats::sd(model_data$pfpr10_between), 1))
 
 ## ---- 3. fitting helpers ------------------------------------------------------------------
-fit_group <- function(data, terms, family = mgcv::nb(), survey_re = TRUE) {
+fit_group <- function(data, terms = PREVALENCE_TERM, family = mgcv::nb(), survey_re = TRUE) {
   data$segment_f <- droplevels(factor(data$segment))
   parts <- c(terms,
              if (nlevels(data$segment_f) > 1) "segment_f",
@@ -160,67 +168,62 @@ fit_group <- function(data, terms, family = mgcv::nb(), survey_re = TRUE) {
   mgcv::bam(f, family = family, method = "fREML", paraPen = penalty, data = data,
             discrete = TRUE, nthreads = BAM_THREADS)
 }
-slope <- function(fit, term = "pfpr10") {
-  tab <- summary(fit)$p.table
-  c(beta = tab[term, "Estimate"], se = tab[term, "Std. Error"], p = tab[term, 4])
+
+# log hazard ratio of prevalence p against the reference, with its standard
+# error, for an average cell: first segment of the band, first window, calendar
+# year at the centre, covariates at their means, random effects at zero
+log_hazard_ratio <- function(fit, data, p, variable = "pfpr10") {
+  segment_levels <- levels(droplevels(factor(data$segment)))
+  frame <- function(values) {
+    out <- data.frame(segment_f = factor(segment_levels[1], levels = segment_levels),
+                      window_f = factor("1", levels = levels(model_data$window_f)),
+                      year_c = 0, log_pm = 0,
+                      country = factor(levels(model_data$country)[1], levels = levels(model_data$country)),
+                      survey = factor(levels(model_data$survey)[1], levels = levels(model_data$survey)))
+    out <- out[rep(1, length(values)), , drop = FALSE]
+    out[[variable]] <- values / 10
+    out$G <- matrix(0, nrow(out), ncol(model_data$G), dimnames = list(NULL, colnames(model_data$G)))
+    out
+  }
+  Xh <- predict(fit, frame(p), type = "lpmatrix", discrete = FALSE)
+  Xl <- predict(fit, frame(rep(PERSON_TIME_AF_REFERENCE, length(p))), type = "lpmatrix", discrete = FALSE)
+  re <- grep("^s\\(country\\)|^s\\(survey\\)", colnames(Xh))
+  Xh[, re] <- 0; Xl[, re] <- 0
+  dX <- Xh - Xl
+  data.frame(pfpr = p, est = as.numeric(dX %*% coef(fit)),
+             se = sqrt(rowSums((dX %*% vcov(fit)) * dX)))
 }
-pct <- function(b) 100 * (exp(b) - 1)
-af <- function(beta, prevalence) 1 - exp(-beta * (prevalence - AF_REFERENCE) / 10)
+# attributable fraction 1 - 1/HR at the anchor prevalences, interval from the
+# log hazard ratio
+anchor_row <- function(fit, data, variable = "pfpr10") {
+  lhr <- log_hazard_ratio(fit, data, ANCHORS, variable)
+  row <- data.frame(row.names = NULL)
+  for (i in seq_along(ANCHORS)) {
+    p <- ANCHORS[i]
+    row[1, paste0("af", p)] <- 1 - exp(-lhr$est[i])
+    row[1, paste0("af", p, "_lo")] <- 1 - exp(-(lhr$est[i] - 1.96 * lhr$se[i]))
+    row[1, paste0("af", p, "_hi")] <- 1 - exp(-(lhr$est[i] + 1.96 * lhr$se[i]))
+  }
+  row
+}
 
-STRUCTURES <- list(
-  linear = list(label = "Linear prevalence effect", terms = "pfpr10"),
-  smooth = list(label = "Smooth prevalence effect", terms = "s(pfpr10, k = 5)"),
-  linear_time = list(label = "Linear effect changing with calendar year",
-                     terms = "pfpr10 + pfpr10:year_c"),
-  within_between = list(label = "Between-region and within-region prevalence",
-                        terms = "pfpr10_between + pfpr10_within")
-)
-
-## ---- 4. per age group: ladder, effects, decomposition, recall, sensitivities ------------
+## ---- 4. per age group: effects, recall, sensitivities ---------------------------------------
 run_grouping <- function(grouping, variable) {
   levels_g <- levels(model_data[[variable]])
-  out <- list(comparison = list(), effects = list(), wb = list(), windows = list(),
-              sens = list(), fits = list())
+  out <- list(effects = list(), windows = list(), sens = list(), fits = list())
   for (g in levels_g) {
     data <- model_data[model_data[[variable]] == g, , drop = FALSE]
     message(sprintf("  %s | %-13s %6d cells, %6.0f deaths", grouping, g, nrow(data),
                     sum(data$deaths_w)))
-    fits <- lapply(STRUCTURES, function(s) fit_group(data, s$terms))
-    out$fits[[g]] <- fits
-    aic <- vapply(fits, stats::AIC, numeric(1))
-    out$comparison[[g]] <- data.frame(
-      grouping = grouping, age_group = g, structure = names(STRUCTURES),
-      label = vapply(STRUCTURES, `[[`, "", "label"),
-      edf = vapply(fits, function(f) sum(f$edf), numeric(1)), AIC = aic,
-      dAIC = aic - min(aic), stringsAsFactors = FALSE)
-    s <- slope(fits$linear)
-    row <- data.frame(grouping = grouping, age_group = g, cells = nrow(data),
-                      deaths = sum(data$deaths_w), beta_per_10 = s[["beta"]],
-                      se = s[["se"]], p_value = s[["p"]],
-                      hr_per_10 = exp(s[["beta"]]),
-                      hr_lo = exp(s[["beta"]] - 1.96 * s[["se"]]),
-                      hr_hi = exp(s[["beta"]] + 1.96 * s[["se"]]),
-                      nb_theta = fits$linear$family$getTheta(TRUE),
-                      time_interaction_pct_per_year = pct(slope(fits$linear_time, "pfpr10:year_c")[["beta"]]),
-                      time_interaction_p = slope(fits$linear_time, "pfpr10:year_c")[["p"]],
-                      stringsAsFactors = FALSE)
-    for (p in ANCHORS) {
-      row[[paste0("af", p)]] <- af(s[["beta"]], p)
-      row[[paste0("af", p, "_lo")]] <- af(s[["beta"]] - 1.96 * s[["se"]], p)
-      row[[paste0("af", p, "_hi")]] <- af(s[["beta"]] + 1.96 * s[["se"]], p)
-    }
-    out$effects[[g]] <- row
-    for (component in c("pfpr10_between", "pfpr10_within")) {
-      w <- slope(fits$within_between, component)
-      out$wb[[paste(g, component)]] <- data.frame(
-        grouping = grouping, age_group = g,
-        component = ifelse(component == "pfpr10_between", "between regions",
-                           "within region over time"),
-        pct_per_10 = pct(w[["beta"]]), pct_lo = pct(w[["beta"]] - 1.96 * w[["se"]]),
-        pct_hi = pct(w[["beta"]] + 1.96 * w[["se"]]), p_value = w[["p"]],
-        stringsAsFactors = FALSE)
-    }
-    tab <- summary(fits$linear)$p.table
+    fit <- fit_group(data)
+    out$fits[[g]] <- fit
+    out$effects[[g]] <- cbind(
+      data.frame(grouping = grouping, age_group = g, cells = nrow(data),
+                 deaths = sum(data$deaths_w), nb_theta = fit$family$getTheta(TRUE),
+                 prevalence_edf = sum(fit$edf[grep("s\\(pfpr10\\)", names(coef(fit)))]),
+                 stringsAsFactors = FALSE),
+      anchor_row(fit, data))
+    tab <- summary(fit)$p.table
     wr <- grep("^window_f", rownames(tab))
     out$windows[[g]] <- data.frame(
       grouping = grouping, age_group = g,
@@ -230,19 +233,22 @@ run_grouping <- function(grouping, variable) {
       hi = c(NA, exp(tab[wr, "Estimate"] + 1.96 * tab[wr, "Std. Error"])),
       stringsAsFactors = FALSE)
     sens_fits <- list(
-      "primary (NB, windows 1-5, lag 0)" = fits$linear,
-      "windows 1-4 only" = fit_group(data[data$window <= 4, ], "pfpr10"),
-      "window 1 only (12 months before interview)" = fit_group(data[data$window == 1, ], "pfpr10"),
-      "prevalence lagged one year" = fit_group(data[is.finite(data$pfpr10_lag1), ], "pfpr10_lag1"),
-      "Poisson likelihood" = fit_group(data, "pfpr10", family = poisson()),
-      "no survey intercept" = fit_group(data, "pfpr10", survey_re = FALSE))
+      "primary (NB, windows 1-5, lag 0)" = list(fit = fit, data = data, variable = "pfpr10"),
+      "windows 1-4 only" = list(data = data[data$window <= 4, ], variable = "pfpr10"),
+      "window 1 only (12 months before interview)" = list(data = data[data$window == 1, ], variable = "pfpr10"),
+      "prevalence lagged one year" = list(data = data[is.finite(data$pfpr10_lag1), ], variable = "pfpr10_lag1",
+                                          terms = "s(pfpr10_lag1, k = 5)"),
+      "Poisson likelihood" = list(data = data, variable = "pfpr10", family = poisson()),
+      "no survey intercept" = list(data = data, variable = "pfpr10", survey_re = FALSE))
     for (name in names(sens_fits)) {
-      term <- if (grepl("lagged", name)) "pfpr10_lag1" else "pfpr10"
-      w <- slope(sens_fits[[name]], term)
-      out$sens[[paste(g, name)]] <- data.frame(
-        grouping = grouping, age_group = g, sensitivity = name,
-        pct_per_10 = pct(w[["beta"]]), pct_lo = pct(w[["beta"]] - 1.96 * w[["se"]]),
-        pct_hi = pct(w[["beta"]] + 1.96 * w[["se"]]), stringsAsFactors = FALSE)
+      spec <- sens_fits[[name]]
+      sfit <- if (!is.null(spec$fit)) spec$fit else
+        fit_group(spec$data, terms = spec$terms %||% PREVALENCE_TERM,
+                  family = spec$family %||% mgcv::nb(), survey_re = spec$survey_re %||% TRUE)
+      out$sens[[paste(g, name)]] <- cbind(
+        data.frame(grouping = grouping, age_group = g, sensitivity = name,
+                   cells = nrow(spec$data), stringsAsFactors = FALSE),
+        anchor_row(sfit, spec$data, spec$variable))
     }
   }
   out
@@ -257,31 +263,13 @@ bands6 <- run_grouping("six bands", "age6")
 message("\nSix bands, split at 4 months")
 bands6b <- run_grouping("six bands (4-month split)", "age6b")
 
-## ---- 5. the joint model with shared nuisance terms, for the record -----------------------
-message("\nJoint model with shared covariate effects and random effects")
-model_data$segment_f <- factor(model_data$segment)
-joint <- mgcv::bam(
-  deaths_eff ~ pfpr10:age_group + segment_f + window_f + s(year_c, k = 8) + G +
-    s(country, bs = "re") + s(survey, bs = "re") + offset(log_pm),
-  family = mgcv::nb(), method = "fREML", paraPen = penalty, data = model_data,
-  discrete = TRUE, nthreads = BAM_THREADS)
-jt <- summary(joint)$p.table
-jr <- grep("^pfpr10:age_group", rownames(jt))
-joint_rows <- data.frame(
-  grouping = "four groups", age_group = sub("^pfpr10:age_group", "", rownames(jt)[jr]),
-  sensitivity = "joint model, shared random effects and covariates (artefact)",
-  pct_per_10 = pct(jt[jr, "Estimate"]),
-  pct_lo = pct(jt[jr, "Estimate"] - 1.96 * jt[jr, "Std. Error"]),
-  pct_hi = pct(jt[jr, "Estimate"] + 1.96 * jt[jr, "Std. Error"]), stringsAsFactors = FALSE)
-
-## ---- 6. tables -------------------------------------------------------------------------------
+## ---- 5. tables -------------------------------------------------------------------------------
 collect <- function(field) rbind(do.call(rbind, primary[[field]]),
                                  do.call(rbind, split5[[field]]),
                                  do.call(rbind, bands6[[field]]),
                                  do.call(rbind, bands6b[[field]]))
-comparison <- collect("comparison"); effects <- collect("effects"); wb <- collect("wb")
-windows <- collect("windows"); sens <- rbind(collect("sens"), joint_rows)
-rownames(comparison) <- rownames(effects) <- rownames(wb) <- rownames(windows) <- rownames(sens) <- NULL
+effects <- collect("effects"); windows <- collect("windows"); sens <- collect("sens")
+rownames(effects) <- rownames(windows) <- rownames(sens) <- NULL
 
 # post-neonatal (1-59 months) attributable fraction from the neonatal split,
 # weighting the four groups from 1 month up by their share of deaths
@@ -297,101 +285,75 @@ for (p in ANCHORS) {
 }
 effects <- merge(effects, postneonatal, all = TRUE, sort = FALSE)
 
-write.csv(comparison, file.path(RESULTS_DIR, "person_time_model_comparison.csv"), row.names = FALSE)
 write.csv(effects, file.path(RESULTS_DIR, "person_time_effects.csv"), row.names = FALSE)
-write.csv(wb, file.path(RESULTS_DIR, "person_time_within_between.csv"), row.names = FALSE)
 write.csv(windows, file.path(RESULTS_DIR, "person_time_window_effects.csv"), row.names = FALSE)
 write.csv(sens, file.path(RESULTS_DIR, "person_time_sensitivity.csv"), row.names = FALSE)
 
 fmt_ci <- function(m, lo, hi, d = 1) sprintf(paste0("%.", d, "f (%.", d, "f to %.", d, "f)"), m, lo, hi)
-message("\nHazard ratio per +10 PfPR points and attributable fraction by age group:")
-show <- effects[!is.na(effects$hr_per_10), ]
-print(data.frame(grouping = show$grouping, age_group = show$age_group, deaths = round(show$deaths),
-                 pct_per_10 = fmt_ci(pct(show$beta_per_10), pct(show$beta_per_10 - 1.96 * show$se),
-                                     pct(show$beta_per_10 + 1.96 * show$se)),
-                 p = signif(show$p_value, 2),
-                 af10 = fmt_ci(100 * show$af10, 100 * show$af10_lo, 100 * show$af10_hi),
-                 af30 = fmt_ci(100 * show$af30, 100 * show$af30_lo, 100 * show$af30_hi),
-                 af50 = fmt_ci(100 * show$af50, 100 * show$af50_lo, 100 * show$af50_hi),
-                 time_pct_per_year = round(show$time_interaction_pct_per_year, 2),
-                 time_p = signif(show$time_interaction_p, 2)), row.names = FALSE)
-message("Post-neonatal (1-59 months), death-share weighted, AF at 10/30/50%: ", paste(sprintf("%.1f (%.1f to %.1f)", 100 * unlist(postneonatal[paste0("af", ANCHORS)]),
-                                             100 * unlist(postneonatal[paste0("af", ANCHORS, "_lo")]),
-                                             100 * unlist(postneonatal[paste0("af", ANCHORS, "_hi")])), collapse = "; "))
-message("\nModel ladder within each age group (dAIC):")
-print(reshape(comparison[, c("grouping", "age_group", "structure", "dAIC")],
-              idvar = c("grouping", "age_group"), timevar = "structure", direction = "wide"),
-      row.names = FALSE, digits = 3)
-message("\nBetween-region against within-region prevalence effects (% per +10 points):")
-print(transform(wb, pct_per_10 = round(pct_per_10, 1), pct_lo = round(pct_lo, 1),
-                pct_hi = round(pct_hi, 1), p_value = signif(p_value, 2)), row.names = FALSE)
+show_af <- function(x) data.frame(
+  x[, intersect(c("grouping", "age_group", "sensitivity"), names(x))], deaths = round(x$deaths),
+  af10 = fmt_ci(100 * x$af10, 100 * x$af10_lo, 100 * x$af10_hi),
+  af30 = fmt_ci(100 * x$af30, 100 * x$af30_lo, 100 * x$af30_hi),
+  af50 = fmt_ci(100 * x$af50, 100 * x$af50_lo, 100 * x$af50_hi))
+message("\nAttributable fraction of all-cause mortality (%) against ", PERSON_TIME_AF_REFERENCE,
+        "% prevalence, by age group:")
+print(cbind(show_af(effects), theta = round(effects$nb_theta, 1), edf = round(effects$prevalence_edf, 2)),
+      row.names = FALSE)
 message("\nRecorded mortality by window relative to the year before interview:")
 print(transform(windows[windows$grouping == "four groups", ],
                 rate_ratio_vs_window1 = round(rate_ratio_vs_window1, 3),
                 lo = round(lo, 3), hi = round(hi, 3)), row.names = FALSE)
-message("\nSensitivities (% per +10 points):")
-print(transform(sens, pct_per_10 = round(pct_per_10, 1), pct_lo = round(pct_lo, 1),
-                pct_hi = round(pct_hi, 1)), row.names = FALSE)
+message("\nSensitivities (AF at 10/30/50%), six bands split at 4 months:")
+s6 <- sens[sens$grouping == "six bands (4-month split)", ]
+s6$deaths <- NA
+print(show_af(s6)[, c("age_group", "sensitivity", "af10", "af30", "af50")], row.names = FALSE, right = FALSE)
 
-## ---- 7. figures ------------------------------------------------------------------------------
-show <- show[!grepl("^six bands", show$grouping), ]
-show$age_group <- factor(show$age_group, levels = c(AGE_GROUPS, AGE5))
-show$grouping <- factor(show$grouping, levels = c("four groups", "neonatal split"),
-                        labels = c("Primary: four age groups", "Neonatal month separated"))
-plot_effects <- ggplot2::ggplot(show, ggplot2::aes(age_group, pct(beta_per_10))) +
+## ---- 6. figures ------------------------------------------------------------------------------
+show <- effects[!grepl("^six bands", effects$grouping) & !grepl("weighted", effects$age_group), ]
+show_long <- do.call(rbind, lapply(ANCHORS, function(p) data.frame(
+  grouping = show$grouping, age_group = show$age_group, anchor = paste0(p, "% prevalence"),
+  af = show[[paste0("af", p)]], lo = show[[paste0("af", p, "_lo")]], hi = show[[paste0("af", p, "_hi")]],
+  stringsAsFactors = FALSE)))
+show_long$age_group <- factor(show_long$age_group, levels = c(AGE_GROUPS, AGE5))
+show_long$grouping <- factor(show_long$grouping, levels = c("four groups", "neonatal split"),
+                             labels = c("Primary: four age groups", "Neonatal month separated"))
+plot_effects <- ggplot2::ggplot(show_long, ggplot2::aes(age_group, 100 * af, colour = anchor)) +
   ggplot2::geom_hline(yintercept = 0, colour = "grey55") +
-  ggplot2::geom_errorbar(ggplot2::aes(ymin = pct(beta_per_10 - 1.96 * se),
-                                      ymax = pct(beta_per_10 + 1.96 * se)),
-                         width = 0.15, colour = "#1D6F8B") +
-  ggplot2::geom_point(size = 3, colour = "#1D6F8B") +
+  ggplot2::geom_errorbar(ggplot2::aes(ymin = 100 * lo, ymax = 100 * hi), width = 0.15,
+                         position = ggplot2::position_dodge(width = 0.5)) +
+  ggplot2::geom_point(size = 2.6, position = ggplot2::position_dodge(width = 0.5)) +
   ggplot2::facet_wrap(~grouping, scales = "free_x") +
-  ggplot2::labs(x = NULL, y = "Change in mortality hazard per +10 PfPR2-10 points (%)",
-                title = "Prevalence effect by age, person-time model",
-                subtitle = paste("One negative-binomial model per age group on deaths by region,",
-                                 "12-month window and age segment;\ncountry and survey intercepts,",
-                                 "ridge covariate block, window and calendar-year terms; 95% CIs")) +
+  ggplot2::scale_colour_manual(values = c("#7FB3C8", "#1D6F8B", "#0B3C4F"), name = NULL) +
+  ggplot2::labs(x = NULL, y = sprintf("Attributable fraction of all-cause mortality (%%)\nagainst %d%% prevalence",
+                                      PERSON_TIME_AF_REFERENCE),
+                title = "Malaria-attributable fraction by age, person-time model",
+                subtitle = paste("One negative-binomial model per age group with a smooth prevalence effect;",
+                                 "country and survey intercepts,\nridge covariate block, window and calendar-year terms; 95% CIs")) +
   ggplot2::theme_minimal(base_size = 11) +
-  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 20, hjust = 1))
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 20, hjust = 1), legend.position = "bottom")
 ggplot2::ggsave(file.path(RESULTS_DIR, "figure22_person_time_age_effects.png"),
-                plot_effects, width = 10, height = 4.4, dpi = 200)
+                plot_effects, width = 10, height = 4.8, dpi = 200)
 
 curve_for <- function(fit, data, group) {
-  p <- seq(0, 60, by = 1)
-  segment_levels <- levels(droplevels(factor(data$segment)))
-  frame <- function(pf) {
-    out <- data.frame(pfpr10 = pf / 10,
-                      segment_f = factor(segment_levels[1], levels = segment_levels),
-                      window_f = factor("1", levels = levels(model_data$window_f)),
-                      year_c = 0, log_pm = 0,
-                      country = factor(levels(model_data$country)[1], levels = levels(model_data$country)),
-                      survey = factor(levels(model_data$survey)[1], levels = levels(model_data$survey)))
-    out$G <- matrix(0, nrow(out), ncol(model_data$G), dimnames = list(NULL, colnames(model_data$G)))
-    out
-  }
-  Xh <- predict(fit, frame(p), type = "lpmatrix", discrete = FALSE)
-  Xl <- predict(fit, frame(rep(AF_REFERENCE, length(p))), type = "lpmatrix", discrete = FALSE)
-  re <- grep("^s\\(country\\)|^s\\(survey\\)", colnames(Xh))
-  Xh[, re] <- 0; Xl[, re] <- 0
-  dX <- Xh - Xl
-  est <- as.numeric(dX %*% coef(fit)); se <- sqrt(rowSums((dX %*% vcov(fit)) * dX))
-  data.frame(age_group = group, pfpr = p, hr = exp(est), lo = exp(est - 1.96 * se),
-             hi = exp(est + 1.96 * se), stringsAsFactors = FALSE)
+  lhr <- log_hazard_ratio(fit, data, GRID)
+  data.frame(age_group = group, pfpr = GRID, hr = exp(lhr$est), lo = exp(lhr$est - 1.96 * lhr$se),
+             hi = exp(lhr$est + 1.96 * lhr$se), stringsAsFactors = FALSE)
 }
 dose_response_figure <- function(result, variable, levels, file, title) {
   curves <- do.call(rbind, lapply(levels, function(g)
-    curve_for(result$fits[[g]]$smooth, model_data[model_data[[variable]] == g, ], g)))
+    curve_for(result$fits[[g]], model_data[model_data[[variable]] == g, ], g)))
   curves$age_group <- factor(curves$age_group, levels = levels)
   observed <- pairing$pfpr
   plot <- ggplot2::ggplot(curves, ggplot2::aes(pfpr, hr)) +
     ggplot2::geom_ribbon(ggplot2::aes(ymin = lo, ymax = hi), fill = "#1D6F8B", alpha = 0.15) +
     ggplot2::geom_line(colour = "#1D6F8B", linewidth = 0.9) +
     ggplot2::geom_hline(yintercept = 1, colour = "grey55", linewidth = 0.4) +
-    ggplot2::geom_rug(data = data.frame(pfpr = observed[observed <= 60]),
+    ggplot2::geom_rug(data = data.frame(pfpr = observed[observed <= max(GRID)]),
                       ggplot2::aes(x = pfpr), inherit.aes = FALSE, alpha = 0.05, sides = "b") +
     ggplot2::facet_wrap(~age_group, nrow = 1) +
     ggplot2::scale_y_log10() +
     ggplot2::labs(x = "MAP PfPR2-10 in the window's own year (%)",
-                  y = "Mortality hazard ratio\nversus 1% prevalence (log scale)",
+                  y = sprintf("Mortality hazard ratio\nversus %d%% prevalence (log scale)", PERSON_TIME_AF_REFERENCE),
                   title = title,
                   subtitle = "Person-time model, one fit per age band; bands are 95% CIs; rug shows region-window prevalence") +
     ggplot2::theme_minimal(base_size = 10)
@@ -410,17 +372,11 @@ curves6b <- dose_response_figure(bands6b, "age6b", AGE6B,
 write.csv(rbind(cbind(grouping = "four groups", curves4), cbind(grouping = "six bands", curves6),
                 cbind(grouping = "six bands (4-month split)", curves6b)),
           file.path(RESULTS_DIR, "person_time_dose_response_curves.csv"), row.names = FALSE)
-saveRDS(list(primary_fits = lapply(primary$fits, `[[`, "linear"),
-             split_fits = lapply(split5$fits, `[[`, "linear"),
-             bands6_fits = lapply(bands6$fits, `[[`, "linear"),
-             bands6b_fits = lapply(bands6b$fits, `[[`, "linear"),
-             smooth_fits = lapply(primary$fits, `[[`, "smooth"),
-             bands6_smooth_fits = lapply(bands6$fits, `[[`, "smooth"),
-             bands6b_smooth_fits = lapply(bands6b$fits, `[[`, "smooth"),
-             joint = joint, year_center = year_center),
+saveRDS(list(smooth_fits = primary$fits,
+             split_smooth_fits = split5$fits,
+             bands6_smooth_fits = bands6$fits,
+             bands6b_smooth_fits = bands6b$fits,
+             year_center = year_center, af_reference = PERSON_TIME_AF_REFERENCE),
         file.path(DERIVED_DIR, "person_time_model_bundle.rds"))
-message("\nWrote person_time_model_data.csv, person_time_model_comparison.csv, ",
-        "person_time_effects.csv, person_time_within_between.csv, ",
-        "person_time_window_effects.csv, person_time_sensitivity.csv, ",
-        "figure22_person_time_age_effects.png, figure23_person_time_dose_response.png, ",
-        "figure26_person_time_dose_response_six_bands.png, person_time_dose_response_curves.csv")
+message("\nWrote person_time_model_data.csv, person_time_effects.csv, person_time_window_effects.csv, ",
+        "person_time_sensitivity.csv, person_time_dose_response_curves.csv and figures 22, 23, 26, 28")
