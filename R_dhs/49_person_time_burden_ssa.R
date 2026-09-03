@@ -25,10 +25,11 @@
 # to the first week), so the model is compared with IHME block by block
 # (figure 35) as well as in total (figure 33).
 #
-# The dose-response coefficients are drawn once per band (1,000 draws) and
-# reused for every country and both denominators, so country estimates are
-# positively correlated and the sub-Saharan total's interval is the sum's, not a
-# root-sum-of-squares. Intervals cover the dose-response only. MAP ends in 2024
+# The attributable fractions come from the Stan fits of script 43: 1,000
+# posterior draws per band, the same draws reused for every country and both
+# denominators, so country estimates are positively correlated and the
+# sub-Saharan total's interval is the sum's, not a root-sum-of-squares.
+# Intervals cover the dose-response only. MAP ends in 2024
 # and is carried into 2025. The comparison year is 2024, the last with actual
 # inputs on every side.
 #
@@ -47,7 +48,7 @@
 # =============================================================================
 
 source("R_dhs/00_config.R")
-required_packages(c("mgcv", "terra", "sf", "ggplot2", "MASS", "countrycode", "patchwork"))
+required_packages(c("terra", "sf", "ggplot2", "countrycode", "patchwork"))
 
 YEARS <- 2005:2025
 LAST_DATA_YEAR <- 2024L
@@ -69,8 +70,6 @@ person_time <- read.csv(file.path(DERIVED_DIR, "person_time_region_window_segmen
 person_time$band <- band_from_segment(person_time$seg_lo, c(1, 4, 12, 24, 36), AGE6B)
 national_pfpr <- read.csv(file.path(DATA_DIR, "pfpr_by_country_year.csv"), stringsAsFactors = FALSE)
 comparison_prev <- read.csv(file.path(RESULTS_DIR, "latest_country_burden_comparison.csv"), stringsAsFactors = FALSE)
-fits <- readRDS(file.path(DERIVED_DIR, "person_time_model_bundle.rds"))$bands6b_smooth_fits
-model_data <- read.csv(file.path(RESULTS_DIR, "person_time_model_data.csv"), stringsAsFactors = FALSE)
 
 # the country set: script 10's burden countries plus any panel DHS country it lacks
 countries <- sort(union(comparison_prev$iso3, latest$iso3))
@@ -207,30 +206,10 @@ prevalence_matrix <- function(iso3, regions, svkey = NULL) {
   m
 }
 
-## ---- dose-response draws, once per band ---------------------------------------------------------
-band_draws <- lapply(AGE6B, function(band) MASS::mvrnorm(N_DRAWS, coef(fits[[band]]), vcov(fits[[band]])))
-names(band_draws) <- AGE6B
-af_draws <- function(band, prevalence) {
-  fit <- fits[[band]]
-  band_data <- model_data[model_data$age6b == band, ]
-  segment_levels <- levels(droplevels(factor(band_data$segment)))
-  frame <- function(p) {
-    out <- data.frame(pfpr10 = p / 10,
-                      segment_f = factor(segment_levels[1], levels = segment_levels),
-                      window_f = factor("1", levels = as.character(1:5)), year_c = 0, log_pm = 0,
-                      country = factor(levels(factor(model_data$iso3))[1], levels = levels(factor(model_data$iso3))),
-                      survey = factor(levels(factor(model_data$svkey))[1], levels = levels(factor(model_data$svkey))))
-    G <- matrix(0, nrow(out), length(grep("^G", names(coef(fit)))))
-    colnames(G) <- sub("^G", "", grep("^G", names(coef(fit)), value = TRUE))
-    out$G <- G
-    out
-  }
-  Xh <- predict(fit, frame(prevalence), type = "lpmatrix", discrete = FALSE)
-  Xl <- predict(fit, frame(rep(PERSON_TIME_AF_REFERENCE, length(prevalence))), type = "lpmatrix", discrete = FALSE)
-  re <- grep("^s\\(country\\)|^s\\(survey\\)", colnames(Xh))
-  Xh[, re] <- 0; Xl[, re] <- 0
-  pmax(1 - exp(-(band_draws[[band]] %*% t(Xh - Xl))), 0)
-}
+## ---- attributable-fraction draws from the Stan fits, once per band ------------------------------
+# af_draws(band, prevalence): N_DRAWS x length(prevalence) draws of 1 - 1/HR against
+# the 0% reference, from the posterior of script 43's brms fit for that band
+af_draws <- person_time_stan_af_draws(N_DRAWS)
 
 ## ---- age bands within the three death blocks ------------------------------------------------------------
 band_block <- setNames(c("neonatal", "months_1_11", "months_1_11", "years_1_4", "years_1_4", "years_1_4"), AGE6B)

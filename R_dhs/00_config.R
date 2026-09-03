@@ -1272,3 +1272,60 @@ match_statcompiler_regions <- function(api_labels, region_labels, region_keys = 
   }
   pairs
 }
+
+# -----------------------------------------------------------------------------
+# Attributable-fraction draws from the Stan fits of the six age-band person-time
+# models (script 43), for the burden scripts 48 and 49. Returns a function
+# af(band, prevalence) giving an n_draws x length(prevalence) matrix of
+# 1 - 1/HR against PERSON_TIME_AF_REFERENCE, floored at zero, for an average
+# cell (first segment, window 1, year centred, covariates at their means,
+# random effects excluded). The log hazard ratio is evaluated once per band on a
+# fine prevalence grid for a fixed subsample of posterior draws and linearly
+# interpolated, so every country and year reuses the same draws.
+# -----------------------------------------------------------------------------
+person_time_stan_af_draws <- function(n_draws = 1000L, seed = 20260828,
+                                      grid = seq(0, 100, by = 0.5),
+                                      cache = file.path(DATA_DIR, "person_time_brms_cache")) {
+  required_packages(c("brms", "posterior"))
+  files <- file.path(cache, paste0(make.names(AGE6B), ".rds"))
+  if (!all(file.exists(files))) {
+    stop("Stan fits missing from ", cache, " for: ",
+         paste(AGE6B[!file.exists(files)], collapse = ", "), ". Run R_dhs/43_person_time_brms.R.")
+  }
+  set.seed(seed)
+  tables <- lapply(seq_along(AGE6B), function(b) {
+    fit <- readRDS(files[b])
+    ids <- sort(sample.int(brms::ndraws(fit), min(n_draws, brms::ndraws(fit))))
+    fixed <- c("deaths_eff", "pfpr10", "segment_f", "window_f", "year_c", "country", "survey", "log_pm")
+    covariate_names <- setdiff(names(fit$data), fixed)
+    frame <- function(p) {
+      out <- data.frame(pfpr10 = p / 10,
+                        window_f = factor("1", levels = levels(fit$data$window_f)),
+                        year_c = 0, log_pm = 0,
+                        country = levels(fit$data$country)[1], survey = levels(fit$data$survey)[1],
+                        stringsAsFactors = FALSE)
+      if ("segment_f" %in% names(fit$data)) {
+        out$segment_f <- factor(levels(fit$data$segment_f)[1], levels = levels(fit$data$segment_f))
+      }
+      for (v in covariate_names) out[[v]] <- 0
+      out
+    }
+    eta <- brms::posterior_linpred(fit, newdata = frame(grid), re_formula = NA, draw_ids = ids)
+    eta_ref <- brms::posterior_linpred(fit, newdata = frame(PERSON_TIME_AF_REFERENCE), re_formula = NA, draw_ids = ids)
+    eta - as.numeric(eta_ref)
+  })
+  names(tables) <- AGE6B
+  step <- diff(grid[1:2])
+  function(band, prevalence) {
+    lhr <- tables[[band]]
+    p <- pmin(pmax(prevalence, min(grid)), max(grid))
+    position <- (p - min(grid)) / step + 1
+    i <- pmin(floor(position), length(grid) - 1L)
+    w <- position - i
+    i[is.na(i)] <- 1L; w[is.na(w)] <- 0
+    est <- lhr[, i, drop = FALSE] * rep(1 - w, each = nrow(lhr)) +
+      lhr[, i + 1L, drop = FALSE] * rep(w, each = nrow(lhr))
+    est[, is.na(prevalence)] <- NA_real_
+    pmax(1 - exp(-est), 0)
+  }
+}

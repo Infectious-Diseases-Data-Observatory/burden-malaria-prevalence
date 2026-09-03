@@ -9,8 +9,9 @@
 #
 #   malaria deaths(r, a, y) = AF_a(PfPR_r(y)) x share(r, a) x D_a(y)
 #
-#   AF_a(p)     attributable fraction from band a's smooth dose-response (script
-#               42), 1 - 1/HR against the 0% reference, floored at zero
+#   AF_a(p)     attributable fraction from band a's smooth dose-response, from
+#               the Stan fit of script 43: 1 - 1/HR against the 0% reference,
+#               floored at zero
 #   PfPR_r(y)   population-weighted MAP PfPR2-10 for the region in year y
 #   share(r, a) the region's share of the country's deaths in band a in the
 #               latest survey (weighted, five windows), held fixed over time
@@ -28,8 +29,8 @@
 # limiting, so the fetch below uses a browser user-agent and pauses between
 # attempts; run it once and the extract is cached in data/derived_dhs.
 #
-# Uncertainty is the dose-response model's only: 1,000 draws of each band's
-# coefficients from their fitted normal approximation. MAP surfaces and the IGME
+# Uncertainty is the dose-response model's only: 1,000 posterior draws per band
+# from the Stan fits, the same draws for every region and year. MAP surfaces and the IGME
 # series end in 2024; 2025 carries 2024 forward and is labelled as such.
 #
 # Outputs (results/dhs_rebuild)
@@ -39,7 +40,7 @@
 # =============================================================================
 
 source("R_dhs/00_config.R")
-required_packages(c("mgcv", "terra", "sf", "ggplot2", "MASS"))
+required_packages(c("terra", "sf", "ggplot2"))
 
 COUNTRIES <- c(NGA = "NG8BFL", COD = "CD81FL")
 YEARS <- 2005:2025
@@ -97,8 +98,6 @@ igme_blocks <- function(iso3) {
   names(w) <- c("year", names(IGME_BLOCKS)[match(sub("OBS_VALUE.", "", names(w)[-1]), IGME_BLOCKS)])
   w[order(w$year), ]
 }
-fits <- readRDS(file.path(DERIVED_DIR, "person_time_model_bundle.rds"))$bands6b_smooth_fits
-model_data <- read.csv(file.path(RESULTS_DIR, "person_time_model_data.csv"), stringsAsFactors = FALSE)
 
 ## ---- MAP prevalence by region and year --------------------------------------------------
 raster_files <- list.files(MAP_RASTER_DIR, pattern = "pfpr2_10_[0-9]{4}[.]tif$", full.names = TRUE)
@@ -127,30 +126,10 @@ regional_prevalence <- function(svkey) {
   out
 }
 
-## ---- attributable fraction draws from a band's smooth fit --------------------------------
-af_draws <- function(fit, prevalence, band_data) {
-  segment_levels <- levels(droplevels(factor(band_data$segment)))
-  frame <- function(p) {
-    out <- data.frame(pfpr10 = p / 10,
-                      segment_f = factor(segment_levels[1], levels = segment_levels),
-                      window_f = factor("1", levels = as.character(1:5)),
-                      year_c = 0, log_pm = 0,
-                      country = factor(levels(factor(model_data$iso3))[1], levels = levels(factor(model_data$iso3))),
-                      survey = factor(levels(factor(model_data$svkey))[1], levels = levels(factor(model_data$svkey))))
-    G <- matrix(0, nrow(out), length(grep("^G", names(coef(fit)))))
-    colnames(G) <- sub("^G", "", grep("^G", names(coef(fit)), value = TRUE))
-    out$G <- G
-    out
-  }
-  Xh <- predict(fit, frame(prevalence), type = "lpmatrix", discrete = FALSE)
-  Xl <- predict(fit, frame(rep(PERSON_TIME_AF_REFERENCE, length(prevalence))), type = "lpmatrix", discrete = FALSE)
-  re <- grep("^s\\(country\\)|^s\\(survey\\)", colnames(Xh))
-  Xh[, re] <- 0; Xl[, re] <- 0
-  dX <- Xh - Xl
-  beta <- MASS::mvrnorm(N_DRAWS, coef(fit), vcov(fit))       # draws x coefficients
-  log_hr <- beta %*% t(dX)                                    # draws x prevalence values
-  pmax(1 - exp(-log_hr), 0)
-}
+## ---- attributable-fraction draws from the Stan fits, once per band ------------------------------
+# af_draws(band, prevalence): N_DRAWS x length(prevalence) draws of 1 - 1/HR against
+# the 0% reference, from the posterior of script 43's brms fit for that band
+af_draws <- person_time_stan_af_draws(N_DRAWS)
 
 ## ---- the burden ----------------------------------------------------------------------------------
 series_rows <- list(); band_rows <- list(); region_rows <- list()
@@ -220,10 +199,9 @@ for (iso3 in names(COUNTRIES)) {
   total_draws <- matrix(0, N_DRAWS, length(YEARS), dimnames = list(NULL, YEARS))
   postneonatal_draws <- total_draws
   for (band in AGE6B) {
-    band_data <- model_data[model_data$age6b == band, ]
     # AF draws for every region-year prevalence at once
     p_vec <- as.numeric(prev_wide)                        # regions x years, column-major
-    af <- af_draws(fits[[band]], p_vec, band_data)        # draws x (regions*years)
+    af <- af_draws(band, p_vec)                           # draws x (regions*years)
     dim(af) <- c(N_DRAWS, length(regions), length(YEARS))
     national_band <- band_deaths(band)
     # deaths(draw, region, year) = AF x share(region, band) x D_band(year)

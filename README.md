@@ -109,7 +109,7 @@ loo, posterior, ggplot2, rmarkdown` (and a working Stan toolchain for `brms`).
 | `40_build_person_time.R`, `41_extract_map_window_years.R` | Person-time design: deaths and person-months by survey region, 12-month window (five per survey) and age segment; MAP prevalence for each window's own year |
 | `42_person_time_models.R`, `43_person_time_brms.R`, `44_deaths_by_age.R` | One negative-binomial model per age band with a smooth prevalence effect, reported as hazard-ratio curves and attributable fractions against 0% prevalence at 10, 30 and 50% (no per-10-point slopes: the response saturates above about 30%); Stan refits; age-at-death histogram |
 | `45`–`47` | Data-and-curve figures for the six-band splits, covariate forest by band, the joint model with band-specific random effects and ridge blocks against the separate fits |
-| `48_person_time_burden_nga_cod.R`, `49_person_time_burden_ssa.R` | Malaria-attributable under-5 deaths 2005–2025 from admin-1 prevalence and UN IGME or IHME all-cause deaths: Nigeria and DRC, then every sub-Saharan country against IHME by age block |
+| `48_person_time_burden_nga_cod.R`, `49_person_time_burden_ssa.R` | Malaria-attributable under-5 deaths 2005–2025 from admin-1 prevalence, the Stan attributable fractions by age band (script 43) and UN IGME or IHME all-cause deaths: Nigeria and DRC, then every sub-Saharan country against IHME by age block |
 | `50_age_specific_attributable.R` | Attributable fraction of all-cause mortality and attributable deaths per 1,000 child-years by age band as functions of PfPR₂₋₁₀, from the Stan posteriors of script 43 with the mgcv curves alongside in the table (figure 36) |
 
 Two constants in `00_config.R` define the primary analysis: `CHMORT_PERIOD`
