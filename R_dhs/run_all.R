@@ -50,6 +50,13 @@ if (file.exists(UNICEF_GLOBAL_CSV)) {
   }
 }
 
+# The DHS API covariates (improved water, improved sanitation, wasting) are
+# pulled once and cached; script 03 falls back to the recode-label aggregates
+# with a warning if the cache is absent.
+if (!file.exists(STATCOMPILER_CSV)) {
+  run_script("02c_fetch_statcompiler_covariates.R", fatal = FALSE)
+}
+
 if (legacy_mode) {
   run_script("03_build_analysis_dataset.R", "--from-legacy-aggregate")
 } else {
@@ -114,6 +121,12 @@ if (with_person_time_brms) run_script("43_person_time_brms.R")
 run_script("44_deaths_by_age.R")
 run_script("45_person_time_data_and_curves.R")
 run_script("46_person_time_covariate_forest.R")
+run_script("47_person_time_joint_model.R")
+# the burden scripts need the UN IGME 2025 download and the IHME exports under
+# data/; they are informational for the fit itself
+run_script("48_person_time_burden_nga_cod.R", fatal = FALSE)
+run_script("49_person_time_burden_ssa.R", fatal = FALSE)
+run_script("50_age_specific_attributable.R")
 
 legacy_validation_inputs <- c(
   file.path(REPO_ROOT, "results", "penalized_models.rds"),

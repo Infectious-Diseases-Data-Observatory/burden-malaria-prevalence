@@ -13,6 +13,11 @@
 # Migration/verification run starting from the existing aggregate panel:
 #   Rscript R_dhs/03_build_analysis_dataset.R --from-legacy-aggregate
 #
+# Re-attach the StatCompiler covariates (improved water, improved sanitation,
+# wasting; script 02c) to the saved dataset without rebuilding the mortality
+# tables, then re-apply the eligibility rule:
+#   Rscript R_dhs/03_build_analysis_dataset.R --refresh-covariates
+#
 # When the survey registry is available, migration mode reads the locally
 # authorised recodes only to derive the three new vaccine aggregates. No
 # respondent-level records are written to the analysis outputs.
@@ -22,6 +27,10 @@ source("R_dhs/00_config.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 legacy_mode <- "--from-legacy-aggregate" %in% args
+# --refresh-covariates: start from the saved analysis dataset, re-attach the
+# StatCompiler covariates and re-apply the eligibility rule without rebuilding
+# the mortality tables from the recodes.
+refresh_mode <- "--refresh-covariates" %in% args
 
 COVARIATE_CATALOG <- data.frame(
   variable = c(
@@ -647,7 +656,189 @@ attach_hiv_prevalence <- function(data) {
   data
 }
 
-if (legacy_mode) {
+# ---- DHS API (StatCompiler) household covariates ----------------------------
+# Improved water, improved sanitation and wasting come from the published
+# survey indicators (script 02c) rather than from matching recode value labels:
+# the audit in results/dhs_rebuild/covariate_audit found the label rule wrong
+# by more than 10 points in 10 surveys for water and 16 for sanitation (bare
+# numeric codes, DHS-IV vocabulary, "no slab"), and the births recodes carry no
+# anthropometry for the DHS-8 surveys. Region values are matched to the survey
+# boundary by name; a region that cannot be matched takes the survey's national
+# value and is flagged in <variable>_source. The recode-label aggregate is kept
+# as <variable>_recode for comparison.
+attach_statcompiler_covariates <- function(data) {
+  variables <- names(STATCOMPILER_INDICATORS)
+  if (!file.exists(STATCOMPILER_CSV)) {
+    warning(
+      "StatCompiler covariate table not found; run ",
+      "R_dhs/02c_fetch_statcompiler_covariates.R. Keeping the recode-label ",
+      "aggregates for ", paste(variables, collapse = ", "), "."
+    )
+    for (variable in variables) {
+      data[[paste0(variable, "_source")]] <- "recode labels (StatCompiler unavailable)"
+    }
+    return(data)
+  }
+  table <- read.csv(STATCOMPILER_CSV, stringsAsFactors = FALSE)
+  table <- table[is.finite(table$Value) & !is.na(table$svkey), ]
+  if (!"DenominatorWeighted" %in% names(table)) table$DenominatorWeighted <- NA_real_
+  for (variable in variables) {
+    recode_name <- paste0(variable, "_recode")
+    if (!recode_name %in% names(data)) {
+      data[[recode_name]] <- if (variable %in% names(data)) data[[variable]] else NA_real_
+    }
+    data[[variable]] <- NA_real_
+    data[[paste0(variable, "_source")]] <- "unavailable"
+  }
+  matching <- list()
+  for (svkey in unique(data$svkey)) {
+    rows <- which(data$svkey == svkey)
+    survey_rows <- table[table$svkey == svkey, ]
+    if (!nrow(survey_rows)) next
+    subnational <- survey_rows[survey_rows$level == "subnational", ]
+    regions <- unique(data.frame(
+      regkey = data$regkey[rows], label = as.character(data$region[rows]),
+      stringsAsFactors = FALSE
+    ))
+    pairs <- if (nrow(subnational)) {
+      match_statcompiler_regions(subnational$label_clean, regions$label, regions$regkey)
+    } else {
+      NULL
+    }
+    for (variable in variables) {
+      national <- survey_rows$Value[
+        survey_rows$level == "national" & survey_rows$variable == variable
+      ]
+      national <- if (length(national)) mean(national) else NA_real_
+      value <- rep(NA_real_, length(rows))
+      candidates <- subnational[subnational$variable == variable, ]
+      if (nrow(candidates) && !is.null(pairs) && nrow(pairs)) {
+        # the same cleaned label can appear at several nesting depths or for
+        # successive boundary versions; keep the row with the largest weighted
+        # denominator, which is the unit the survey itself reported on
+        candidates$key <- rkey(candidates$label_clean)
+        candidates <- candidates[order(-replace(candidates$DenominatorWeighted,
+                                                is.na(candidates$DenominatorWeighted), 0)), ]
+        candidates <- candidates[!duplicated(candidates$key), ]
+        api_key <- pairs$api_key[match(data$regkey[rows], pairs$regkey)]
+        value <- candidates$Value[match(api_key, candidates$key)]
+      }
+      regional <- is.finite(value)
+      value[!regional] <- national
+      data[[variable]][rows] <- value
+      data[[paste0(variable, "_source")]][rows] <- ifelse(
+        regional, "StatCompiler region",
+        ifelse(is.finite(value), "StatCompiler national", "unavailable")
+      )
+    }
+    matching[[svkey]] <- data.frame(
+      svkey = svkey, regions = nrow(regions),
+      matched = if (is.null(pairs)) 0L else sum(regions$regkey %in% pairs$regkey),
+      unmatched = if (is.null(pairs)) paste(regions$regkey, collapse = ", ") else
+        paste(setdiff(regions$regkey, pairs$regkey), collapse = ", "),
+      how = if (is.null(pairs) || !nrow(pairs)) "" else
+        paste(sort(unique(sub("tokens:.*", "tokens", pairs$how))), collapse = "/"),
+      stringsAsFactors = FALSE
+    )
+  }
+  matching <- do.call(rbind, matching)
+  rownames(matching) <- NULL
+  write.csv(matching, file.path(RESULTS_DIR, "statcompiler_region_matching.csv"),
+            row.names = FALSE)
+  message(
+    "StatCompiler regions matched by name: ", sum(matching$matched), " of ",
+    sum(matching$regions), " survey-regions in ", nrow(matching), " surveys"
+  )
+  for (variable in variables) {
+    source <- table(factor(
+      data[[paste0(variable, "_source")]],
+      levels = c("StatCompiler region", "StatCompiler national", "unavailable")
+    ))
+    message(sprintf(
+      "  %-10s %d region values, %d national fallbacks, %d unavailable",
+      variable, source[[1]], source[[2]], source[[3]]
+    ))
+  }
+  data
+}
+
+# Surveys without anthropometry (most MIS and a few DHS) have no wasting value
+# at any level. Fill them from a model of the observed survey-regions with a
+# smooth calendar trend, a country random intercept and a region random
+# intercept (regions recur across a country's surveys), on the logit scale. A
+# region never measured takes its country's effect; a country never measured
+# takes the trend alone. Rows filled this way are flagged as imputed, so the
+# complete-case sensitivity excludes them.
+impute_wasting_country_year <- function(data) {
+  required_packages("mgcv")
+  observed <- is.finite(data$wasting)
+  data$wasting_imputed_country_year <- !observed
+  if (!any(!observed)) return(data)
+  if (sum(observed) < 30) stop("Too few observed wasting values to fit the imputation model.")
+  frame <- data.frame(
+    y = qlogis(pmin(pmax(data$wasting / 100, 0.005), 0.995)),
+    year = data$year,
+    country = as.character(data$iso3),
+    region_id = paste(data$iso3, data$regkey),
+    stringsAsFactors = FALSE
+  )
+  fit_frame <- frame[observed, ]
+  fit_frame$country <- factor(fit_frame$country)
+  fit_frame$region_id <- factor(fit_frame$region_id)
+  fit <- mgcv::gam(
+    y ~ s(year, k = 5) + s(country, bs = "re") + s(region_id, bs = "re"),
+    data = fit_frame, method = "REML"
+  )
+  target <- which(!observed)
+  seen_region <- frame$region_id[target] %in% levels(fit_frame$region_id)
+  seen_country <- frame$country[target] %in% levels(fit_frame$country)
+  newdata <- frame[target, ]
+  newdata$region_id[!seen_region] <- levels(fit_frame$region_id)[1]
+  newdata$country[!seen_country] <- levels(fit_frame$country)[1]
+  newdata$region_id <- factor(newdata$region_id, levels = levels(fit_frame$region_id))
+  newdata$country <- factor(newdata$country, levels = levels(fit_frame$country))
+  prediction <- numeric(length(target))
+  for (case in unique(paste(seen_region, seen_country))) {
+    idx <- paste(seen_region, seen_country) == case
+    exclude <- c(
+      if (!seen_region[idx][1]) "s(region_id)",
+      if (!seen_country[idx][1]) "s(country)"
+    )
+    prediction[idx] <- as.numeric(predict(
+      fit, newdata = newdata[idx, , drop = FALSE], exclude = exclude,
+      newdata.guaranteed = TRUE
+    ))
+  }
+  data$wasting[target] <- 100 * plogis(prediction)
+  data$wasting_source[target] <- ifelse(
+    seen_region, "imputed: country-year model with region effect",
+    ifelse(seen_country, "imputed: country-year model", "imputed: calendar trend only")
+  )
+  # random-effect SDs from the smoothing parameters: for bs = "re" the
+  # penalty is the identity, so var = scale / sp
+  re_sd <- function(term) sqrt(fit$sig2 / fit$sp[[term]])
+  message(sprintf(
+    "Wasting imputed for %d survey-regions in %d surveys (%d with a region effect, %d country only, %d trend only); %d observed; residual SD %.2f, country SD %.2f, region SD %.2f on the logit scale",
+    length(target), length(unique(data$svkey[target])), sum(seen_region),
+    sum(!seen_region & seen_country), sum(!seen_country), sum(observed),
+    sqrt(fit$sig2), re_sd("s(country)"), re_sd("s(region_id)")
+  ))
+  data
+}
+
+if (refresh_mode) {
+  message("Refreshing covariates on the saved analysis dataset.")
+  analysis <- read_analysis_data()
+  derived <- grep(
+    paste0(
+      "_analysis$|_imputed$|_imputed_country_year$|_source$|",
+      "^(main_sample|complete_case_eligible|country_mean_pfpr|",
+      "country_mean_pfpr_gt_1|pfpr_region_ge_1|year_c|pfpr10)$"
+    ),
+    names(analysis)
+  )
+  analysis <- analysis[, -derived, drop = FALSE]
+} else if (legacy_mode) {
   message("Building from the existing aggregate panel for migration validation.")
   analysis <- build_from_legacy_aggregate()
 } else {
@@ -655,8 +846,12 @@ if (legacy_mode) {
   analysis <- build_from_raw()
   analysis <- attach_national_covariates(analysis)
 }
-analysis <- attach_unicef_immunisation(analysis)
-analysis <- attach_hiv_prevalence(analysis)
+if (!refresh_mode) {
+  analysis <- attach_unicef_immunisation(analysis)
+  analysis <- attach_hiv_prevalence(analysis)
+}
+analysis <- attach_statcompiler_covariates(analysis)
+analysis <- impute_wasting_country_year(analysis)
 
 analysis$pfpr10 <- analysis$pfpr2_10 / 10
 analysis$nnmr <- if ("nnmr" %in% names(analysis)) {
@@ -672,6 +867,25 @@ missingness <- apply_missingness_rule(
 )
 analysis <- missingness$data
 catalog <- missingness$catalog
+# rows filled by the country-year model count as imputed for the complete-case
+# sensitivity, and the catalog records where each StatCompiler covariate came from
+if ("wasting_imputed_country_year" %in% names(analysis)) {
+  analysis$wasting_imputed <- analysis$wasting_imputed | analysis$wasting_imputed_country_year
+}
+catalog$source <- "survey recode or national panel, as before"
+for (variable in names(STATCOMPILER_INDICATORS)) {
+  source_column <- paste0(variable, "_source")
+  if (!source_column %in% names(analysis)) next
+  counts <- table(analysis[[source_column]])
+  i <- match(variable, catalog$variable)
+  catalog$source[i] <- paste(names(counts), counts, sep = ": ", collapse = "; ")
+  if (variable == "wasting" && any(analysis$wasting_imputed_country_year)) {
+    catalog$imputation[i] <- sprintf(
+      "country-year model for %d survey-regions without anthropometry",
+      sum(analysis$wasting_imputed_country_year)
+    )
+  }
+}
 
 country_mean <- tapply(
   analysis$pfpr2_10,

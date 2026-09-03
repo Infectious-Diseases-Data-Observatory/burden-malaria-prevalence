@@ -79,6 +79,7 @@ loo, posterior, ggplot2, rmarkdown` (and a working Stan toolchain for `brms`).
 | DHS admin-1 boundary files | `data/dhs_boundaries/` | DHS Spatial Data Repository, fetched by script 01 |
 | MAP PfPR₂₋₁₀ rasters, GPW population | `data/map/` | `malariaAtlas` and GPW, fetched by script 02 |
 | UNICEF WUENIC coverage | `data/` | UNICEF global workbook, extracted by `02b` |
+| DHS StatCompiler indicators (improved water, improved sanitation, wasting) | `data/derived_dhs/statcompiler_covariates.csv` | DHS Program API via `rdhs`, pulled by `02c` at national and region level for every registry survey |
 | UNAIDS child HIV numbers, World Bank series | `data/` | fetched in script 03 (World Bank API) and from the UNAIDS 2025 workbook |
 | IHME/GBD under-5 malaria deaths | `data/ihme_malaria_u5_deaths_by_country.csv` | GBD Results tool (free login); needed for the burden comparison only |
 | WHO WMR 2025 deaths | fetched by script 10 or supplied via `WHO_JSON_PATH` | WHO GHO API |
@@ -88,8 +89,8 @@ loo, posterior, ggplot2, rmarkdown` (and a working Stan toolchain for `brms`).
 | Script | Does |
 |---|---|
 | `01_access_dhs_data.R` | Survey registry, recode and boundary downloads |
-| `02_extract_map_pfpr.R`, `02b_extract_unicef_immunisation.R` | Population-weighted MAP PfPR₂₋₁₀ per survey region; WUENIC panel |
-| `03_build_analysis_dataset.R` | Regional mortality (12-month window), region-name reconciliation against boundaries, covariates, inclusion flags; writes `region_merge_quality.csv` and `analysis_inclusion_counts.csv` |
+| `02_extract_map_pfpr.R`, `02b_extract_unicef_immunisation.R`, `02c_fetch_statcompiler_covariates.R` | Population-weighted MAP PfPR₂₋₁₀ per survey region; WUENIC panel; DHS API (StatCompiler) household covariates |
+| `03_build_analysis_dataset.R` | Regional mortality (12-month window), region-name reconciliation against boundaries, covariates, inclusion flags; writes `region_merge_quality.csv` and `analysis_inclusion_counts.csv`. Improved water, improved sanitation and wasting come from the StatCompiler indicators matched to the survey regions by name (`statcompiler_region_matching.csv`); wasting is imputed from a country-year model where a survey measured no anthropometry, and those rows count as imputed. `--refresh-covariates` re-attaches them without rebuilding mortality |
 | `04_fit_main_models.R`, `05_make_main_plots.R` | Five-specification AIC comparison, REML refits for the three outcomes, attributable fractions, figures 1–5 |
 | `06`–`08`, `15`–`20`, `22`–`24` | Sensitivities: samples, model structure, likelihood, specification forest, country slope, timing, ages 5–14, period and sub-region strata, fieldwork season, deprivation proxy, intervention targeting |
 | `09_validate_reproduction.R` | Comparison against the legacy aggregate (informational) |
@@ -105,6 +106,11 @@ loo, posterior, ggplot2, rmarkdown` (and a working Stan toolchain for `brms`).
 | `34_brms_model_ladder.R`, `35_brms_ladder_kfold.R` | Additive vs linear-in-time vs full surface: PSIS-LOO, stacking; survey-grouped 10-fold CV |
 | `36_neonatal_as_covariate.R` | Neonatal mortality (12- and 60-month) as a covariate; neonatal vs post-neonatal scatter |
 | `37_burden_trend_brms.R` | National burden 2000–2024 under the Bayesian ladder with credible bands |
+| `40_build_person_time.R`, `41_extract_map_window_years.R` | Person-time design: deaths and person-months by survey region, 12-month window (five per survey) and age segment; MAP prevalence for each window's own year |
+| `42_person_time_models.R`, `43_person_time_brms.R`, `44_deaths_by_age.R` | One negative-binomial model per age band (linear, smooth, within/between prevalence); Stan refits; age-at-death histogram |
+| `45`–`47` | Data-and-curve figures for the six-band splits, covariate forest by band, the joint model with band-specific random effects and ridge blocks against the separate fits |
+| `48_person_time_burden_nga_cod.R`, `49_person_time_burden_ssa.R` | Malaria-attributable under-5 deaths 2005–2025 from admin-1 prevalence and UN IGME or IHME all-cause deaths: Nigeria and DRC, then every sub-Saharan country against IHME by age block |
+| `50_age_specific_attributable.R` | Attributable fraction of all-cause mortality and attributable deaths per 1,000 child-years by age band as functions of PfPR₂₋₁₀ (figure 36) |
 
 Two constants in `00_config.R` define the primary analysis: `CHMORT_PERIOD`
 (12 months) and `AF_REFERENCE` (the 1% counterfactual prevalence). Country

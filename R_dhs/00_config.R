@@ -74,6 +74,14 @@ ANALYSIS_CSV        <- file.path(DERIVED_DIR, "dhs_analysis_dataset.csv")
 ANALYSIS_RDS        <- file.path(DERIVED_DIR, "dhs_analysis_dataset.rds")
 COVARIATE_CSV       <- file.path(RESULTS_DIR, "covariate_missingness.csv")
 MODEL_BUNDLE_RDS    <- file.path(DERIVED_DIR, "main_model_bundle.rds")
+# DHS Program API (StatCompiler) household covariates, pulled by script 02c and
+# attached by script 03 in place of the recode-label aggregates.
+STATCOMPILER_CSV    <- file.path(DERIVED_DIR, "statcompiler_covariates.csv")
+STATCOMPILER_INDICATORS <- c(
+  imp_water = "WS_SRCE_H_IMP",   # households using an improved water source (%)
+  imp_sanit = "WS_TLET_H_IMP",   # households with an improved sanitation facility (%)
+  wasting   = "CN_NUTS_C_WH2"    # children under 5 with weight-for-height < -2 SD (%)
+)
 
 required_packages <- function(packages) {
   missing <- packages[
@@ -1163,4 +1171,97 @@ survey_region_vector <- function(br, survey_map, survey, registry) {
   }
   keys <- rkey(as.character(br[[region_var]]))
   reconciled$to[match(keys, reconciled$from)]
+}
+
+# -----------------------------------------------------------------------------
+# DHS API (StatCompiler) region labels against the survey boundary regions.
+# Subnational rows come nested (leading dots mark depth) and some labels carry
+# qualifiers: "(>2010)", "(pre 2022)", "Brazzaville 2009", "Estuaire (excluding
+# Libreville)". Strip those, then match by key, by the shared token matcher, by
+# a short synonym list for renamed or translated units, and finally by a small
+# edit distance when the pairing is unambiguous. Regions left over take the
+# survey's national value in script 03 and are flagged.
+# -----------------------------------------------------------------------------
+statcompiler_clean_label <- function(x) {
+  x <- as.character(x)
+  x <- gsub("\\([^)]*\\)", " ", x)
+  x <- gsub("^[. ]+", "", x)
+  x <- gsub("(^| )(19|20)[0-9]{2}( |$)", " ", x)
+  x <- gsub("[[:space:]]+", " ", x)
+  trimws(x)
+}
+
+# api key -> boundary key. Official renames, translations the token lexicon
+# cannot derive, and StatCompiler's own regroupings.
+STATCOMPILER_REGION_SYNONYMS <- as.data.frame(rbind(
+  # Cote d'Ivoire 2012: the boundary uses compass names for the ten regions
+  c("savanes", "north"), c("zanzan", "northeast"), c("montagnes", "west"),
+  c("bassassandra", "southwest"), c("valleedubandama", "northcentral"),
+  c("centreest", "eastcentral"), c("centreouest", "westcentral"),
+  c("sudsansabidjan", "south"),
+  # Uganda: StatCompiler names the two Central regions after Buganda halves
+  c("southbuganda", "central1"), c("northbuganda", "central2"),
+  c("bugisuelgon", "bugishu"),
+  # renames and spellings
+  c("zambezi", "caprivi"), c("bascongo", "kongocentral"),
+  c("northernprovince", "limpopo"), c("kigalivillepvk", "kigalicity"),
+  c("kigalirurale", "kigalirural"), c("anamoroniimania", "amoronimania"),
+  c("atlantique", "atlantic"), c("lome", "greaterlomearea"),
+  c("maritime", "maritimeexcludinggreaterlomearea"),
+  c("ensemblemaritime", "maritime")
+), stringsAsFactors = FALSE)
+names(STATCOMPILER_REGION_SYNONYMS) <- c("api", "region")
+
+match_statcompiler_regions <- function(api_labels, region_labels, region_keys = rkey(region_labels)) {
+  api <- data.frame(label = unique(api_labels), stringsAsFactors = FALSE)
+  api$key <- rkey(api$label)
+  api <- api[nzchar(api$key) & !duplicated(api$key), , drop = FALSE]
+  regions <- data.frame(label = as.character(region_labels), key = region_keys, stringsAsFactors = FALSE)
+  regions <- regions[!duplicated(regions$key), , drop = FALSE]
+  pairs <- data.frame(api_key = character(0), regkey = character(0), how = character(0), stringsAsFactors = FALSE)
+  take <- function(api_key, regkey, how) {
+    if (!length(api_key)) return(invisible(NULL))
+    pairs <<- rbind(pairs, data.frame(api_key = api_key, regkey = regkey, how = how, stringsAsFactors = FALSE))
+    api <<- api[!api$key %in% api_key, , drop = FALSE]
+    regions <<- regions[!regions$key %in% regkey, , drop = FALSE]
+  }
+  # 1. identical keys
+  exact <- intersect(api$key, regions$key)
+  take(exact, exact, "exact")
+  # 2. the shared token matcher (language- and order-insensitive signatures)
+  if (nrow(api) && nrow(regions)) {
+    shared <- match_region_keys(api$label, regions$label)
+    shared <- shared[shared$from %in% api$key & shared$to %in% regions$key, , drop = FALSE]
+    take(shared$from, shared$to, paste0("tokens:", shared$how))
+  }
+  # 3. curated synonyms
+  if (nrow(api) && nrow(regions)) {
+    hit <- STATCOMPILER_REGION_SYNONYMS[STATCOMPILER_REGION_SYNONYMS$api %in% api$key &
+                                          STATCOMPILER_REGION_SYNONYMS$region %in% regions$key, , drop = FALSE]
+    hit <- hit[!duplicated(hit$api) & !duplicated(hit$region), , drop = FALSE]
+    take(hit$api, hit$region, "synonym")
+  }
+  # 4. "north" against "northern"
+  if (nrow(api) && nrow(regions)) {
+    for (k in regions$key) {
+      if (!k %in% regions$key) next
+      cand <- api$key[api$key == paste0(k, "ern") | paste0(api$key, "ern") == k]
+      if (length(cand) == 1L) take(cand, k, "suffix")
+    }
+  }
+  # 5. small edit distance, unambiguous both ways
+  if (nrow(api) && nrow(regions)) {
+    # iterate over a snapshot: take() shrinks the tables as pairs are settled
+    for (k in regions$key) {
+      if (!k %in% regions$key || !nrow(api)) next
+      allowed <- if (nchar(k) >= 12L) 3L else 2L
+      distance <- as.integer(utils::adist(k, api$key))
+      cand <- api$key[distance <= allowed & distance > 0L]
+      if (length(cand) != 1L) next
+      back <- as.integer(utils::adist(cand, regions$key))
+      if (sum(back <= allowed) != 1L) next
+      take(cand, k, "fuzzy")
+    }
+  }
+  pairs
 }
