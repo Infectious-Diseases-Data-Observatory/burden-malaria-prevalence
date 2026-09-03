@@ -1,0 +1,173 @@
+"label","matched","numeric_code","w_hh","n_hh","surveys"
+"tube well or borehole",TRUE,FALSE,141004.36741,145224,82
+"public tap/standpipe",TRUE,FALSE,110924.604366,108957,92
+"unprotected well",FALSE,FALSE,97433.66593,100768,90
+"piped to yard/plot",TRUE,FALSE,79020.991058,75563,93
+"protected well",TRUE,FALSE,74204.067171,74518,91
+"piped into dwelling",TRUE,FALSE,56510.335159,52420,113
+"river/dam/lake/ponds/stream/canal/irrigation channel",FALSE,FALSE,55905.316797,63849,73
+"unprotected spring",FALSE,FALSE,48553.779062,49684,84
+"protected spring",TRUE,FALSE,40066.636659,38330,89
+"piped to neighbor",TRUE,FALSE,19085.840245,18061,37
+"public tap",TRUE,FALSE,16285.9324480001,17692,19
+"river/dam/lake/ponds/stream/canal/irirgation channel",FALSE,FALSE,15064.192066,15902,13
+"open public well",FALSE,FALSE,13861.73926,13954,17
+"protected public well",TRUE,FALSE,10455.05436,10468,17
+"sachet water",TRUE,FALSE,10425.69625,8202,11
+"spring",FALSE,FALSE,9878.34841700001,8952,19
+"river, stream",FALSE,FALSE,8780.719782,7722,14
+"borehole",TRUE,FALSE,7956.28123799996,7967,3
+"rainwater",TRUE,FALSE,7021.95530299999,7644,101
+"bottled water",TRUE,FALSE,6172.461363,4475,100
+"not a dejure resident",FALSE,FALSE,5685.957762,5881,67
+"tanker truck",FALSE,FALSE,5518.376644,5724,95
+"cart with small tank",FALSE,FALSE,4603.79062,4332,73
+"open well",FALSE,FALSE,4509.56450899999,4160,3
+"other",FALSE,FALSE,4289.865667,4216,98
+"public borehole",TRUE,FALSE,4175.72962599996,4304,2
+"open spring",FALSE,FALSE,4095.841644,2931,2
+"piped into yard/plot",TRUE,FALSE,3710.400303,4269,12
+"river/stream",FALSE,FALSE,3534.94129599999,3776,8
+"unprotected public well",FALSE,FALSE,3477.63491799999,2753,1
+"33",FALSE,TRUE,3427.74511200001,3659,2
+"not dejure resident",FALSE,FALSE,2779.094948,2865,40
+"river",FALSE,FALSE,2750.86057099999,2537,1
+"piped outside compound",TRUE,FALSE,2718.784236,3141,2
+"pond, lake",FALSE,FALSE,2618.728869,2390,13
+"river/dam/lake/pond/stream/canal/irrigation channel",FALSE,FALSE,2497.47495799999,2122,1
+"13",FALSE,TRUE,2179.70123800001,2292,2
+"23",FALSE,TRUE,2035.58226099999,2058,1
+"unprotected public well/spring",FALSE,FALSE,1986.547201,1727,2
+"borehole with pump",TRUE,FALSE,1904.754682,2041,4
+"tube well or borehole (with manual bomb)",TRUE,FALSE,1698.03868,1636,1
+"protected public well/spring",TRUE,FALSE,1682.60948,1633,2
+"piped from the neighbor",TRUE,FALSE,1587.250459,1238,2
+"lake/pond/river/channel/irrigation channel",FALSE,FALSE,1585.55432400001,2059,1
+"community stand pipe",TRUE,FALSE,1532.10261100001,1778,1
+"forage",FALSE,FALSE,1429.630783,1519,1
+"piped into residence/yard/plot",TRUE,FALSE,1419.49218100002,1120,1
+"piped into compound/plot",TRUE,FALSE,1367.080342,1405,5
+"river/lake",FALSE,FALSE,1353.439091,1258,1
+"protected well in dwelling",TRUE,FALSE,1333.817288,1219,12
+"traditional public well",FALSE,FALSE,1286.688282,930,1
+"borehole public",TRUE,FALSE,1245.60713599999,1127,1
+"along the road",FALSE,FALSE,1237.80851,1222,1
+"42",FALSE,TRUE,1209.001948,1092,2
+"river/stream not protected",TRUE,FALSE,1194.67469000001,1381,1
+"12",FALSE,TRUE,1193.740284,1202,2
+"tube well",TRUE,FALSE,1172.191779,1060,2
+"piped to neighbour's house",TRUE,FALSE,1163.632059,1235,1
+"pond/lake",FALSE,FALSE,1075.968103,930,6
+"public fountain",FALSE,FALSE,1070.817005,1121,1
+"open well in yard/plot",FALSE,FALSE,1062.364724,1118,14
+"standpipe",TRUE,FALSE,1018.322206,1072,1
+"sachet water (in a bag)",TRUE,FALSE,996.709985000003,927,1
+"covered well/borehole, public",TRUE,FALSE,975.644305,757,1
+"open well in dwelling",FALSE,FALSE,917.751158,911,11
+"public water",FALSE,FALSE,835.512049999998,828,1
+"dam",FALSE,FALSE,819.054335,868,16
+"piped into compound",TRUE,FALSE,818.883225,1678,2
+"communal tap",TRUE,FALSE,812.022193,731,1
+"mineral water in sachet",TRUE,FALSE,785.921642000001,346,1
+"unprotected dug well",FALSE,FALSE,743.251238,724,1
+"naighbor's tap",TRUE,FALSE,711.008528,612,1
+"non protected well",TRUE,FALSE,710.883259999998,668,1
+"well with pump",FALSE,FALSE,696.78121,668,1
+"32",FALSE,TRUE,695.845385,664,2
+"protected dug well",TRUE,FALSE,661.1222,621,2
+"inside neighbor's house",FALSE,FALSE,648.889781999999,692,1
+"neighbor's tap",TRUE,FALSE,640.010825999998,535,1
+"neighbor's house",FALSE,FALSE,620.376989999999,740,1
+"protected well in yard/plot",TRUE,FALSE,565.397829999999,576,15
+"piped into tap in yard/plot",TRUE,FALSE,548.058487999999,514,1
+"motorcycle with three wheels",FALSE,FALSE,502.583762,233,2
+"protected well (without manual bomb)",TRUE,FALSE,501.751010999999,489,1
+"41",FALSE,TRUE,495.154548,491,2
+"not a de jure resident",FALSE,FALSE,486.827262,519,5
+"inside the house",FALSE,FALSE,485.032984000001,599,1
+"in the house",FALSE,FALSE,483.562479999999,427,1
+"pond/lake/dam",FALSE,FALSE,481.780552,389,2
+"covered spring",FALSE,FALSE,477.088181,347,1
+"piped into plot/yard",TRUE,FALSE,461.003626,351,1
+"manual pumped water",FALSE,FALSE,451.355496999999,467,1
+"rainwater collected in tank",TRUE,FALSE,446.559735,403,1
+"sachet",TRUE,FALSE,439.568160000001,320,1
+"spring, not improved",FALSE,FALSE,428.804098,462,1
+"43",FALSE,TRUE,417.501006,360,2
+"protected without pump",TRUE,FALSE,415.036069999999,379,1
+"surface water(river/dam/lake/pond/stream/canal/irrigation channel",FALSE,FALSE,405.380716,464,1
+"22",FALSE,TRUE,382.58206,336,2
+"of a neighbor",FALSE,FALSE,370.06361,336,1
+"non protected spring",TRUE,FALSE,362.984820000001,288,1
+"traditional well in the yard",FALSE,FALSE,359.484376,266,1
+"open dug well",FALSE,FALSE,359.21918,238,1
+"protected source",TRUE,FALSE,354.665999999999,415,1
+"covered public well",FALSE,FALSE,343.837295,309,1
+"in neighbor's land",FALSE,FALSE,306.20623,345,1
+"11",FALSE,TRUE,298.731676,274,2
+"covered well in compound/plot",FALSE,FALSE,290.727885,250,1
+"covered well",FALSE,FALSE,267.745420000001,512,1
+"river, stream, pond, lake",FALSE,FALSE,243.056497,211,1
+"neighbor's open well",FALSE,FALSE,242.062182,210,2
+"in the courtyard",FALSE,FALSE,234.03464,217,1
+"not de-jure resident",FALSE,FALSE,225.964824,232,2
+"neighbor's borehole",TRUE,FALSE,220.961945,149,2
+"water vendor",FALSE,FALSE,189.724785,180,3
+"neighbor's tap/standpipe",TRUE,FALSE,181.591249,148,1
+"rainwater in a cistern",TRUE,FALSE,172.097264,170,1
+"in own land",FALSE,FALSE,170.278166,195,1
+"not a de-jure resident",FALSE,FALSE,168.996829,136,1
+"open well in yard",FALSE,FALSE,155.714159,175,1
+"bottled water or sachets",TRUE,FALSE,153.176864,134,1
+"not in de jure sample",FALSE,FALSE,149.250651,151,1
+"piped into residence/yard",TRUE,FALSE,146.810543,418,1
+"large bottle",FALSE,FALSE,145.746334,293,1
+"not dejure member",FALSE,FALSE,138.836807,140,1
+"water in plastic bag",FALSE,FALSE,135.409218,105,1
+"31",FALSE,TRUE,131.169945,118,1
+"water sachets (pure water)",TRUE,FALSE,129.388007,140,1
+"public protected well",TRUE,FALSE,115.958488,204,1
+"water merchant from covered well",FALSE,FALSE,113.638027,257,1
+"protected well in yard",TRUE,FALSE,110.201674,102,1
+"piped to buy",TRUE,FALSE,107.772127,75,1
+"open well in compound/plot",FALSE,FALSE,88.315239,95,1
+"surface water",FALSE,FALSE,84.496458,91,1
+"autonomous water station",FALSE,FALSE,78.002426,108,1
+"97",FALSE,TRUE,77.59624,82,1
+"improved spring",FALSE,FALSE,70.121953,78,1
+"borehole in yard/plot",TRUE,FALSE,69.692297,76,3
+"water bag",FALSE,FALSE,66.181834,77,2
+"vendor: cart with small tank",FALSE,FALSE,61.689127,59,1
+"21",FALSE,TRUE,59.999871,61,1
+"bicycle with jerrycans",FALSE,FALSE,59.73119,50,1
+"covered well/borehole in the yard",TRUE,FALSE,55.285471,63,1
+"sea, lake",FALSE,FALSE,55.201301,77,1
+"34",FALSE,TRUE,53.927839,125,1
+"not de jure",FALSE,FALSE,53.783228,48,1
+"public open well",FALSE,FALSE,52.677716,78,1
+"water kiosk",FALSE,FALSE,52.587103,56,1
+"unprotected well/spring in yard/plot",FALSE,FALSE,52.137393,45,2
+"piped to elsewhere",TRUE,FALSE,45.96509,39,1
+"bag of water",FALSE,FALSE,45.338603,35,1
+"gravity flow water",FALSE,FALSE,43.317379,38,1
+"protected well/spring in yard/plot",TRUE,FALSE,38.379308,37,2
+"piped to neighbour",TRUE,FALSE,31.370506,27,1
+"satchel water",FALSE,FALSE,30.315942,23,1
+"gravity flow scheme",FALSE,FALSE,29.264548,41,1
+"other rainwater",TRUE,FALSE,26.971872,28,1
+"piped in dwelling",TRUE,FALSE,25.757911,52,1
+"44",FALSE,TRUE,20.543684,27,1
+"vendor = cart with small tank",FALSE,FALSE,19.921777,20,1
+"protected well in yard/ compound",TRUE,FALSE,19.208129,22,1
+"water merchant from pond/lake",FALSE,FALSE,15.184531,18,1
+"open well at neighbour",FALSE,FALSE,14.798187,9,1
+"water merchant from unknown source",FALSE,FALSE,13.94529,27,1
+"bag water",FALSE,FALSE,13.022088,11,1
+"open well in yard/compound",FALSE,FALSE,11.523533,16,1
+"water bags",FALSE,FALSE,8.935293,10,1
+"water merchant from tradit. well",FALSE,FALSE,7.777597,20,1
+"water sachet",TRUE,FALSE,6.500707,9,1
+"water kiosk/domestic points",FALSE,FALSE,5.844163,5,1
+"others",FALSE,FALSE,3.811843,7,1
+"tanker truck/bowser",FALSE,FALSE,3.624052,3,1
+"canal",FALSE,FALSE,0.985086,1,1

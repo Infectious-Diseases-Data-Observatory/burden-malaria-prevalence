@@ -1,0 +1,147 @@
+"label","matched","w_hh","n_hh","surveys"
+"pit latrine with slab",TRUE,175813.447618,176269,71
+"pit latrine without slab/open pit",FALSE,160785.417099,160395,67
+"no facility/bush/field",FALSE,158069.288632,173492,84
+"flush to septic tank",TRUE,57013.497894,48297,72
+"traditional pit toilet",FALSE,41830.4594789999,40982,15
+"ventilated improved pit latrine (vip)",TRUE,37081.4777590001,37105,73
+"flush to piped sewer system",TRUE,27596.254173,22095,72
+"pit latrine - without slab / open pit",FALSE,26020.9805259999,25625,9
+"no facility, bush, field",FALSE,25832.0462290001,23635,14
+"flush to pit latrine",TRUE,19291.555928,18129,64
+"no facility",FALSE,18208.639289,17864,8
+"pit latrine - with slab",TRUE,8604.84245799996,8222,9
+"latrine",FALSE,8600.472185,8661,2
+"pit latrine - ventilated improved pit (vip)",TRUE,8247.08411499992,8222,9
+"no toilet, in nature",FALSE,7370.84917600009,7594,1
+"no facility / bush / field",FALSE,7222.93637699994,6656,2
+"traditional pit latrine",FALSE,6776.03596099999,7421,3
+"not a dejure resident",FALSE,6064.692318,6244,69
+"flush toilet",TRUE,5891.397945,6580,24
+"hanging toilet/latrine",FALSE,5704.300722,6979,63
+"flush - to piped sewer system",TRUE,3932.20756000001,3547,8
+"traditional latrine",FALSE,3906.921005,6012,5
+"covered pit latrine no slab",TRUE,3811.627245,3454,2
+"rudimentary pit toilet latrine",FALSE,3340.45160000001,3399,1
+"pit latrine without slab non-wahable",FALSE,3302.52367,3177,1
+"toilet to septic tank",TRUE,3238.64161799999,2677,1
+"pit latrine with log/rock",FALSE,3184.53303000003,2766,1
+"ventilated improved pit latrine",TRUE,3091.959014,3184,10
+"composting toilet",TRUE,2994.296848,2746,69
+"flush - to septic tank",TRUE,2974.23745900002,2386,8
+"pit latrine with drainage",FALSE,2846.058618,3009,1
+"covered pit latrine, no slab",TRUE,2707.61533499998,2619,1
+"no facility/outdoors/bush",FALSE,2692.006003,3389,1
+"latrine to septic tank",TRUE,2644.87431199999,2754,1
+"not dejure resident",FALSE,2633.467091,2700,38
+"ventilated improved pit",TRUE,2590.28467300001,2467,1
+"no facility/ bush/ field",FALSE,2584.51561000001,2584,1
+"pit latrine without slab / open pit",FALSE,2337.438629,2026,1
+"pit latrine with slab (not washable)",TRUE,2200.20610199999,2108,1
+"ventilated pit latrine",TRUE,2070.158122,1964,1
+"inside yard: flush to septic tank",TRUE,1996.881452,1920,1
+"open latrine",FALSE,1967.647983,2071,1
+" no facility, bush, field",FALSE,1948.12099400001,2345,1
+"covered pit latrine with slab",TRUE,1927.188911,1960,2
+"flush to somewhere else",FALSE,1925.244818,1784,61
+"indoors: flush to septic tank",TRUE,1888.339802,1321,1
+"improved pit latrine",FALSE,1863.971187,1983,1
+"ventilated improved pit (vip) latrine",TRUE,1836.534596,2095,4
+"pit latrine with slab (washable)",TRUE,1822.40644899999,1820,1
+"other",FALSE,1803.005415,1853,100
+"ventilated improved pit lat",TRUE,1789.357653,1849,1
+"non-ventilated pit latrine",TRUE,1731.483067,1663,1
+"flushed to piped sewer system",TRUE,1713.043577,1582,1
+"improved pit toilet latrine",FALSE,1566.70136,1595,1
+"flush - to pit latrine",TRUE,1366.464733,1304,8
+"uncovered pit latrine no slab",TRUE,1295.834999,1194,2
+"ordinary pit latrine",FALSE,1238.831723,1196,1
+"inside yard: latrine to septic tank",TRUE,1173.574902,1246,1
+"ventilated improved pit/latrine (vip blair toilet)",TRUE,1165.620747,1228,1
+"cemented with sink",FALSE,1073.45840300002,1075,1
+"covered latrine",FALSE,1030.661085,984,1
+"covered pit latrine, with slab",TRUE,1021.06376600001,1038,1
+"flush, don't know where",TRUE,1012.522541,980,57
+"bucket toilet",FALSE,1011.48613,1119,56
+"bush/field",FALSE,997.787821,1111,1
+"uncovered pit latrine, no slab",TRUE,906.282292000002,830,1
+"traditional pip toilet",FALSE,870.472616999998,1325,1
+"modern flush toilets",TRUE,813.555087000012,645,1
+"no flush to septic tank",TRUE,757.947534000001,893,1
+"without cement sink",FALSE,752.450725000007,677,1
+"ventilated improved pit (vip) latrines",TRUE,751.831717000005,569,1
+"bush",FALSE,696.282358000004,832,1
+"septic tank",TRUE,620.241103,629,1
+"flush or pour flush toilet",TRUE,588.044786,745,2
+"unventilated latrine",TRUE,550.756273000001,530,1
+"ventilated latrine",TRUE,546.106483000002,533,1
+"ventilated improved privy",TRUE,477.130046,423,1
+"piped sewage system",FALSE,424.841522999998,421,1
+"latrine with manual flush",TRUE,421.975371,309,5
+"not de-jure resident",FALSE,394.961653,368,3
+"vip latrine",TRUE,379.74879,370,2
+"non-vip pit latrine with slab",TRUE,367.446326,363,1
+"flush toileet",TRUE,346.104143,304,1
+"not a de jure resident",FALSE,337.139459,386,5
+"indoors: flush to piped public system",TRUE,334.180592,305,1
+"indoors: latrine to septic tank",TRUE,329.351827,260,1
+"slit latrine",FALSE,326.633701,321,1
+"flush toilet not connected to sewer system",TRUE,315.660482000001,278,1
+"inside yard: latrine to open pit (ditch or river)",FALSE,307.032288,488,1
+"flush, bio-digester (biofil)",TRUE,291.36718,184,1
+"no flush toilet, don't know where",TRUE,287.846678,432,1
+"non-vip pit latrine without slab",FALSE,278.430695,275,1
+"uncovered pit latrine with slab",TRUE,264.58095,286,2
+"flush - to somewhere else",FALSE,213.715521,185,8
+"pour flush latrine",TRUE,207.724472,194,1
+"out of yard: flush to septic tank",TRUE,198.095818,246,1
+"latrine to open pit (ditch or river)",FALSE,183.073482,230,1
+"toilet to piped sewer system",TRUE,177.729162,165,1
+"pit latrine with slab that can not be washed",TRUE,172.837852,175,1
+"inside yard: flush to piped public system",TRUE,154.97118,145,1
+"indoors: latrine to piped public system",FALSE,145.926031,172,1
+"not dejure member",FALSE,138.836807,140,1
+"no flush toilet",TRUE,122.135708,147,1
+"toilet to open pit (ditch or river)",FALSE,114.144683,142,1
+"inside yard: flush to open pit (ditch or river)",FALSE,110.727793,157,1
+"uncovered pit latrine, with slab",TRUE,107.865706,103,1
+"ventilated improved latrine",TRUE,89.5185509999998,205,1
+"out of yard: latrine to septic tank",TRUE,89.231568,103,1
+"vip",TRUE,77.7306940000001,69,1
+"not de jure resident",FALSE,73.246853,80,2
+"river",FALSE,71.156381,61,1
+"bucket, pan",FALSE,67.549939,65,1
+"out of yard: flush to piped public system",TRUE,66.677865,40,1
+"no toilet/bush",FALSE,61.546406,78,1
+"pit latrine with washable slab",TRUE,59.334031,84,1
+"flush - don't know where",TRUE,58.779407,53,6
+"shared flush toilet",TRUE,57.229411,99,1
+"ventilated improved (vip)",TRUE,50.213087,52,1
+"bucket",FALSE,46.113869,56,1
+"flush to latrine",TRUE,41.035444,32,1
+"out of yard: latrine to open pit (ditch or river)",FALSE,40.026045,56,1
+"bucket/potty/other container",FALSE,39.138904,45,1
+"inside yard: latrine to piped public system",FALSE,37.10973,47,1
+"indoors: flush to open pit (ditch or river)",FALSE,36.607466,49,1
+"chemical toilet",FALSE,36.261148,18,1
+"bucket/pan toilet",FALSE,35.902972,31,1
+"latrine to piped sewer system",TRUE,34.972453,49,1
+"hanging toilet / hanging latrine",FALSE,28.281413,25,2
+"out of yard: flush to open pit (ditch or river)",FALSE,26.857261,36,1
+"improved (ventilated) pit latrine",TRUE,25.95087,68,1
+"stream/river",FALSE,24.896299,31,1
+"toilet to somewhere else",FALSE,24.226364,29,1
+"other place",FALSE,23.327755,26,1
+"ventilated improved pit latrine (laa)",TRUE,21.078505,30,1
+"no flush to piped sewer system",TRUE,20.995624,31,1
+"no flush to somewhere else",FALSE,20.640875,22,1
+"composting toilet/ecosan",TRUE,16.916533,21,1
+"flush other",TRUE,10.99607,9,1
+"out of yard: latrine to piped public system",FALSE,10.337781,9,1
+"flush toilet connected to sewer system",TRUE,9.667486,10,1
+"toilet to don't know where",FALSE,7.024643,15,1
+"private flush toilet",TRUE,6.345483,17,1
+"no flush, don't know where",TRUE,5.453612,6,1
+"ecosan",FALSE,4.95013,7,1
+"composting toilet/arbo loo",TRUE,4.852987,6,1
+"water flow do not know where",FALSE,3.739717,3,1
