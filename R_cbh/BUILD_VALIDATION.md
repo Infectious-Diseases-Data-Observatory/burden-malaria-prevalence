@@ -49,7 +49,7 @@ Selected candidate-covariate missingness across all eligible rows, before choosi
 
 Maternal age at birth is missing for four rows. Stratum identifiers are unavailable for all 44,636 eligible rows from UG61FL; its survey design must be reviewed before a stratified bootstrap. Other surveys' stratum identifiers are retained, but their design interpretation is not validated merely by having nonmissing codes.
 
-Vaccine missingness reflects the explicit decision not to turn absent/pre-series estimates into assumed zeros. HIV is unavailable for Nigeria and Comoros in the underlying child-HIV snapshot. These are not silently imputed. A final adjustment set and missing-data strategy remain to be specified before fitting.
+Vaccine missingness reflects the explicit decision not to turn absent/pre-series estimates into assumed zeros. The country-year audit confirms that HIV is unavailable for Nigeria, Comoros and São Tomé and Príncipe in the cached child-HIV panel; the initial summary omitted the third country. These values are not silently imputed. See the [country-year missingness table](HIV_MISSINGNESS.md). A final adjustment set and missing-data strategy remain to be specified before fitting.
 
 ## Checks completed
 
