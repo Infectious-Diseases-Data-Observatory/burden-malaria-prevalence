@@ -26,6 +26,16 @@ The unrounded upper limit for 36–47 months is **1.000243**, so that interval i
 
 ![Age-specific PfPR contrast](pfpr_40_to_20_by_age.png)
 
+## Fitted PfPR spline shapes
+
+![Fitted PfPR splines by age](pfpr_splines_by_age.png)
+
+The curves show `f_a(P) - f_a(20)`: the log mortality hazard ratio at PfPR P relative to 20%, holding the remaining model predictors fixed. Common axes allow comparison between bands. The main figure restricts each curve to its band's unweighted 2.5th–97.5th exposure percentiles (approximately 1.7–69% PfPR). The [full-range figure](pfpr_splines_full_range.png) includes the sparse exposure extremes, with dotted lines marking those percentiles.
+
+The neonatal curve is almost linear with a small negative slope. The 1–5 month curve rises slightly, while the 6–11 month curve rises more clearly before flattening. At ages 12 months and above, the curves rise steeply at lower PfPR, then flatten or become non-monotonic. These describe the fitted adjusted associations and remain subject to the diagnostic and causal limitations below.
+
+Shading gives pointwise 95% model-based intervals for each contrast, using the full coefficient covariance conditional on smoothing parameters. The interval collapses at the 20% reference by construction; this does not mean the mortality hazard itself is known exactly there. For a change from X to Y, the estimated log hazard ratio is the curve height at Y minus its height at X; its uncertainty requires the covariance between those heights. [Aggregate curve estimates](pfpr_spline_curves.csv) and the figures were generated from the existing saved fit without refitting. Checks confirmed agreement with direct link predictions and with the previously reported 40-to-20 contrasts.
+
 ## Numerical checks and limitations
 
 - `bam` reported convergence and completed 14 iterations. Model rank is **1,499 / 1,499**; coefficient estimates and covariance entries are finite. The fit took about **252 seconds**, excluding dataset preparation and report generation.

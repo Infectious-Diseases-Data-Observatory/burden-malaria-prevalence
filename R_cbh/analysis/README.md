@@ -41,6 +41,10 @@ Aggregate reports are written to `results/cbh/age_band_complete_case_v1/`:
 | `basis_checks.csv` | Seeded basis-dimension checks on up to 10,000 observations; factor smooth checks may be unavailable |
 | `pfpr_40_to_20_contrasts.csv` | Age-specific hazard ratios for 40% to 20% PfPR with approximate pointwise 95% model-based intervals and central exposure-support checks |
 | `pfpr_40_to_20_by_age.png` | Forest plot of the saved contrasts, generated separately by `02_plot_trial.R` |
+| `pfpr_splines_by_age.png`, `pfpr_splines_full_range.png` | Fitted PfPR curves over the central 95% and full observed exposure ranges, on common axes |
+| `pfpr_spline_curves.csv` | Aggregate grid predictions, log hazard ratios relative to 20% PfPR, standard errors, pointwise intervals, exposure-support bounds and fitted-model signature |
+
+`02_plot_trial.R` reads the private saved fit locally without refitting and exports only aggregate curve predictions. Spline figures use the installed `ggplot2` and `ragg` packages. For each age band, the curve is `f_a(P) - f_a(20)`; its exponential is the mortality hazard ratio relative to 20% PfPR. Prediction-matrix differences hold all other predictors fixed, and the full fitted coefficient covariance accounts for correlation with the reference prediction. Therefore the contrast and its standard error are exactly zero at 20%. Intervals are pointwise and conditional on smoothing parameters. Exposure percentiles are unweighted, pooled over complete-case records within each band; they do not establish joint confounder overlap. The plotting script verifies direct link predictions, the zero reference contrast and agreement with the inverse of the saved 40-to-20 contrasts.
 
 For band a, the contrast is `exp(f_a(20) - f_a(40))`. The confounder profile and random effects are held fixed, so they cancel in this ratio. It is not a death-probability ratio or a total intervention effect from birth. The code checks the prediction-matrix calculation against differences of predicted links. No sampling of fitting rows is performed; the limited subsample is used only for the basis diagnostic.
 
