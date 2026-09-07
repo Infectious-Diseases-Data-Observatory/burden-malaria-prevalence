@@ -2,6 +2,8 @@
 
 The accompanying [R specification](../R_dhs/specifications/adebayo_2005_mgcv.R) implements the structure of models **M7 and M6**, with the optional socioeconomic extension in Section 4.3. M7 was the authors' preferred specification. This is a proposed model reference; it does not change the primary analysis in [ANALYSIS_PLAN.md](ANALYSIS_PLAN.md).
 
+See also the [comparison with Burstein et al. (2018)](BIRTH_HISTORY_MODEL_COMPARISON.md), including their complete-birth-history likelihood, age-band eligibility rules and implications for the PfPR analysis.
+
 Source: Adebayo SB, Fahrmeir L. *Analysing child mortality in Nigeria with geoadditive discrete-time survival models.* Statistics in Medicine 2005;24:709–728. DOI: [10.1002/sim.1842](https://doi.org/10.1002/sim.1842). Equations (1)–(10), pp. 714–716, define the model family; p. 718 specifies M6/M7; Tables IV and VII identify the fixed effects.
 
 ## Likelihood and data layout
