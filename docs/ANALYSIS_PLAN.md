@@ -8,26 +8,26 @@ This is a plan, not a refactor or a new results report. The review covered the s
 
 ## 1. Scientific questions and reporting choices
 
-The primary question is how **all-cause mortality rates within age bands vary with regional malaria parasite prevalence**, conditional on measured covariates, calendar time and the model's country/survey effects. The exposure is MAP *P. falciparum* prevalence standardised to ages 2–10 years (PfPR₂–₁₀), expressed in percentage points.
+The primary causal question is: **if PfPR₂–₁₀ changes from X% to Y%, how does all-cause mortality in age group gᵢ change?** Estimate this effect separately for each of six age groups. The exposure is MAP *P. falciparum* prevalence standardised to ages 2–10 years (PfPR₂–₁₀), expressed as a percentage. With the person-time design, the outcome is the all-cause mortality rate within the age group.
 
-Report age-specific rate-ratio curves and the model-implied fraction associated with observed prevalence relative to a stated reference. The main substantive focus remains deaths after the first month of life. Estimate the neonatal relationship separately as a specificity comparison; do not select models to make it null, or assume a null relationship proves the absence of confounding.
+Fit the data for each age group separately, following the most recent person-time models. Each group has its own prevalence–mortality curve, covariate effects and other model parameters. All six age-specific effects, including the effect below one month of age, are primary quantities of interest. Report the relative and absolute changes in mortality for a specified X% → Y% prevalence contrast, evaluated in the same target population under both scenarios.
 
-National attributable deaths are a **secondary extrapolation**. These are observational, regional associations: interpreting their counterfactual contrasts as deaths prevented by removing malaria additionally requires adequate control of confounding, appropriate exposure measurement and transportability. Neither an ecological association nor agreement with IHME, WHO or trial estimates establishes those assumptions.
+The aim is causal estimation from observational data. Interpreting the fitted X% → Y% contrasts causally requires a defined exposure-change scenario, adequate control of confounding and appropriate exposure measurement. National attributable deaths are a **secondary extrapolation** of these age-specific effects and additionally require transportability to the populations receiving the estimates. Agreement with IHME, WHO or trial estimates can inform assessment of the results but does not establish these assumptions.
 
 | Decision | Proposed specification | Relation to existing code |
 |---|---|---|
 | Primary design | Deaths and person-months by survey × region × retrospective window × age segment | Retain `40–43` |
 | Survey frame | SSA DHS/MIS surveys with usable full birth histories, registry years 2000–2025; include supported retrospective windows independently of survey-year MAP availability | Broaden the current dependency on script `02` |
 | Follow-up | Five non-overlapping 12-month windows before each child's interview; exclude the incomplete interview month | Retain `40` |
-| Main displayed age bands | <1, 1–3, 4–11, 12–23, 24–35, 36–59 completed months | Retain `AGE6B`, the latest main presentation |
+| Primary age groups | <1, 1–3, 4–11, 12–23, 24–35, 36–59 completed months | Confirmed 4-month boundary; retain `AGE6B`, used by the latest separate age-group models |
 | Exposure | Person-time-weighted annual MAP prevalence for the years within each window, using weights specific to the age segment | Refine `40–42`, which currently use pooled under-5 year weights |
 | Prevalence eligibility | Retain all finite prevalence values, including zero; no country or region prevalence floor | Retain person-time intent; remove inherited survey-region restrictions |
-| Counterfactual | 0% PfPR; 1% as a sensitivity, with sample restriction tested separately | Retain person-time reference |
+| Primary contrast | Change PfPR from any specified X% to Y%, estimating the mortality change separately in each age group | Generalise the existing prevalence-response predictions; 0% is a special reference for attributable-fraction summaries |
 | Main model structure | Separate negative-binomial additive models by age band; smooth prevalence and year, segment and window effects, country and survey intercepts, regularised covariates | Retain `42–43` |
 | Reporting engine | Recommend `brms` for final primary curves and burden draws, with `mgcv` for replication and efficient sensitivity screening | Makes the latest `43/48–50` reporting choice explicit; currently engine selection partly depends on cache availability |
 | Historical burden | 2005 through the last year with the required observed inputs; currently configured as 2024 | Remove unlabelled carry-forward from the main series; later-year scenarios separate |
 
-Only the choice of the person-time design has been confirmed by the user. The other entries are proposed defaults for the streamlined implementation. In particular, the final engine, count-weighting approximation, covariate block and missing-data rules should be settled in the specification before refitting. This is a revised analysis plan informed by existing exploratory work, not a claim of prospective preregistration.
+The person-time design, the age-specific X% → Y% causal question, the six age groups with a 4-month boundary, and separate fitting by age group have been confirmed by the user. The remaining choices are proposed defaults for the streamlined implementation. In particular, the final engine, count-weighting approximation, covariate block and missing-data rules should be settled in the specification before refitting. This is a revised analysis plan informed by existing exploratory work, not a claim of prospective preregistration.
 
 ## 2. Stage 1 — make the analysis datasets
 
@@ -52,6 +52,8 @@ Require one-to-one matches unless an explicit aggregation rule applies. Review h
 Retain the nine primitive age segments already implemented, in months:
 
 `[0,1), [1,3), [3,4), [4,6), [6,12), [12,24), [24,36), [36,48), [48,60)`.
+
+Assign these segments to the six primary groups `g₁` through `g₆`: `[0,1), [1,4), [4,12), [12,24), [24,36), [36,60)` months, retaining segment rows within each group for fitting. These intervals are disjoint and correspond to the completed-month labels in Section 1.
 
 Construct follow-up from birth date, interview date, survival status and recorded/imputed age at death. Split each child's contribution across the five retrospective windows and the age segments. Sum both weighted and unweighted deaths and person-months. Keep zero-death cells with positive time at risk; distinguish these from cells with no observed follow-up.
 
@@ -124,7 +126,7 @@ Use RDS for typed analysis objects and CSV for inspectable aggregate tables wher
 
 ### 3.1 Primary working model
 
-For each of the six age bands, retain the structure:
+Fit a separate model to the data in each of the six age groups, using the following structure:
 
 ```text
 deaths ~ smooth(PfPR, k=5) + segment + window
@@ -141,7 +143,17 @@ Recommend one named `brms` primary fit per band for the final figures and burden
 
 ### 3.2 Effect summaries
 
-For prevalence `p` and reference `p0 = 0`, use a single prediction routine to calculate:
+Let `rate_i(p)` denote the predicted all-cause mortality rate in age group `gᵢ` under prevalence `p`, evaluated for the same target population and adjustment settings. For any specified change from `X%` to `Y%`, use a single prediction routine to calculate:
+
+```text
+Rate_ratio_i(X → Y) = rate_i(Y) / rate_i(X)
+Percentage_change_i(X → Y) = 100 × [Rate_ratio_i(X → Y) - 1]
+Absolute_change_i(X → Y) = rate_i(Y) - rate_i(X)
+```
+
+Report each contrast for all six groups, with uncertainty. Express absolute changes in deaths per 1,000 child-years. A negative percentage or absolute change denotes a reduction in mortality. Because the prevalence-response curve is nonlinear, both X and Y must be specified; a single per-10-percentage-point coefficient does not describe all possible contrasts.
+
+Attributable fractions and attributable rates are additional summaries of the same fitted curves. For prevalence `p` and reference `p0 = 0`, calculate:
 
 ```text
 HR_age(p, p0) = rate_age(p) / rate_age(p0)
@@ -149,7 +161,7 @@ AF_age(p, p0) = 1 - rate_age(p0) / rate_age(p)
 Attributable_rate_age(p, p0) = rate_age(p) - rate_age(p0)
 ```
 
-Report curves with uncertainty and anchors at 10%, 30% and 50%, flagging unsupported extrapolation. Do not summarise the entire nonlinear curve with one per-10-percentage-point coefficient. Keep the 0% reference visible and compare with 1% on the same sample.
+Report the age-specific curves and X% → Y% contrasts with their exposure support, flagging unsupported extrapolation. Retain attributable-fraction anchors at 10%, 30% and 50% as additional summaries. For those summaries, keep the 0% reference visible and compare with 1% on the same sample.
 
 Retain signed contrasts and intervals, including negative values. A non-negative burden scenario, if wanted, must have an explicit label and be compared with the untruncated calculation. Current effect tables and burden routines apply different truncation rules.
 
@@ -163,7 +175,7 @@ Check convergence, dispersion, residual patterns, zero counts, fitted rates by a
 
 For Bayesian reporting, require reviewed sampling diagnostics: R-hat below 1.01, adequate bulk/tail effective sample sizes and Monte Carlo precision for the reported contrasts, and investigation/resolution of divergent transitions. Record tree-depth and energy diagnostics. Merely writing these values into a CSV should not make a fit eligible for final reporting. [Stan diagnostic guidance](https://mc-stan.org/learn-stan/diagnostics-warnings.html).
 
-Use survey-grouped cross-validation when comparing flexible structures; all regions, age segments and windows from a survey stay in one fold. Include country-held-out checks where transportability is the question. Pointwise leave-one-cell-out prediction is insufficient for either task. Use a fixed, small model menu and common comparison samples; keep the additive primary specification unless the plan is explicitly revised. Do not pick lookback periods or covariate sets because they produce the strongest malaria association or the weakest neonatal association.
+Use survey-grouped cross-validation when comparing flexible structures; all regions, age segments and windows from a survey stay in one fold. Include country-held-out checks where transportability is the question. Pointwise leave-one-cell-out prediction is insufficient for either task. Use a fixed, small model menu and common comparison samples; keep the additive primary specification unless the plan is explicitly revised. Choose lookback periods and covariate sets independently of the estimated effect direction or significance in any age group.
 
 For `mgcv` uncertainty, evaluate the smoothing-uncertainty-corrected covariance when available and record when it is unavailable. The package supports this option; moving to Stan is not the only possible improvement over conditional covariance estimates. [mgcv prediction documentation](https://stat.ethz.ch/R-manual/R-devel/library/mgcv/html/predict.gam.html).
 
@@ -208,8 +220,8 @@ Plotting scripts should read saved descriptive tables, model contrasts and burde
 |---|---|---|
 | Study flow and survey coverage | Surveys, countries, geography, retained windows, deaths/person-time and reasons for exclusion; map/timeline | `11/26/28`, adapted to person-time |
 | Age-specific data and dose-response | Descriptive rates alongside adjusted HR/AF curves for the six main bands, with exposure support | `42/45/50` |
-| Primary results table | HR/AF at 10/30/50%, neonatal comparison, uncertainty method and model diagnostics | `43/50` |
-| Sensitivity forest | AF contrasts on a common scale, sample sizes, specification IDs and required diagnostics | `15/42/43/47` |
+| Primary results table | Rate ratios, percentage changes and absolute mortality-rate changes for specified X% → Y% contrasts in all six age groups; uncertainty method and model diagnostics; additional AF anchors at 10/30/50% | `43/50`, extending their prediction summaries |
+| Sensitivity forest | The same X% → Y% contrasts by age group and specification, with sample sizes and required diagnostics; AF summaries where relevant | `15/42/43/47` |
 | Recall and age-at-death diagnostics | Window effects, death-age distribution/heaping, full-frame vs fitted-sample accounting | `42/44` |
 | Conditional covariate associations | Age-specific coefficients per SD on the declared transformed scale | `46`; labels from a dictionary, not another fitted model |
 | Secondary burden | Country/SSA trends, age contributions, denominator comparison and Nigeria/DRC views | `48/49`; replace competing temporal figure calculations |
