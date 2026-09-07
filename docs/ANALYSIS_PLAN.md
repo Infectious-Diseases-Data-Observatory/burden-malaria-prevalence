@@ -2,6 +2,8 @@
 
 Draft for review · 7 September 2026 · Based on repository commit `17828d1`
 
+**Subsequent model trial:** the user has requested Burstein's seven age bands and exclusion of maternal death fraction. The [proposed joint PfPR age-band model](PFPR_AGE_BAND_MODEL.md) specifies this trial, including a complementary log–log rate parameterization and age-specific confounder effects for review. The six-band separate-fit specification below records the earlier primary plan and is not the specification for this new trial.
+
 **Use the newer person-time analysis as the primary analysis**, as confirmed during this review. Build one pipeline with three stages: **make analysis datasets → fit primary and sensitivity analyses → plot saved results**. The survey-region mortality approach becomes a limited sensitivity and migration reference. The earlier three-component pipeline in `R/` should leave the active workflow once its remaining data-building functions have been transferred.
 
 This is a plan, not a refactor or a new results report. The review covered the structure, dependencies and analytical specifications of all 77 R scripts in `R/` and `R_dhs/`, plus the root runner, with detailed inspection of the person-time and shared data-processing code. All 78 scripts parsed under R 4.6.0. No raw DHS records or fitted-model objects were opened, and no analysis was rerun. Current sample sizes, model diagnostics and numerical results therefore remain unverified. The [code audit and complete script disposition](CODE_AUDIT.md) provide the supporting evidence.

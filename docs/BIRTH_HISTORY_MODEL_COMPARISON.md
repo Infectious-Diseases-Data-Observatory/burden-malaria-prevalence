@@ -2,6 +2,8 @@
 
 Reviewed 7 September 2026. This comparison concerns the **complete-birth-history (CBH) training model** in Burstein et al., not the later reconstruction of histories from summary data. It is a methods comparison, not a change to the agreed primary analysis or a report of new empirical fits.
 
+**Later direction:** the user subsequently requested a trial using Burstein's seven bands. See the [proposed joint PfPR model](PFPR_AGE_BAND_MODEL.md). References below to six separate fits describe the plan at the time of this comparison.
+
 Sources: Adebayo and Fahrmeir (2005), *Statistics in Medicine* 24:709–728, especially pp. 714–718; Burstein, Wang, Reiner and Hay (2018), *PLOS Medicine* 15:e1002687, especially PDF pp. 5–8, supplied as `Hay_PLOS_Medicine.pdf`. See the [Burstein paper](https://journals.plos.org/plosmedicine/article?id=10.1371/journal.pmed.1002687), the [Adebayo specification](ADEBAYO_2005_MGCV.md) and the authors' code links below.
 
 ## Main comparison
