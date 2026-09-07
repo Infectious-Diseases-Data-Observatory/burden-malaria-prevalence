@@ -1,6 +1,6 @@
 # Proposed joint PfPR model using Burstein's age bands
 
-Draft for the next model trial, 7 September 2026. The user now proposes Burstein's seven age bands and a full model with confounders X and an age-dependent PfPR effect. This develops that proposal as a joint model. The earlier six-band, separately fitted models remain historical specifications; the existing data-building and fitting scripts have not yet been changed.
+Draft for the next model trial, 7 September 2026. The user now proposes Burstein's seven age bands and a full model with confounders X and an age-dependent PfPR effect. This develops that proposal as a joint model. The earlier six-band, separately fitted models remain historical specifications. The new [R_cbh dataset builder](../R_cbh/README.md) implements the observation structure below; existing fitting scripts remain unchanged.
 
 The model retains the observed complete-birth-history survival structure. It excludes maternal death fraction, hypothetical children, probability-of-birth reconstruction and all other machinery used to apply the Burstein model to summary histories. See the [method comparison](BIRTH_HISTORY_MODEL_COMPARISON.md).
 
@@ -21,6 +21,8 @@ For an initial trial using the authors' month-based implementation:
 Burstein's text instead describes a day-based neonatal boundary (birth through day 28, followed by day 29 onward), and their two launchers differ. The table follows their external-fitting launcher's [month boundaries](https://github.com/royburst/sbh_agespecific_indirect_paper_code/blob/master/EXTVAL_launch_models_fitting.R#L64-L71). Preserve recorded neonatal days during preprocessing; adopting the paper's exact day boundary requires correspondingly defined first and second interval widths.
 
 Each row represents an actual child in an age band reached alive. `death` is 1 if the child died in that band, otherwise 0 if it survived the band. For this initial complete-band implementation, require that the child's potential band end is on or before interview, applying the same rule to deaths and survivors. Do not include later bands after a death. This eligibility rule loses partial follow-up, as discussed in the comparison.
+
+As confirmed by the user, include **only band entries in the five years before interview**: `interview_cmc - 60 <= band_entry_cmc < interview_cmc`. Birth itself need not be in that window. Apply the complete-band rule in addition to this entry restriction. The initial dataset also requires an entry year within the available MAP period, 2000–2024, with excluded years counted explicitly.
 
 `band_years` is the full, predetermined width of the age band. **It is not the child's observed time to death.** The current deaths/person-time CSV does not contain these child-band trials or their binomial denominators and cannot be used directly for this specification. Aggregation is possible over children sharing all model predictors and the same observation interval, using integer deaths and survivors.
 
@@ -49,7 +51,7 @@ Here:
 
 - **αₐ:** one baseline log rate per age band.
 - **fₐ(P):** a separate nonlinear PfPR₂–₁₀ curve per band, with PfPR expressed in percentage points. No smoothness across age-band boundaries is imposed.
-- **hₐ(t):** a separate smooth calendar-time trend per band. The time index must describe the band's follow-up period; it is not automatically birth year.
+- **hₐ(t):** a separate smooth calendar-time trend per band, indexed by fractional calendar year at band entry in the initial implementation.
 - **X′βₐ:** the chosen confounders, with coefficients allowed to differ by age band. A simpler X′β version shares these coefficients; it is a restriction to assess, not required by a joint fit.
 - **uₛ:** a survey random intercept, shared across age bands.
 - **v꜀ₐ:** a country-by-age-band random intercept.
@@ -114,7 +116,9 @@ For absolute effects, predict both scenarios for the same target population and 
 
 ## 5. Exposure timing and partial follow-up
 
-The displayed simple model assumes a defined band-level exposure and covariate profile. It does not specify which annual MAP values to use. Fix that definition before fitting. An exposure summary must not depend on how early the child died; for example, averaging only the child's observed pre-death exposure can make the summary itself depend on the outcome.
+The user has specified **values at band entry**. For the initial implementation, Pᵢₐ is the regional annual MAP estimate for the calendar year containing entry; annual external X variables use the same country–year. These values are fixed for the whole band. There is no person-time weighting, within-band averaging, interpolation or nearest-year substitution. Annual estimates describe the entry year, not a measurement taken on the precise entry date. The assignment is independent of when the child dies. The scalar-exposure contrast therefore changes that entry-year covariate under the model; it does not represent an explicitly specified sequence of annual malaria interventions.
+
+Individual/household variables observed at interview and optional survey-region WASH/wasting measurements retain their survey-time interpretation and separate names. Their suitability as confounders is a subsequent adjustment-set decision. The builder reports missing annual matches and does not silently substitute survey-year values.
 
 If the scientific intervention changes annual PfPR during a band, the more explicit model is
 
