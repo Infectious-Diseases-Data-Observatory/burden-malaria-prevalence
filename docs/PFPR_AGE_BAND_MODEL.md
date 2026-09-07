@@ -4,6 +4,8 @@ Draft for the next model trial, 7 September 2026. The user now proposes Burstein
 
 The model retains the observed complete-birth-history survival structure. It excludes maternal death fraction, hypothetical children, probability-of-birth reconstruction and all other machinery used to apply the Burstein model to summary histories. See the [method comparison](BIRTH_HISTORY_MODEL_COMPARISON.md).
 
+The [initial complete-case implementation](../R_cbh/analysis/README.md) uses the eleven-variable adjustment set documented there, excluding vaccine coverage as requested. It retains the unweighted conditional likelihood shown below. Outstanding source, missing-data, survey-design and causal-specification questions are recorded in [open analysis issues](OPEN_ANALYSIS_ISSUES.md).
+
 ## 1. Age bands and observation unit
 
 For an initial trial using the authors' month-based implementation:

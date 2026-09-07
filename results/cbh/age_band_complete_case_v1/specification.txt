@@ -1,0 +1,5 @@
+death ~ 0 + age_band + s(pfpr_pct, by = age_band, bs = "cr",      k = 5) + s(calendar_year, by = age_band, bs = "cr", k = 6) +      age_band:(sex + multiple_birth + z_birth_order + z_maternal_age_birth +          z_maternal_education_years + wealth_quintile + urban +          z_log_hiv_prev + z_log_gdp_pc + z_log_health_expenditure_pc +          z_political_stability) + s(survey, bs = "re") + s(country_age,      bs = "re") + s(region, bs = "re") + offset(log(band_years))
+Family: binomial(cloglog); fixed full-band width offset; unweighted conditional likelihood.
+All selected complete cases; no vaccine covariates or imputation.
+Age-specific linear effects for continuous confounders; wealth is categorical.
+Input signature: 025644b188001d89791e92541022a6d1936a9e38cc83b78969ec4f900e8f6e86

@@ -2,6 +2,8 @@
 
 Stage 1 of the new pipeline for the [seven-band PfPR model](../docs/PFPR_AGE_BAND_MODEL.md). It reads local Births Recodes and external-data snapshots, creates child–age-band records, and checks eligibility and joins. It does not fit a model. No legacy fitting script or fitted object is required.
 
+The separate [complete-case model stage](analysis/README.md) fits the current exploratory age-band model. [Open analysis issues](../docs/OPEN_ANALYSIS_ISSUES.md) track the remaining data and inference decisions.
+
 ## Run
 
 From the project root, using R and the already installed `digest` package (`haven` is needed only for `.dta` inputs):

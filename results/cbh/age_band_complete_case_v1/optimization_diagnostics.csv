@@ -1,0 +1,10 @@
+"metric","value"
+"converged",1
+"mgcv_convergence",1
+"rank",1499
+"coefficient_count",1499
+"iterations",14
+"elapsed_seconds",252.072
+"max_abs_smoothing_gradient",0.0039114022530191
+"min_smoothing_hessian_eigenvalue",-0.000754824997020562
+"max_smoothing_hessian_eigenvalue",208.919884999574
