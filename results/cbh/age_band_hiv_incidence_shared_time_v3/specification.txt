@@ -1,0 +1,5 @@
+death ~ 0 + age_band + s(pfpr_pct, by = age_band, bs = "cr",      k = 5) + s(calendar_year, bs = "cr", k = 6) + age_band:(sex +      multiple_birth + z_birth_order + z_maternal_age_birth + z_maternal_education_years +      wealth_quintile + urban + z_log_hiv_incidence + z_log_gdp_pc +      z_log_health_expenditure_pc + z_political_stability) + s(survey,      bs = "re") + s(country_age, bs = "re") + s(region, bs = "re") +      offset(log(band_years))
+Family: binomial(cloglog); fixed full-band width offset; unweighted conditional likelihood.
+Child HIV incidence per 1,000 uninfected population at band entry; posterior-median imputations (conditional plug-in fit). Other covariates require complete cases; vaccine covariates excluded.
+Age-specific linear effects for continuous confounders; wealth is categorical.
+Input signature: 83a8890c9bd54b31ca0a35c09670b06c2135cbfd5512632ef57454e326b2680b

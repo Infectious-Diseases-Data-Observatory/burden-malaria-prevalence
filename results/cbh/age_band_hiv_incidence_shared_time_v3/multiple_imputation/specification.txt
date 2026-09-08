@@ -1,0 +1,4 @@
+Ten coherent external incidence draws; fixed mortality smoothing parameters; Rubin-style pointwise pooling.
+Draw indices: 10, 45, 61, 125, 137, 146, 153, 158, 175, 184
+Base fit signature: 83a8890c9bd54b31ca0a35c09670b06c2135cbfd5512632ef57454e326b2680b
+Incidence signature: b1f6c1c7702ea38f685786591830f002d5c865c81c18d72a17594a9556db1354

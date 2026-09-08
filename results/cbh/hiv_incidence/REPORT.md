@@ -41,4 +41,4 @@ Published source lower/upper estimates are retained but not included in the like
 - [Fitted incidence panel](child_incidence_country_year.csv)
 - [Validation predictions](country_held_out_predictions.csv), [metrics](validation_metrics.csv), [censored-rate validation](validation_censored.csv)
 - [Parameter estimates](model_parameters.csv), [main diagnostics](fit_diagnostics.csv), [all nonconstant-quantity diagnostics](full_parameter_diagnostics.csv)
-- [Incidence-adjusted mortality results](../age_band_hiv_incidence_v2/REPORT.md)
+- [Incidence-adjusted mortality results](../age_band_hiv_incidence_shared_time_v3/REPORT.md)
