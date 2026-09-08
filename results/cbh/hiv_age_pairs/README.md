@@ -1,4 +1,14 @@
-# Paired adolescent and child HIV counts
+# Paired adolescent and child HIV values
+
+## Reported incidence rates
+
+Run `Rscript R_cbh/analysis/03_plot_hiv_age_pairs.R --incidence` to generate `adolescent_vs_child_hiv_incidence.png` and `paired_country_year_incidence.csv`. This selects the exact indicator `Estimated incidence rate (new HIV infection per 1,000 uninfected population)` and uses the published rates directly, without fetching or calculating a population denominator. Rates are for both sexes, ages 0–14 and 15–19, matched by country and year; regional aggregates are excluded.
+
+There are 2,121 plotted country-year pairs in 85 countries, 2000–2024; the 2024 snapshot contains 82 countries. Of these pairs, 1,977 contain numeric point estimates in both age groups and 144 contain at least one `<0.01` entry. These limits are shown as open triangles at 0.01 and flagged in the exported table. The dashed line represents equal incidence rates. Nigeria has adolescent incidence data but no paired child incidence series in this workbook.
+
+Missing source strings such as `.` are treated as unavailable, never as zero. Only country-years with entries in both age groups are paired; `incidence_missing_pairs.csv` records paired entries excluded for unavailable or nonpositive plotting values (zero such pairs in this build). Source-key uniqueness and positive finite plotting coordinates are checked. Log scales require no pseudocounts. Incidence describes new infections and is distinct from the existing mortality model's HIV prevalence covariate; the model and its inputs have not been changed.
+
+## Numbers living with HIV
 
 Run `Rscript R_cbh/analysis/03_plot_hiv_age_pairs.R` from the project root to regenerate the figure and country-year table from the existing `data/HIV_Epidemiology_Children_Adolescents_2025.xlsx` workbook. No model is fitted and no values are imputed.
 
