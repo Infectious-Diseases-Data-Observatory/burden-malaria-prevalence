@@ -7,9 +7,10 @@ cbh_trial_spec <- function(hiv = c("incidence", "prevalence")) {
       "log_gdp_pc", "log_health_expenditure_pc", "political_stability"),
     scaled = c("birth_order", "maternal_age_birth", "maternal_education_years",
       "log_hiv_prev", "log_gdp_pc", "log_health_expenditure_pc", "political_stability"),
-    pfpr_k = 5L, time_k = 6L, seed = 20260907L, nthreads = 2L)
+    pfpr_k = 5L, time_k = 6L, time_by_age = TRUE, seed = 20260907L, nthreads = 2L)
   if (hiv == "incidence") {
-    spec$id <- "age_band_hiv_incidence_v2"
+    spec$id <- "age_band_hiv_incidence_shared_time_v3"
+    spec$time_by_age <- FALSE
     spec$covariates[spec$covariates == "log_hiv_prev"] <- "log_hiv_incidence"
     spec$scaled[spec$scaled == "log_hiv_prev"] <- "log_hiv_incidence"
     spec$incidence_panel <- "data/derived_cbh/hiv_incidence/child_incidence_country_year.csv"
@@ -121,7 +122,8 @@ cbh_trial_formula <- function(spec) {
   x <- ifelse(spec$covariates %in% spec$scaled, paste0("z_", spec$covariates), spec$covariates)
   stats::as.formula(paste0("death ~ 0 + age_band + ",
     "s(pfpr_pct, by=age_band, bs='cr', k=", spec$pfpr_k, ") + ",
-    "s(calendar_year, by=age_band, bs='cr', k=", spec$time_k, ") + ",
+    "s(calendar_year, ", if (isTRUE(spec$time_by_age)) "by=age_band, " else "",
+    "bs='cr', k=", spec$time_k, ") + ",
     "age_band:(", paste(x, collapse = " + "), ") + ",
     "s(survey, bs='re') + s(country_age, bs='re') + s(region, bs='re') + offset(log(band_years))"))
 }

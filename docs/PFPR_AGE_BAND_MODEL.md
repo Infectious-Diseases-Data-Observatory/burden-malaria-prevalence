@@ -44,7 +44,7 @@ q_{ia}=1-\exp\{-\Delta_a\lambda_{ia}\},
 
 \[
 \eta_{ia}=\log\lambda_{ia}
-=\alpha_a+f_a(P_{ia})+h_a(t_{ia})
+=\alpha_a+f_a(P_{ia})+h(t_{ia})
 +\mathbf X_{ia}^{\mathsf T}\boldsymbol\beta_a
 +u_{s(i)}+v_{c(i),a}+b_{r(i)}.
 \]
@@ -53,7 +53,7 @@ Here:
 
 - **αₐ:** one baseline log rate per age band.
 - **fₐ(P):** a separate nonlinear PfPR₂–₁₀ curve per band, with PfPR expressed in percentage points. No smoothness across age-band boundaries is imposed.
-- **hₐ(t):** a separate smooth calendar-time trend per band, indexed by fractional calendar year at band entry in the initial implementation.
+- **h(t):** one smooth calendar-time trend shared across all age bands, indexed by fractional calendar year at band entry. This replaces the separate age-band time splines following the user’s 8 September 2026 revision.
 - **X′βₐ:** the chosen confounders, with coefficients allowed to differ by age band. A simpler X′β version shares these coefficients; it is a restriction to assess, not required by a joint fit.
 - **uₛ:** a survey random intercept, shared across age bands.
 - **v꜀ₐ:** a country-by-age-band random intercept.
@@ -81,7 +81,7 @@ d$country_age <- interaction(d$country, d$age_band, drop = TRUE)
 fit <- bam(
   death ~ 0 + age_band +
     s(pfpr_pct, by = age_band, bs = "cr", k = 5) +
-    s(calendar_year, by = age_band, bs = "cr", k = 6) +
+    s(calendar_year, bs = "cr", k = 6) +
     age_band:(X1 + X2 + X3) +
     s(survey, bs = "re") +
     s(country_age, bs = "re") +
@@ -128,7 +128,7 @@ If the scientific intervention changes annual PfPR during a band, the more expli
 
 \[
 q_{ia}=1-\exp\left\{-\sum_y
-\Delta_{iay}\exp\left[\alpha_a+f_a(P_{ry})+h_a(y)
+\Delta_{iay}\exp\left[\alpha_a+f_a(P_{ry})+h(y)
 +\mathbf X_{iay}^{\mathsf T}\boldsymbol\beta_a
 +u_s+v_{ca}+b_r\right]\right\}.
 \]

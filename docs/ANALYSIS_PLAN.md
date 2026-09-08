@@ -4,6 +4,8 @@ Draft for review · 7 September 2026 · Based on repository commit `17828d1`
 
 **Subsequent model trial:** the user has requested Burstein's seven age bands and exclusion of maternal death fraction. The [proposed joint PfPR age-band model](PFPR_AGE_BAND_MODEL.md) specifies this trial, including a complementary log–log rate parameterization and age-specific confounder effects for review. The six-band separate-fit specification below records the earlier primary plan and is not the specification for this new trial.
 
+**Mortality model revision, 8 September 2026:** the current seven-band trial uses one shared calendar-year spline across all age bands, alongside age-specific PfPR splines and confounder coefficients. This change applies to the mortality model; the separate child/adolescent time trends in HIV imputation are retained.
+
 **Implementation update:** the new [R_cbh pipeline](../R_cbh/README.md) builds child–age-band data for that trial. It uses annual exposures/covariates at band entry, restricts entry to the five years before interview, and requires the full potential band to end by interview for deaths and survivors alike. The historical audit and six-band plan below describe the earlier review; they do not describe this new dataset build.
 
 **Use the newer person-time analysis as the primary analysis**, as confirmed during this review. Build one pipeline with three stages: **make analysis datasets → fit primary and sensitivity analyses → plot saved results**. The survey-region mortality approach becomes a limited sensitivity and migration reference. The earlier three-component pipeline in `R/` should leave the active workflow once its remaining data-building functions have been transferred.

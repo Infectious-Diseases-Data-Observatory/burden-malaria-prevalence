@@ -26,10 +26,17 @@ res <- cbh_trial_fit(p$data, spec, trace = FALSE)
 fit <- res$fit
 stopifnot(!identical(fit$converged, FALSE), all(is.finite(coef(fit))), length(fit$fitted.values) == n,
           sum(vapply(fit$smooth, function(s) identical(s$term, "pfpr_pct"), logical(1))) == 7,
-          sum(vapply(fit$smooth, function(s) identical(s$term, "calendar_year"), logical(1))) == 7)
+          sum(vapply(fit$smooth, function(s) identical(s$term, "calendar_year"), logical(1))) == 1)
+# A calendar-year change must give the same link contrast in every age band,
+# while allowing each band its own PfPR curve and confounder coefficients.
+early <- late <- p$data[match(age_levels, p$data$age_band), ]
+early$calendar_year <- 2005
+late$calendar_year <- 2015
+time_change <- drop(predict(fit, late, type = "link") - predict(fit, early, type = "link"))
+stopifnot(diff(range(time_change)) < 1e-10)
 z <- cbh_trial_contrasts(fit, p$data)
 identity_contrast <- cbh_trial_contrasts(fit, p$data, from = 20, to = 20)
 stopifnot(nrow(z) == 7, all(z$lower_95 <= z$hazard_ratio & z$upper_95 >= z$hazard_ratio),
           all(identity_contrast$hazard_ratio == 1), all(identity_contrast$lower_95 == 1),
           all(identity_contrast$upper_95 == 1))
-cat("Synthetic model checks passed: seven age-specific PfPR/time curves, complete input, and prediction contrasts.\n")
+cat("Synthetic model checks passed: seven PfPR curves, one shared calendar-year curve, complete input, and prediction contrasts.\n")
