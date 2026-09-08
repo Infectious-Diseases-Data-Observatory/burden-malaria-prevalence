@@ -1,0 +1,253 @@
+
+Family: binomial
+Link function: cloglog
+
+Formula:
+death ~ 0 + age_band + s(pfpr_pct, by = age_band, bs = "cr",
+    k = 5) + s(calendar_year, by = age_band, bs = "cr", k = 6) +
+    age_band:(sex + multiple_birth + z_birth_order + z_maternal_age_birth +
+        z_maternal_education_years + wealth_quintile + urban +
+        z_log_hiv_incidence + z_log_gdp_pc + z_log_health_expenditure_pc +
+        z_political_stability) + s(survey, bs = "re") + s(country_age,
+    bs = "re") + s(region, bs = "re") + offset(log(band_years))
+
+Parametric coefficients:
+                                           Estimate Std. Error z value Pr(>|z|)
+age_band<1                                -1.471566   0.042580 -34.560  < 2e-16
+age_band1-5                               -3.588971   0.046530 -77.132  < 2e-16
+age_band6-11                              -3.816456   0.047343 -80.613  < 2e-16
+age_band12-23                             -4.352396   0.047752 -91.147  < 2e-16
+age_band24-35                             -4.564251   0.049311 -92.561  < 2e-16
+age_band36-47                             -5.050448   0.054269 -93.064  < 2e-16
+age_band48-59                             -5.530288   0.061968 -89.244  < 2e-16
+age_band<1:sexmale                         0.287515   0.011673  24.631  < 2e-16
+age_band1-5:sexmale                        0.132525   0.018205   7.280 3.35e-13
+age_band6-11:sexmale                       0.051132   0.018833   2.715 0.006628
+age_band12-23:sexmale                      0.030189   0.019021   1.587 0.112486
+age_band24-35:sexmale                      0.076867   0.020910   3.676 0.000237
+age_band36-47:sexmale                      0.095269   0.027067   3.520 0.000432
+age_band48-59:sexmale                      0.045452   0.035408   1.284 0.199267
+age_band<1:multiple_birth                  1.714412   0.015966 107.379  < 2e-16
+age_band1-5:multiple_birth                 1.193077   0.031029  38.451  < 2e-16
+age_band6-11:multiple_birth                0.903478   0.036437  24.795  < 2e-16
+age_band12-23:multiple_birth               0.625265   0.042040  14.873  < 2e-16
+age_band24-35:multiple_birth               0.440792   0.050812   8.675  < 2e-16
+age_band36-47:multiple_birth               0.288606   0.069619   4.146 3.39e-05
+age_band48-59:multiple_birth               0.159862   0.097900   1.633 0.102486
+age_band<1:z_birth_order                   0.073657   0.009391   7.843 4.38e-15
+age_band1-5:z_birth_order                  0.190636   0.014805  12.877  < 2e-16
+age_band6-11:z_birth_order                 0.190763   0.015295  12.472  < 2e-16
+age_band12-23:z_birth_order                0.228650   0.015384  14.862  < 2e-16
+age_band24-35:z_birth_order                0.216404   0.016796  12.884  < 2e-16
+age_band36-47:z_birth_order                0.205714   0.020973   9.808  < 2e-16
+age_band48-59:z_birth_order                0.183642   0.027673   6.636 3.22e-11
+age_band<1:z_maternal_age_birth           -0.106290   0.009444 -11.254  < 2e-16
+age_band1-5:z_maternal_age_birth          -0.212262   0.015277 -13.895  < 2e-16
+age_band6-11:z_maternal_age_birth         -0.201172   0.015828 -12.710  < 2e-16
+age_band12-23:z_maternal_age_birth        -0.266424   0.016182 -16.464  < 2e-16
+age_band24-35:z_maternal_age_birth        -0.270735   0.017694 -15.301  < 2e-16
+age_band36-47:z_maternal_age_birth        -0.154970   0.022125  -7.004 2.48e-12
+age_band48-59:z_maternal_age_birth        -0.134240   0.028904  -4.644 3.41e-06
+age_band<1:z_maternal_education_years     -0.022960   0.007849  -2.925 0.003443
+age_band1-5:z_maternal_education_years    -0.085782   0.012937  -6.631 3.34e-11
+age_band6-11:z_maternal_education_years   -0.097827   0.013455  -7.271 3.57e-13
+age_band12-23:z_maternal_education_years  -0.162169   0.013993 -11.589  < 2e-16
+age_band24-35:z_maternal_education_years  -0.221305   0.016209 -13.653  < 2e-16
+age_band36-47:z_maternal_education_years  -0.258796   0.021482 -12.047  < 2e-16
+age_band48-59:z_maternal_education_years  -0.194625   0.026715  -7.285 3.21e-13
+age_band<1:wealth_quintile2                0.031513   0.016772   1.879 0.060261
+age_band1-5:wealth_quintile2              -0.016261   0.024960  -0.651 0.514743
+age_band6-11:wealth_quintile2              0.016302   0.026353   0.619 0.536191
+age_band12-23:wealth_quintile2            -0.044504   0.025751  -1.728 0.083940
+age_band24-35:wealth_quintile2            -0.013310   0.027308  -0.487 0.625984
+age_band36-47:wealth_quintile2            -0.040973   0.035689  -1.148 0.250934
+age_band48-59:wealth_quintile2            -0.055374   0.048394  -1.144 0.252533
+age_band<1:wealth_quintile3                0.043542   0.017837   2.441 0.014642
+age_band1-5:wealth_quintile3              -0.129429   0.027437  -4.717 2.39e-06
+age_band6-11:wealth_quintile3             -0.016612   0.028182  -0.589 0.555556
+age_band12-23:wealth_quintile3            -0.119211   0.028248  -4.220 2.44e-05
+age_band24-35:wealth_quintile3            -0.177695   0.030859  -5.758 8.49e-09
+age_band36-47:wealth_quintile3            -0.156680   0.039638  -3.953 7.72e-05
+age_band48-59:wealth_quintile3            -0.085723   0.051918  -1.651 0.098715
+age_band<1:wealth_quintile4                0.044760   0.020251   2.210 0.027086
+age_band1-5:wealth_quintile4              -0.161938   0.031618  -5.122 3.03e-07
+age_band6-11:wealth_quintile4             -0.085158   0.032584  -2.613 0.008963
+age_band12-23:wealth_quintile4            -0.160000   0.032928  -4.859 1.18e-06
+age_band24-35:wealth_quintile4            -0.315955   0.037306  -8.469  < 2e-16
+age_band36-47:wealth_quintile4            -0.247521   0.047005  -5.266 1.40e-07
+age_band48-59:wealth_quintile4            -0.193400   0.061016  -3.170 0.001526
+age_band<1:wealth_quintile5               -0.030088   0.025829  -1.165 0.244060
+age_band1-5:wealth_quintile5              -0.312596   0.041929  -7.455 8.96e-14
+age_band6-11:wealth_quintile5             -0.235353   0.043270  -5.439 5.35e-08
+age_band12-23:wealth_quintile5            -0.457140   0.046454  -9.841  < 2e-16
+age_band24-35:wealth_quintile5            -0.598645   0.053374 -11.216  < 2e-16
+age_band36-47:wealth_quintile5            -0.532773   0.067778  -7.861 3.82e-15
+age_band48-59:wealth_quintile5            -0.280783   0.081362  -3.451 0.000558
+age_band<1:urban                          -0.047723   0.016603  -2.874 0.004049
+age_band1-5:urban                         -0.061145   0.026956  -2.268 0.023311
+age_band6-11:urban                        -0.036596   0.027688  -1.322 0.186270
+age_band12-23:urban                       -0.085772   0.028603  -2.999 0.002711
+age_band24-35:urban                       -0.101221   0.032221  -3.141 0.001681
+age_band36-47:urban                       -0.135998   0.041496  -3.277 0.001048
+age_band48-59:urban                       -0.079855   0.052527  -1.520 0.128442
+age_band<1:z_log_hiv_incidence            -0.121819   0.026489  -4.599 4.25e-06
+age_band1-5:z_log_hiv_incidence            0.045766   0.031659   1.446 0.148292
+age_band6-11:z_log_hiv_incidence           0.066464   0.032960   2.017 0.043746
+age_band12-23:z_log_hiv_incidence          0.103400   0.034482   2.999 0.002711
+age_band24-35:z_log_hiv_incidence          0.041004   0.035784   1.146 0.251840
+age_band36-47:z_log_hiv_incidence         -0.017957   0.039466  -0.455 0.649101
+age_band48-59:z_log_hiv_incidence         -0.034826   0.043634  -0.798 0.424785
+age_band<1:z_log_gdp_pc                   -0.050390   0.033012  -1.526 0.126912
+age_band1-5:z_log_gdp_pc                  -0.008345   0.041824  -0.200 0.841855
+age_band6-11:z_log_gdp_pc                  0.048015   0.042705   1.124 0.260862
+age_band12-23:z_log_gdp_pc                 0.001951   0.043643   0.045 0.964348
+age_band24-35:z_log_gdp_pc                -0.054289   0.046768  -1.161 0.245714
+age_band36-47:z_log_gdp_pc                 0.068839   0.055615   1.238 0.215793
+age_band48-59:z_log_gdp_pc                 0.018940   0.065881   0.287 0.773737
+age_band<1:z_log_health_expenditure_pc     0.044157   0.029151   1.515 0.129829
+age_band1-5:z_log_health_expenditure_pc    0.026925   0.038073   0.707 0.479442
+age_band6-11:z_log_health_expenditure_pc   0.005633   0.039063   0.144 0.885331
+age_band12-23:z_log_health_expenditure_pc -0.022741   0.040774  -0.558 0.577019
+age_band24-35:z_log_health_expenditure_pc  0.056280   0.044271   1.271 0.203644
+age_band36-47:z_log_health_expenditure_pc -0.108025   0.052172  -2.071 0.038401
+age_band48-59:z_log_health_expenditure_pc -0.092839   0.063785  -1.455 0.145535
+age_band<1:z_political_stability          -0.044244   0.016870  -2.623 0.008724
+age_band1-5:z_political_stability         -0.049457   0.021981  -2.250 0.024451
+age_band6-11:z_political_stability        -0.050679   0.022720  -2.231 0.025710
+age_band12-23:z_political_stability       -0.080615   0.023071  -3.494 0.000475
+age_band24-35:z_political_stability       -0.037124   0.024380  -1.523 0.127821
+age_band36-47:z_political_stability       -0.106045   0.028784  -3.684 0.000229
+age_band48-59:z_political_stability       -0.085457   0.033796  -2.529 0.011453
+
+age_band<1                                ***
+age_band1-5                               ***
+age_band6-11                              ***
+age_band12-23                             ***
+age_band24-35                             ***
+age_band36-47                             ***
+age_band48-59                             ***
+age_band<1:sexmale                        ***
+age_band1-5:sexmale                       ***
+age_band6-11:sexmale                      **
+age_band12-23:sexmale
+age_band24-35:sexmale                     ***
+age_band36-47:sexmale                     ***
+age_band48-59:sexmale
+age_band<1:multiple_birth                 ***
+age_band1-5:multiple_birth                ***
+age_band6-11:multiple_birth               ***
+age_band12-23:multiple_birth              ***
+age_band24-35:multiple_birth              ***
+age_band36-47:multiple_birth              ***
+age_band48-59:multiple_birth
+age_band<1:z_birth_order                  ***
+age_band1-5:z_birth_order                 ***
+age_band6-11:z_birth_order                ***
+age_band12-23:z_birth_order               ***
+age_band24-35:z_birth_order               ***
+age_band36-47:z_birth_order               ***
+age_band48-59:z_birth_order               ***
+age_band<1:z_maternal_age_birth           ***
+age_band1-5:z_maternal_age_birth          ***
+age_band6-11:z_maternal_age_birth         ***
+age_band12-23:z_maternal_age_birth        ***
+age_band24-35:z_maternal_age_birth        ***
+age_band36-47:z_maternal_age_birth        ***
+age_band48-59:z_maternal_age_birth        ***
+age_band<1:z_maternal_education_years     **
+age_band1-5:z_maternal_education_years    ***
+age_band6-11:z_maternal_education_years   ***
+age_band12-23:z_maternal_education_years  ***
+age_band24-35:z_maternal_education_years  ***
+age_band36-47:z_maternal_education_years  ***
+age_band48-59:z_maternal_education_years  ***
+age_band<1:wealth_quintile2               .
+age_band1-5:wealth_quintile2
+age_band6-11:wealth_quintile2
+age_band12-23:wealth_quintile2            .
+age_band24-35:wealth_quintile2
+age_band36-47:wealth_quintile2
+age_band48-59:wealth_quintile2
+age_band<1:wealth_quintile3               *
+age_band1-5:wealth_quintile3              ***
+age_band6-11:wealth_quintile3
+age_band12-23:wealth_quintile3            ***
+age_band24-35:wealth_quintile3            ***
+age_band36-47:wealth_quintile3            ***
+age_band48-59:wealth_quintile3            .
+age_band<1:wealth_quintile4               *
+age_band1-5:wealth_quintile4              ***
+age_band6-11:wealth_quintile4             **
+age_band12-23:wealth_quintile4            ***
+age_band24-35:wealth_quintile4            ***
+age_band36-47:wealth_quintile4            ***
+age_band48-59:wealth_quintile4            **
+age_band<1:wealth_quintile5
+age_band1-5:wealth_quintile5              ***
+age_band6-11:wealth_quintile5             ***
+age_band12-23:wealth_quintile5            ***
+age_band24-35:wealth_quintile5            ***
+age_band36-47:wealth_quintile5            ***
+age_band48-59:wealth_quintile5            ***
+age_band<1:urban                          **
+age_band1-5:urban                         *
+age_band6-11:urban
+age_band12-23:urban                       **
+age_band24-35:urban                       **
+age_band36-47:urban                       **
+age_band48-59:urban
+age_band<1:z_log_hiv_incidence            ***
+age_band1-5:z_log_hiv_incidence
+age_band6-11:z_log_hiv_incidence          *
+age_band12-23:z_log_hiv_incidence         **
+age_band24-35:z_log_hiv_incidence
+age_band36-47:z_log_hiv_incidence
+age_band48-59:z_log_hiv_incidence
+age_band<1:z_log_gdp_pc
+age_band1-5:z_log_gdp_pc
+age_band6-11:z_log_gdp_pc
+age_band12-23:z_log_gdp_pc
+age_band24-35:z_log_gdp_pc
+age_band36-47:z_log_gdp_pc
+age_band48-59:z_log_gdp_pc
+age_band<1:z_log_health_expenditure_pc
+age_band1-5:z_log_health_expenditure_pc
+age_band6-11:z_log_health_expenditure_pc
+age_band12-23:z_log_health_expenditure_pc
+age_band24-35:z_log_health_expenditure_pc
+age_band36-47:z_log_health_expenditure_pc *
+age_band48-59:z_log_health_expenditure_pc
+age_band<1:z_political_stability          **
+age_band1-5:z_political_stability         *
+age_band6-11:z_political_stability        *
+age_band12-23:z_political_stability       ***
+age_band24-35:z_political_stability
+age_band36-47:z_political_stability       ***
+age_band48-59:z_political_stability       *
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Approximate significance of smooth terms:
+                                   edf   Ref.df    Chi.sq  p-value
+s(pfpr_pct):age_band<1           1.016    1.029     2.948   0.0897 .
+s(pfpr_pct):age_band1-5          1.013    1.025     1.829   0.1781
+s(pfpr_pct):age_band6-11         2.865    3.390    41.362  < 2e-16 ***
+s(pfpr_pct):age_band12-23        3.642    3.919    95.165  < 2e-16 ***
+s(pfpr_pct):age_band24-35        3.811    3.973   158.057  < 2e-16 ***
+s(pfpr_pct):age_band36-47        3.584    3.896    77.152  < 2e-16 ***
+s(pfpr_pct):age_band48-59        3.638    3.918    40.526 2.07e-07 ***
+s(calendar_year):age_band<1      2.055    2.575    55.910  < 2e-16 ***
+s(calendar_year):age_band1-5     3.633    4.258   109.030  < 2e-16 ***
+s(calendar_year):age_band6-11    3.254    3.895   114.307  < 2e-16 ***
+s(calendar_year):age_band12-23   3.116    3.741    78.481  < 2e-16 ***
+s(calendar_year):age_band24-35   3.042    3.662    86.226  < 2e-16 ***
+s(calendar_year):age_band36-47   1.020    1.037    68.209  < 2e-16 ***
+s(calendar_year):age_band48-59   1.006    1.012    33.830  < 2e-16 ***
+s(survey)                       71.651  104.000 16291.957 1.61e-05 ***
+s(country_age)                 155.445  231.000  5629.613 5.24e-05 ***
+s(region)                      653.010 1014.000  8774.860 6.90e-05 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+R-sq.(adj) =  0.0149   Deviance explained =  6.9%
+fREML = 4.0559e+05  Scale est. = 1         n = 5885022
