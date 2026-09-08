@@ -1,12 +1,35 @@
 # Exploratory joint age-band model. Source after R_cbh/load_pipeline.R.
-cbh_trial_spec <- function() {
-  list(id = "age_band_complete_case_v1", weighting = "unweighted",
+cbh_trial_spec <- function(hiv = c("incidence", "prevalence")) {
+  hiv <- match.arg(hiv)
+  spec <- list(id = "age_band_complete_case_v1", weighting = "unweighted",
     covariates = c("sex", "multiple_birth", "birth_order", "maternal_age_birth",
       "maternal_education_years", "wealth_quintile", "urban", "log_hiv_prev",
       "log_gdp_pc", "log_health_expenditure_pc", "political_stability"),
     scaled = c("birth_order", "maternal_age_birth", "maternal_education_years",
       "log_hiv_prev", "log_gdp_pc", "log_health_expenditure_pc", "political_stability"),
     pfpr_k = 5L, time_k = 6L, seed = 20260907L, nthreads = 2L)
+  if (hiv == "incidence") {
+    spec$id <- "age_band_hiv_incidence_v2"
+    spec$covariates[spec$covariates == "log_hiv_prev"] <- "log_hiv_incidence"
+    spec$scaled[spec$scaled == "log_hiv_prev"] <- "log_hiv_incidence"
+    spec$incidence_panel <- "data/derived_cbh/hiv_incidence/child_incidence_country_year.csv"
+    spec$incidence_draws <- "data/derived_cbh/hiv_incidence/child_incidence_draws.rds"
+  }
+  spec
+}
+
+cbh_attach_incidence <- function(d, panel) {
+  cbh_require(d, c("country", "entry_year"), "Child-band incidence join")
+  cbh_require(panel, c("iso3", "year", "hiv_incidence_per1000", "hiv_incidence_status"), "Child incidence panel")
+  cbh_unique(panel, c("iso3", "year"), "Child incidence panel")
+  j <- match(paste(d$country, d$entry_year), paste(panel$iso3, panel$year))
+  v <- panel$hiv_incidence_per1000[j]
+  valid <- is.finite(v) & v > 0
+  d$hiv_incidence_per1000 <- ifelse(valid, v, NA_real_)
+  d$hiv_incidence_status <- ifelse(is.na(j), "missing_country_year", panel$hiv_incidence_status[j])
+  d$hiv_incidence_status[!is.na(j) & !valid] <- "missing_or_invalid_value"
+  d$log_hiv_incidence <- log(d$hiv_incidence_per1000)
+  d
 }
 
 cbh_trial_prepare <- function(d, age_levels, spec) {
@@ -47,11 +70,26 @@ cbh_trial_data <- function(input_dir, spec) {
   retained <- unique(c(required, "child_id", "mother_id", "psu", "stratum",
     "stratum_variable", "survey_weight", "entry_year", "band_entry_cmc", "band_end_cmc",
     "interview_cmc", "age_band_index", "hiv_prev_pct", "death_band_b6_b7_disagree"))
+  incidence <- NULL
+  if (!is.null(spec$incidence_panel)) {
+    incidence <- cbh_read_csv(spec$incidence_panel)
+    if (!is.null(spec$imputation_draw)) {
+      draws <- readRDS(spec$incidence_draws)
+      stopifnot(length(unique(incidence$imputation_signature)) == 1L,
+                identical(unique(incidence$imputation_signature), draws$signature))
+      j <- match(paste(incidence$iso3, incidence$year), paste(draws$keys$iso3, draws$keys$year))
+      stopifnot(!anyNA(j), spec$imputation_draw <= nrow(draws$log_incidence))
+      incidence$hiv_incidence_per1000 <- exp(draws$log_incidence[spec$imputation_draw, j])
+      rm(draws)
+    }
+    retained <- unique(c(retained, "hiv_incidence_per1000", "hiv_incidence_status"))
+  }
   rows <- selection <- missing <- list()
   for (i in seq_len(nrow(m))) {
     object <- readRDS(file.path(input_dir, m$file[i]))
     if (!identical(object$signature, m$signature[i])) stop("Dataset shard differs from manifest.")
     d <- object$data
+    if (!is.null(incidence)) d <- cbh_attach_incidence(d, incidence)
     cbh_require(d, retained, "Dataset shard")
     core <- d$model_ready
     keep <- core & complete.cases(d[required])
@@ -88,7 +126,7 @@ cbh_trial_formula <- function(spec) {
     "s(survey, bs='re') + s(country_age, bs='re') + s(region, bs='re') + offset(log(band_years))"))
 }
 
-cbh_trial_fit <- function(d, spec, trace = TRUE) {
+cbh_trial_fit <- function(d, spec, trace = TRUE, start = NULL, smoothing = NULL) {
   if (!identical(spec$weighting, "unweighted")) stop("This trial implements the unweighted conditional likelihood.")
   warnings <- character()
   set.seed(spec$seed)
@@ -96,6 +134,7 @@ cbh_trial_fit <- function(d, spec, trace = TRUE) {
     fit <- withCallingHandlers(mgcv::bam(cbh_trial_formula(spec), data = d,
       family = stats::binomial(link = "cloglog"), method = "fREML", discrete = TRUE,
       nthreads = spec$nthreads, gc.level = 1, na.action = stats::na.fail,
+      coef = start, sp = smoothing,
       control = mgcv::gam.control(trace = trace, maxit = 100)),
       warning = function(w) {
         warnings <<- unique(c(warnings, conditionMessage(w)))

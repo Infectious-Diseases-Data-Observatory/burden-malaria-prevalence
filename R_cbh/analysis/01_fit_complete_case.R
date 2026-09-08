@@ -3,8 +3,16 @@
 source("R_cbh/load_pipeline.R")
 source("R_cbh/analysis/model.R")
 args <- commandArgs(trailingOnly = TRUE)
-if (any(!args %in% c("--force", "--prepare-only"))) stop("Arguments: --force --prepare-only")
-spec <- cbh_trial_spec()
+if (any(!args %in% c("--force", "--prepare-only", "--legacy-prevalence") & !grepl("^--imputation=[0-9]+$", args)))
+  stop("Arguments: --force --prepare-only --legacy-prevalence --imputation=N")
+spec <- cbh_trial_spec(if ("--legacy-prevalence" %in% args) "prevalence" else "incidence")
+draw_arg <- args[grepl("^--imputation=", args)]
+if (length(draw_arg)) {
+  stopifnot(length(draw_arg) == 1L, !is.null(spec$incidence_panel))
+  spec$imputation_draw <- as.integer(sub("^--imputation=", "", draw_arg))
+  stopifnot(spec$imputation_draw > 0L)
+  spec$id <- file.path(spec$id, sprintf("imputation_%02d", spec$imputation_draw))
+}
 input_dir <- file.path(getwd(), "data/derived_cbh")
 private_dir <- file.path(input_dir, "models", spec$id)
 report_dir <- file.path(getwd(), "results/cbh", spec$id)
@@ -14,7 +22,8 @@ manifest <- readRDS(file.path(input_dir, "manifest.rds"))
 stopifnot(isTRUE(manifest$complete))
 code_files <- c("R_cbh/analysis/model.R", "R_cbh/analysis/01_fit_complete_case.R", "R_cbh/R/utils.R")
 signature <- cbh_hash(list(spec, manifest$manifest, manifest$schema_version,
-  vapply(code_files, cbh_file_hash, character(1)), as.character(packageVersion("mgcv")), R.version.string))
+  vapply(c(code_files, spec$incidence_panel, spec$incidence_draws), cbh_file_hash, character(1)),
+  as.character(packageVersion("mgcv")), R.version.string))
 data_path <- file.path(private_dir, "complete_case_dataset.rds")
 cached <- if (file.exists(data_path) && !"--force" %in% args) readRDS(data_path) else NULL
 if (!is.null(cached) && identical(cached$signature, signature)) {
@@ -37,9 +46,19 @@ cbh_atomic_csv(band_counts, file.path(report_dir, "sample_by_age_band.csv"))
 country_counts <- aggregate(prepared$selection[c("eligible_rows", "pfpr_available_rows", "complete_case_rows", "complete_case_deaths")],
   prepared$selection["country"], sum)
 cbh_atomic_csv(country_counts, file.path(report_dir, "sample_by_country.csv"))
+if (!is.null(spec$incidence_panel)) {
+  usage <- data.table::data.table(country = d$country, status = d$hiv_incidence_status, death = d$death)
+  usage <- usage[, list(rows = .N, deaths = sum(death)), by = c("country", "status")]
+  cbh_atomic_csv(as.data.frame(usage), file.path(report_dir, "hiv_incidence_usage.csv"))
+  rm(usage)
+}
 writeLines(c(paste(deparse(cbh_trial_formula(spec)), collapse = " "),
   "Family: binomial(cloglog); fixed full-band width offset; unweighted conditional likelihood.",
-  "All selected complete cases; no vaccine covariates or imputation.",
+  if (is.null(spec$incidence_panel)) "Legacy prevalence model: complete cases, no imputation or vaccines." else
+    paste0("Child HIV incidence per 1,000 uninfected population at band entry; ",
+      if (is.null(spec$imputation_draw)) "posterior-median imputations (conditional plug-in fit)." else
+        paste("coherent posterior trajectory draw", spec$imputation_draw),
+      " Other covariates require complete cases; vaccine covariates excluded."),
   "Age-specific linear effects for continuous confounders; wealth is categorical.",
   paste("Input signature:", signature)), file.path(report_dir, "specification.txt"))
 if ("--prepare-only" %in% args) quit(save = "no", status = 0)

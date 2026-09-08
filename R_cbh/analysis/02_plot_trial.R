@@ -3,7 +3,9 @@
 # The private fitted object is read locally; only aggregate predictions are exported.
 source("R_cbh/load_pipeline.R")
 source("R_cbh/analysis/model.R")
-out <- file.path("results/cbh", cbh_trial_spec()$id)
+spec <- cbh_trial_spec(if ("--legacy-prevalence" %in% commandArgs(trailingOnly = TRUE)) "prevalence" else "incidence")
+fit_label <- if (is.null(spec$incidence_panel)) "Exploratory complete-case fit" else "Child HIV incidence; median imputations"
+out <- file.path("results/cbh", spec$id)
 d <- cbh_read_csv(file.path(out, "pfpr_40_to_20_contrasts.csv"))
 age <- cbh_config()$age_bands$age_band
 stopifnot(nrow(d) == length(age), setequal(d$age_band, age))
@@ -26,7 +28,7 @@ points(d$hazard_ratio, y, pch = 19, col = "#176B87", cex = 1.15)
 axis(2, at = y, labels = ifelse(d$age_band == "<1", "<1 month", paste0(d$age_band, " months")),
      tick = FALSE, cex.axis = .9)
 title("Age-specific PfPR associations", adj = 0, line = 2.6, cex.main = 1.2)
-mtext("Exploratory complete-case fit; adjusted, unweighted cloglog model", side = 3,
+mtext(paste0(fit_label, "; unweighted cloglog model"), side = 3,
       line = 1.15, adj = 0, cex = .78, col = "#444444")
 mtext("Bars: pointwise 95% model-based intervals; survey-design uncertainty not included.",
       side = 1, line = 3.8, cex = .67, col = "#444444")
@@ -35,7 +37,7 @@ message("Saved ", path)
 
 # Differences in linear predictors isolate the age-specific PfPR smooth.
 # Holding all other predictors fixed also cancels intercepts, offsets and REs.
-saved <- readRDS(file.path("data/derived_cbh/models", cbh_trial_spec()$id, "fit.rds"))
+saved <- readRDS(file.path("data/derived_cbh/models", spec$id, "fit.rds"))
 fit <- saved$fit
 stopifnot(isTRUE(fit$converged), all(is.finite(fit$Vp)))
 reference <- 20
@@ -95,7 +97,7 @@ plot_curves <- function(full_range = FALSE) {
     facet_wrap(~age_label, ncol = 4) +
     scale_x_continuous(breaks = seq(0, 100, 20), expand = expansion(mult = .025)) +
     labs(title = "Estimated PfPR splines by age band",
-         subtitle = paste0("Adjusted complete-case model | ",
+         subtitle = paste0(fit_label, " | ",
                            if (full_range) "Full observed exposure range" else "Central 95% of exposure values in each age band"),
          x = expression(paste("PfPR"["2-10"], " at band entry (%)")),
          y = "Log mortality hazard ratio relative to 20% PfPR",

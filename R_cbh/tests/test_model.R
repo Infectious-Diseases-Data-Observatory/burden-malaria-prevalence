@@ -13,14 +13,14 @@ d <- data.frame(age_band = age_levels[a], survey = paste0("s", s),
   sex = sample(c("female", "male"), n, TRUE), multiple_birth = rbinom(n, 1, .08),
   birth_order = sample(1:8, n, TRUE), maternal_age_birth = runif(n, 15, 45),
   maternal_education_years = sample(0:16, n, TRUE), wealth_quintile = sample(1:5, n, TRUE),
-  urban = rbinom(n, 1, .4), log_hiv_prev = rnorm(n), log_gdp_pc = rnorm(n, 7),
+  urban = rbinom(n, 1, .4), log_hiv_incidence = rnorm(n), log_gdp_pc = rnorm(n, 7),
   log_health_expenditure_pc = rnorm(n, 4), political_stability = rnorm(n))
 eta <- -1.7 - .18 * a + .012 * d$pfpr_pct + .2 * d$multiple_birth
 d$death <- rbinom(n, 1, -expm1(-d$band_years * exp(eta)))
 p <- cbh_trial_prepare(d, age_levels, spec)
 stopifnot(nrow(p$data) == n, !is.ordered(p$data$age_band), nlevels(p$data$wealth_quintile) == 5,
           all(abs(vapply(p$data[paste0("z_", spec$scaled)], mean, numeric(1))) < 1e-10))
-bad <- d; bad$log_hiv_prev[1] <- NA
+bad <- d; bad$log_hiv_incidence[1] <- NA
 stopifnot(inherits(try(cbh_trial_prepare(bad, age_levels, spec), silent = TRUE), "try-error"))
 res <- cbh_trial_fit(p$data, spec, trace = FALSE)
 fit <- res$fit

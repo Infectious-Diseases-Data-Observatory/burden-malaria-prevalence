@@ -2,7 +2,7 @@
 
 Stage 1 of the new pipeline for the [seven-band PfPR model](../docs/PFPR_AGE_BAND_MODEL.md). It reads local Births Recodes and external-data snapshots, creates child–age-band records, and checks eligibility and joins. It does not fit a model. No legacy fitting script or fitted object is required.
 
-The separate [complete-case model stage](analysis/README.md) fits the current exploratory age-band model. [Open analysis issues](../docs/OPEN_ANALYSIS_ISSUES.md) track the remaining data and inference decisions.
+The separate [model stage](analysis/README.md) fits the current exploratory age-band model. **From 8 September 2026, this stage joins model-imputed child HIV incidence at band entry and uses it in place of HIV prevalence.** Run the [incidence imputation stage](hiv/README.md) before the mortality fit. The base shards described below retain the historical prevalence field for provenance; it is not the active mortality covariate. The incidence-adjusted modelling dataset is saved as `data/derived_cbh/models/age_band_hiv_incidence_v2/complete_case_dataset.rds`. [Open analysis issues](../docs/OPEN_ANALYSIS_ISSUES.md) track remaining data and inference decisions.
 
 ## Run
 

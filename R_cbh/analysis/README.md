@@ -1,11 +1,18 @@
-# Exploratory complete-case age-band fit
+# Exploratory age-band fit
+
+**Active specification, 8 September 2026:** use log child HIV incidence at band entry, with missing/censored rates supplied by the [incidence imputation model](../hiv/README.md). The historical prevalence fit remains available separately.
 
 Run from the project root after completing the dataset build:
 
 ```sh
 Rscript R_cbh/tests/test_model.R
+Rscript R_cbh/tests/test_hiv_incidence.R
+Rscript R_cbh/hiv/01_fit_incidence.R --cv
+Rscript R_cbh/hiv/02_report_incidence.R
 Rscript R_cbh/analysis/01_fit_complete_case.R
 Rscript R_cbh/analysis/02_plot_trial.R
+Rscript R_cbh/analysis/04_propagate_incidence.R
+Rscript R_cbh/analysis/05_report_incidence.R
 ```
 
 `--prepare-only` writes the exact complete-case input and sample reports without fitting. `--force` replaces matching caches by rebuilding/refitting. No packages are installed and no network requests are made. The implementation uses the installed `mgcv`, `data.table` and `digest` packages.
@@ -14,7 +21,7 @@ Rscript R_cbh/analysis/02_plot_trial.R
 
 One joint binomial model with complementary log–log link and `offset(log(band_years))`. The seven unordered age bands have separate intercepts, cubic regression splines for PfPR (k=5) and entry time (k=6), and confounder coefficients. Survey, country-by-age and survey-specific region have random intercepts. Fitting uses discrete `mgcv::bam` with fREML and requests two threads; the currently installed mgcv lacks OpenMP and reports a fallback to one thread.
 
-The trial uses **all complete cases** for sex, multiple birth, birth order, maternal age at birth, maternal education, wealth quintile, urban residence, log HIV prevalence, log GDP per capita, log health expenditure per capita and political stability. Vaccine coverage is excluded as requested. It also requires observed outcome, PfPR, time, band width and model grouping variables. It does not require optional unused fields to be observed. No outcome/exposure/covariate values are imputed.
+The trial uses **all complete cases after the child HIV incidence join** for sex, multiple birth, birth order, maternal age at birth, maternal education, wealth quintile, urban residence, log child HIV incidence, log GDP per capita, log health expenditure per capita and political stability. Child HIV incidence is the sole imputed covariate. Vaccine coverage is excluded as requested. It also requires observed outcome, PfPR, time, band width and model grouping variables. It does not require optional unused fields to be observed.
 
 Wealth is an unordered five-level factor, with poorest as the reference; female is the reference sex. Other continuous confounders enter linearly with age-specific coefficients and are standardized using the complete-case sample's means and standard deviations. This is a numerical transformation, not imputation. Scaling parameters are saved. Age-specific nonlinear PfPR and time effects are retained as specified; richer confounder functions remain an open modelling decision.
 
@@ -22,14 +29,14 @@ The likelihood is **unweighted**, matching the initial displayed model specifica
 
 ## Outputs
 
-Model inputs and fitted objects stay under the ignored directory `data/derived_cbh/models/age_band_complete_case_v1/`:
+Active model inputs and fitted objects stay under the ignored directory `data/derived_cbh/models/age_band_hiv_incidence_v2/`. The historical prevalence fit remains under `age_band_complete_case_v1/` and requires `--legacy-prevalence` to select it:
 
 - `complete_case_dataset.rds`: list containing `data`, `scaling`, `selection`, `missing`, `skipped`, the source manifest, specification and cache signature. `data` includes the selected model inputs and pseudonymous sampling/child identifiers. It is research microdata.
 - `fit.rds`: list containing `fit` (the `bam` object), elapsed fitting time, captured warnings, specification, signature and R session information. It may contain row-level model data and must remain private.
 
 The cache signature includes the complete dataset manifest, model specification, fitting/preparation code, R version and mgcv version. A failed convergence check preserves the fitted object for diagnosis but does not publish new contrasts. Do not run competing fits into this directory concurrently.
 
-Aggregate reports are written to `results/cbh/age_band_complete_case_v1/`:
+Aggregate reports are written to `results/cbh/age_band_hiv_incidence_v2/` (or the legacy directory when explicitly selected):
 
 | File | Content |
 |---|---|

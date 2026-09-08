@@ -65,6 +65,8 @@ The complementary log–log link is the deliberate change from Burstein's logit.
 
 Because the interval width is fixed within each band, its offset can be absorbed into the band intercepts without changing fitted probabilities. Including it makes the rate units explicit; the link function supplies the hazard interpretation.
 
+As of 8 September 2026, the HIV element of X is **log national child HIV incidence** (ages 0–14, new infections per 1,000 uninfected population), assigned at band-entry year. The [incidence imputation model](../R_cbh/hiv/README.md) uses adolescent incidence, separate smooth calendar-year trends, country/region effects and temporal dependence to supply missing/censored child rates. Adolescent incidence is not an additional mortality predictor. The historical prevalence specification is retained separately. Other selected confounders still require complete cases; vaccines remain excluded.
+
 ## 3. mgcv specification
 
 ```r
