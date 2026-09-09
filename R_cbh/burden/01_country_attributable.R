@@ -1,30 +1,33 @@
 #!/usr/bin/env Rscript
-# National 2024 PfPR-to-zero contrasts from the shared-time mortality model.
+# Annual national PfPR-to-zero contrasts from the shared-time mortality model.
 # No refitting, downloads, or modification of historical model/data outputs.
 source("R_cbh/load_pipeline.R")
 source("R_cbh/analysis/model.R")
+source("R_cbh/burden/settings.R")
+year <- cbh_burden_year()
+year_text <- function(x) gsub("{year}", as.character(year), x, fixed = TRUE)
 for (pkg in c("mgcv", "countrycode", "terra", "sf", "exactextractr"))
   stopifnot(requireNamespace(pkg, quietly = TRUE))
 spec <- cbh_trial_spec()
 stopifnot(!spec$time_by_age)
-out <- file.path("results/cbh", spec$id, "country_burden_2024")
+out <- file.path("results/cbh", spec$id, year_text("country_burden_{year}"))
 private <- file.path("data/derived_cbh/models", spec$id)
 dir.create(out, recursive = TRUE, showWarnings = FALSE)
 export <- list.files("data", pattern = "2026-09-09 10-58-22[.]csv$", full.names = TRUE)
 stopifnot(length(export) == 1L)
 x <- cbh_read_csv(export)
-x <- x[x$Year == 2024 & x$Sex == "Both" & x$Condition == "All causes" & x$Measure == "Deaths", ]
+x <- x[x$Year == year & x$Sex == "Both" & x$Condition == "All causes" & x$Measure == "Deaths", ]
 x$iso3 <- countrycode::countrycode(x$Location, "country.name", "iso3c", warn = FALSE)
 stopifnot(!anyNA(x$iso3), all(is.finite(x$Value)), all(x$Value > 0))
-cbh_unique(x, c("iso3", "Age", "Unit"), "2024 IHME export")
+cbh_unique(x, c("iso3", "Age", "Unit"), year_text("{year} IHME export"))
 countries <- unique(x[c("iso3", "Location")]); countries <- countries[order(countries$iso3), ]
 cbh_atomic_csv(x[c("iso3", "Location", "Year", "Age", "Unit", "Value", "Lower", "Upper")],
-               file.path(out, "ihme_source_2024.csv"))
+               file.path(out, year_text("ihme_source_{year}.csv")))
 
 # Population counts per raster cell = density x cell area. Fixed GPW 2020
 # population geography; exact polygon overlap; only pixels with MAP coverage.
 # Historical national extracts weighted by density without cell area.
-map_path <- "data/pfpr_2to10_africa_2024.tif"
+map_path <- if (year == 2024L) "data/pfpr_2to10_africa_2024.tif" else sprintf("data/map_annual/pfpr2_10_%d.tif", year)
 pop_path <- "data/pop/gpw_v4_population_density_rev11_2020_2.5m.tif"
 boundary_path <- "data/africa_admin0.rds"
 p <- terra::rast(map_path)
@@ -34,7 +37,7 @@ b <- b[b$iso %in% countries$iso3, ]
 density <- terra::resample(terra::crop(terra::rast(pop_path), p), p, method = "bilinear")
 weights <- terra::ifel(density >= 0, density, NA) * terra::cellSize(p, unit = "km")
 covered <- terra::mask(weights, p)
-message("Extracting national population-weighted 2024 PfPR.")
+message(year_text("Extracting national population-weighted {year} PfPR."))
 layers <- c(covered, p * covered, weights)
 names(layers) <- c("covered", "numerator", "all_pop")
 agg <- exactextractr::exact_extract(layers, b, "sum", progress = FALSE)
@@ -47,12 +50,12 @@ cbh_unique(pr, "iso3", "National MAP extraction")
 pr <- merge(countries, pr, by = "iso3", all.x = TRUE, sort = TRUE)
 pr$pfpr_pct[!is.finite(pr$pfpr_pct)] <- NA_real_
 stopifnot(all(pr$pfpr_pct[!is.na(pr$pfpr_pct)] >= 0 & pr$pfpr_pct[!is.na(pr$pfpr_pct)] <= 100))
-old <- cbh_read_csv("data/pfpr_by_country_year.csv"); old <- old[old$year == 2024, ]
+old <- cbh_read_csv("data/pfpr_by_country_year.csv"); old <- old[old$year == year, ]
 pr$legacy_density_weighted_pfpr_pct <- old$pfpr_pct[match(pr$iso3, old$iso3)]
 pr$status <- ifelse(is.na(pr$pfpr_pct), "missing_MAP_no_estimate", "estimated")
 pr$map_coverage_below_95pct <- pr$map_population_coverage_within_raster < .95
-pr$exposure_year <- 2024L; pr$population_weight_year <- 2020L
-cbh_atomic_csv(pr, file.path(out, "national_pfpr_2024.csv"))
+pr$exposure_year <- year; pr$population_weight_year <- 2020L
+cbh_atomic_csv(pr, file.path(out, year_text("national_pfpr_{year}.csv")))
 
 # Six disjoint source ages. Early and late neonatal receive the same <1m HR.
 leaf <- c("0 to 6 days (early neonatal)", "7 to 27 days (late neonatal)",
@@ -167,7 +170,7 @@ res$zero_below_observed_support <- 0 < support$minimum[match(res$age_band, ages)
 res$current_pfpr_outside_central95 <- res$pfpr_pct < support$p025[match(res$age_band, ages)] |
   res$pfpr_pct > support$p975[match(res$age_band, ages)]
 res$negative_attributable_estimate <- res$attributable_fraction < 0
-cbh_atomic_csv(res, file.path(out, "country_age_attributable_2024.csv"))
+cbh_atomic_csv(res, file.path(out, year_text("country_age_attributable_{year}.csv")))
 totals <- do.call(rbind, lapply(split(res, res$iso3), function(z) data.frame(
   iso3 = z$iso3[1], country = z$Location[1], pfpr_pct = z$pfpr_pct[1], status = z$status[1],
   map_population_coverage_within_raster = z$map_population_coverage_within_raster[1],
@@ -175,10 +178,10 @@ totals <- do.call(rbind, lapply(split(res, res$iso3), function(z) data.frame(
   ihme_under5_deaths = sum(z$ihme_deaths), counterfactual_under5_deaths = sum(z$counterfactual_deaths),
   attributable_under5_deaths = sum(z$attributable_deaths),
   attributable_fraction = sum(z$attributable_deaths) / sum(z$ihme_deaths))))
-cbh_atomic_csv(totals, file.path(out, "country_totals_2024.csv"))
+cbh_atomic_csv(totals, file.path(out, year_text("country_totals_{year}.csv")))
 cbh_atomic_csv(support, file.path(out, "model_pfpr_support.csv"))
 files <- c(export, map_path, pop_path, boundary_path, paths,
-           "R_cbh/burden/01_country_attributable_2024.R")
+           "R_cbh/burden/01_country_attributable.R", "R_cbh/burden/settings.R")
 cbh_atomic_csv(data.frame(file = files, md5 = vapply(files, cbh_file_hash, "")), file.path(out, "provenance.csv"))
 message("Saved country/age estimates: ", sum(totals$status == "estimated"), "/", nrow(totals), " countries.")
 print(totals[totals$iso3 == "COD", ], row.names = FALSE)

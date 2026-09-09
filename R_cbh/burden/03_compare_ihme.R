@@ -2,18 +2,21 @@
 # Compare national under-five annual death counts; no refitting or downloads.
 source("R_cbh/load_pipeline.R")
 source("R_cbh/analysis/model.R")
+source("R_cbh/burden/settings.R")
+year <- cbh_burden_year()
+year_text <- function(x) gsub("{year}", as.character(year), x, fixed = TRUE)
 library(ggplot2)
 library(patchwork)
 spec <- cbh_trial_spec()
-out <- file.path("results/cbh", spec$id, "country_burden_2024")
-model_path <- file.path(out, "country_totals_2024.csv")
+out <- file.path("results/cbh", spec$id, year_text("country_burden_{year}"))
+model_path <- file.path(out, year_text("country_totals_{year}.csv"))
 ihme_path <- "data/ihme_malaria_u5_deaths_by_age_country_year.csv"
 model <- cbh_read_csv(model_path)
 ihme <- cbh_read_csv(ihme_path)
-ihme <- ihme[ihme$Year == 2024 & ihme$Sex == "Both" & ihme$Age == "Under 5" &
+ihme <- ihme[ihme$Year == year & ihme$Sex == "Both" & ihme$Age == "Under 5" &
              ihme$Condition == "Malaria" & ihme$Measure == "Deaths" & ihme$Unit == "Number", ]
 ihme$iso3 <- countrycode::countrycode(ihme$Location, "country.name", "iso3c", warn = FALSE)
-cbh_unique(ihme, "iso3", "2024 IHME malaria counts")
+cbh_unique(ihme, "iso3", year_text("{year} IHME malaria counts"))
 ihme <- ihme[c("iso3", "Value", "Lower", "Upper")]
 names(ihme)[-1] <- c("ihme_malaria_deaths", "ihme_malaria_lower", "ihme_malaria_upper")
 z <- merge(model, ihme, by = "iso3", all = TRUE)
@@ -21,8 +24,8 @@ z$comparison_status <- ifelse(!is.finite(z$attributable_under5_deaths), "missing
                               ifelse(!is.finite(z$ihme_malaria_deaths), "missing_IHME", "matched"))
 z$model_to_ihme_ratio <- z$attributable_under5_deaths / z$ihme_malaria_deaths
 z$difference_deaths <- z$attributable_under5_deaths - z$ihme_malaria_deaths
-z$year <- 2024L; z$age <- "Under 5"; z$sex <- "Both"
-cbh_atomic_csv(z, file.path(out, "model_vs_ihme_malaria_2024.csv"))
+z$year <- year; z$age <- "Under 5"; z$sex <- "Both"
+cbh_atomic_csv(z, file.path(out, year_text("model_vs_ihme_malaria_{year}.csv")))
 matched <- z[z$comparison_status == "matched", ]
 stopifnot(nrow(matched) == sum(model$status == "estimated"),
           all(matched$attributable_under5_deaths > 0), all(matched$ihme_malaria_deaths > 0))
@@ -32,8 +35,11 @@ palette <- c("MAP coverage >=95%" = "#16747C", "MAP coverage <95%" = "#CC6A30")
 theme_set(theme_minimal(base_size = 12))
 sty <- theme(panel.grid.minor = element_blank(), plot.title = element_text(face = "bold"),
              plot.caption = element_text(hjust = 0), legend.position = "bottom")
-axis_label <- function(x) format(x, big.mark = ",", scientific = FALSE, trim = TRUE)
-limit <- ceiling(max(matched$attributable_under5_deaths, matched$ihme_malaria_deaths)/25000)*25000
+axis_label <- function(x) vapply(x, function(z) format(z, big.mark = ",", scientific = FALSE, trim = TRUE), "")
+limit <- ceiling((max(matched$attributable_under5_deaths, matched$ihme_malaria_deaths) + 6500)/25000)*25000
+log_range <- range(matched$attributable_under5_deaths, matched$ihme_malaria_deaths)
+log_limits <- log_range * 10^c(-.3, .3)
+log_breaks <- 10^seq(floor(log10(log_range[1])), ceiling(log10(log_range[2])))
 linear <- ggplot(matched, aes(ihme_malaria_deaths, attributable_under5_deaths)) +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "grey45") +
   geom_point(aes(colour = coverage), size = 2.5, alpha = .85) +
@@ -49,19 +55,19 @@ logplot <- ggplot(matched, aes(ihme_malaria_deaths, attributable_under5_deaths))
   geom_text(data = matched[matched$iso3 %in% c("NGA", "COD", "NER", "SWZ", "BWA", "COM", "NAM", "DJI", "MRT", "ERI", "RWA", "ZWE", "KEN", "LBR"), ],
     aes(label = iso3), nudge_y = .13, size = 3, check_overlap = TRUE, colour = "#253746") +
   scale_colour_manual(values = palette, drop = FALSE) +
-  scale_x_log10(breaks = c(1,10,100,1000,10000,100000), labels = axis_label, limits = c(.3,250000)) +
-  scale_y_log10(breaks = c(1,10,100,1000,10000,100000), labels = axis_label, limits = c(.3,250000)) +
+  scale_x_log10(breaks = log_breaks, labels = axis_label, limits = log_limits) +
+  scale_y_log10(breaks = log_breaks, labels = axis_label, limits = log_limits) +
   coord_fixed() + labs(title = "B  All countries on logarithmic axes", x = "IHME malaria deaths (log scale)",
                      y = "Our malaria-attributable deaths (log scale)", colour = NULL) + sty
 scatter <- (linear | logplot) + plot_layout(guides = "collect") +
-  plot_annotation(title = "Under-five malaria mortality by country, 2024",
+  plot_annotation(title = year_text("Under-five malaria mortality by country, {year}"),
     subtitle = sprintf("%d matched countries | Dashed line: equal estimates | Above the line: our estimate is higher", nrow(matched)),
     caption = paste("Our estimate: all-cause mortality reduction under national PfPR2-10 -> 0%. IHME: cause-specific malaria deaths.",
       "Point estimates only; joint uncertainty for model country totals is not available. Orange points have limited MAP population coverage.",
       "Ages 2-4 use equal baseline rates and equal death/person-time shares. Three countries lack model estimates because MAP is missing.", sep = "\n"),
     theme = theme(plot.title = element_text(face = "bold", size = 17), plot.caption = element_text(hjust = 0, size = 10)))
 scatter <- scatter & theme(legend.position = "bottom")
-ggsave(file.path(out, "model_vs_ihme_malaria_2024.png"), scatter, device = ragg::agg_png,
+ggsave(file.path(out, year_text("model_vs_ihme_malaria_{year}.png")), scatter, device = ragg::agg_png,
        width = 14, height = 8.5, dpi = 160, bg = "white")
 
 # A second chart labels every matched country, avoiding scatter-label overlap.
@@ -75,18 +81,18 @@ by_country <- ggplot(matched, aes(y = country_label)) +
   geom_point(data = long, aes(x = deaths, colour = source, shape = source), size = 2.5) +
   scale_colour_manual(values = c("IHME malaria" = "#253746", "Our attributable estimate" = "#16747C")) +
   scale_shape_manual(values = c("IHME malaria" = 16, "Our attributable estimate" = 17)) +
-  scale_x_log10(breaks = c(1,10,100,1000,10000,100000), labels = axis_label) +
-  labs(title = "Country-by-country comparison, 2024", subtitle = "Under-five annual death counts; countries ordered by IHME estimate",
+  scale_x_log10(breaks = log_breaks, labels = axis_label) +
+  labs(title = year_text("Country-by-country comparison, {year}"), subtitle = "Under-five annual death counts; countries ordered by IHME estimate",
     x = "Deaths (log scale)", y = NULL, colour = NULL, shape = NULL,
     caption = "* MAP covers less than 95% of population weight within the available raster footprint.\nModel totals are signed sums, including negative age-band contributions. Point estimates only.") + sty
-ggsave(file.path(out, "model_vs_ihme_malaria_by_country_2024.png"), by_country, device = ragg::agg_png,
+ggsave(file.path(out, year_text("model_vs_ihme_malaria_by_country_{year}.png")), by_country, device = ragg::agg_png,
        width = 11, height = 14, dpi = 160, bg = "white")
 special <- z[z$iso3 %in% c("COD", "NGA"), ]
 rows <- vapply(seq_len(nrow(special)), function(i) sprintf("| %s | %s | %s | %.2f |",
   special$country[i], format(round(special$attributable_under5_deaths[i]), big.mark = ","),
   format(round(special$ihme_malaria_deaths[i]), big.mark = ","), special$model_to_ihme_ratio[i]), "")
-writeLines(c("# Model versus IHME malaria mortality, 2024", "",
-  sprintf("The comparison matches %d countries on ISO3, 2024, both sexes and under-five age. The x-axis uses IHME **malaria** deaths, not IHME all-cause deaths. All %d matched counts are positive and appear on both the linear and logarithmic panels.", nrow(matched), nrow(matched)), "",
+writeLines(c(year_text("# Model versus IHME malaria mortality, {year}"), "",
+  sprintf(year_text("The comparison matches %d countries on ISO3, {year}, both sexes and under-five age. The x-axis uses IHME **malaria** deaths, not IHME all-cause deaths. All %d matched counts are positive and appear on both the linear and logarithmic panels."), nrow(matched), nrow(matched)), "",
   "Our estimate is the signed reduction in all-cause mortality predicted under zero national PfPR. IHME reports cause-specific malaria deaths. These are related but different estimands: our fitted association can reflect indirect effects and residual confounding. They should not be interpreted as interchangeable measurements or as independent validation against observed deaths.", "",
   "| Country | Our attributable deaths | IHME malaria deaths | Model / IHME |",
   "|---|---:|---:|---:|", rows, "",
@@ -97,10 +103,10 @@ writeLines(c("# Model versus IHME malaria mortality, 2024", "",
   "Cape Verde, Lesotho and São Tomé and Príncipe lack model estimates because usable MAP prevalence is missing. Lesotho also has no entry in this malaria export. These countries remain in the comparison CSV with missingness status; missing values are never replaced by zero. Partial MAP coverage is flagged in colour and with an asterisk on the labelled chart.", "",
   "Both charts show point estimates only. IHME's source uncertainty bounds are retained in the CSV. The current pipeline does not provide joint country-total model intervals, and marginal age-band interval endpoints have not been summed. Ages 2-4 retain the authorized equal-rate/equal-person-time assumption; negative age-specific effects remain in model totals.", "",
   "The malaria comparator is the existing `data/ihme_malaria_u5_deaths_by_age_country_year.csv` export. Our denominator uses the newer all-cause export dated 2026-09-09. Their precise IHME release/version alignment has not been verified. See the [burden report](REPORT.md) for exposure and inference limitations.", "",
-  "![Scatter comparison](model_vs_ihme_malaria_2024.png)", "",
-  "![Every matched country](model_vs_ihme_malaria_by_country_2024.png)", "",
-  "[Comparison data](model_vs_ihme_malaria_2024.csv)"), file.path(out, "IHME_COMPARISON.md"))
-files <- c(model_path, ihme_path, "R_cbh/burden/03_compare_ihme_2024.R")
+  year_text("![Scatter comparison](model_vs_ihme_malaria_{year}.png)"), "",
+  year_text("![Every matched country](model_vs_ihme_malaria_by_country_{year}.png)"), "",
+  year_text("[Comparison data](model_vs_ihme_malaria_{year}.csv)")), file.path(out, "IHME_COMPARISON.md"))
+files <- c(model_path, ihme_path, "R_cbh/burden/03_compare_ihme.R", "R_cbh/burden/settings.R")
 cbh_atomic_csv(data.frame(file = files, md5 = vapply(files, cbh_file_hash, "")), file.path(out, "comparison_provenance.csv"))
 print(special[c("iso3", "attributable_under5_deaths", "ihme_malaria_deaths", "model_to_ihme_ratio")], row.names = FALSE)
 message("Verified and plotted ", nrow(matched), " matched countries.")
