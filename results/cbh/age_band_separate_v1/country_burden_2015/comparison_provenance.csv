@@ -1,0 +1,5 @@
+"file","md5"
+"results/cbh/age_band_separate_v1/country_burden_2015/country_totals_2015.csv","97d00f420b7aeed47e790bbe359de71a"
+"data/ihme_malaria_u5_deaths_by_age_country_year.csv","cf47e55a09b04d7b3d534b65b208d20c"
+"R_cbh/burden/03_compare_ihme.R","37c06fb7e2c3043705ced95ff5abe095"
+"R_cbh/burden/settings.R","8da5d18b2b0ee9a43b34bf6736bbc3b1"

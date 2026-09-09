@@ -1,0 +1,5 @@
+Model: Separate age-band models; one median HIV imputation
+Result ID: age_band_separate_v1
+Age-band intervals: conditional model uncertainty only; HIV imputation held fixed
+Country-total uncertainty is not calculated; cross-age sampling covariance is not assumed zero.
+No fitted model is refitted or changed by this calculation.
