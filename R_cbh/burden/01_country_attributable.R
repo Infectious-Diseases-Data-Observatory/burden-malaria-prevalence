@@ -1,17 +1,20 @@
 #!/usr/bin/env Rscript
-# Annual national PfPR-to-zero contrasts from the shared-time mortality model.
+# Annual national PfPR-to-zero contrasts, using separate age-band models by default.
 # No refitting, downloads, or modification of historical model/data outputs.
 source("R_cbh/load_pipeline.R")
 source("R_cbh/analysis/model.R")
 source("R_cbh/burden/settings.R")
-year <- cbh_burden_year()
+source("R_cbh/burden/separate_effects.R")
+cfg <- cbh_burden_options()
+year <- cfg$year
 year_text <- function(x) gsub("{year}", as.character(year), x, fixed = TRUE)
 for (pkg in c("mgcv", "countrycode", "terra", "sf", "exactextractr"))
   stopifnot(requireNamespace(pkg, quietly = TRUE))
 spec <- cbh_trial_spec()
 stopifnot(!spec$time_by_age)
-out <- file.path("results/cbh", spec$id, year_text("country_burden_{year}"))
-private <- file.path("data/derived_cbh/models", spec$id)
+out <- file.path("results/cbh", cfg$result_id, year_text("country_burden_{year}"))
+private <- file.path("data/derived_cbh/models", cfg$result_id)
+source_private <- file.path("data/derived_cbh/models", cfg$source_id)
 dir.create(out, recursive = TRUE, showWarnings = FALSE)
 export <- list.files("data", pattern = "2026-09-09 10-58-22[.]csv$", full.names = TRUE)
 stopifnot(length(export) == 1L)
@@ -93,6 +96,15 @@ bands <- bands[order(bands$iso3, match(bands$age_band, ages)), ]; rownames(bands
 
 # Read each existing fit once, retaining only the PfPR coefficient block and
 # spline objects in a compact private cache. No DHS rows are exported.
+valid <- bands[!is.na(bands$pfpr_pct), ]
+if (cfg$model == "separate") {
+  components <- cbh_separate_burden_components(source_private, private, ages)
+  paths <- components$paths
+  saved_contrasts <- cbh_read_csv(file.path("results/cbh", cfg$source_id,
+    "sensitivity_single_imputation/pfpr_40_to_20_contrasts.csv"))
+  individual <- cbh_separate_burden_contrasts(components, valid, saved_contrasts)
+  support <- do.call(rbind, lapply(components$cache$pieces, function(x) x$support))
+} else {
 fd <- cbh_read_csv(file.path("results/cbh", spec$id, "multiple_imputation/fit_diagnostics.csv"))
 stopifnot(nrow(fd) == 10L, all(fd$converged))
 paths <- file.path(private, sprintf("incidence_draw_%03d.rds", fd$draw))
@@ -144,9 +156,14 @@ individual <- lapply(cache$pieces, function(piece) {
     log_hr_zero_vs_current = drop(L %*% piece$coef), variance = pmax(variance, 0))
 })
 individual <- do.call(rbind, individual)
+support <- cache$pieces[[1]]$support
+}
+individual$model_id <- cfg$result_id
+individual$hiv_treatment <- if (cfg$model == "separate") "posterior_median" else "ten_posterior_draws"
 cbh_atomic_csv(individual, file.path(out, "individual_log_hazard_contrasts.csv"))
 pooled <- do.call(rbind, lapply(split(individual, paste(individual$iso3, individual$age_band)), function(z) {
-  M <- nrow(z); U <- mean(z$variance); B <- var(z$log_hr_zero_vs_current); T <- U + (1 + 1/M) * B
+  M <- nrow(z); U <- mean(z$variance); B <- if (M > 1L) var(z$log_hr_zero_vs_current) else 0
+  T <- U + (1 + 1/M) * B
   df <- if (B > 1e-20) (M-1)*(1+U/((1+1/M)*B))^2 else Inf
   mu <- mean(z$log_hr_zero_vs_current); half <- qt(.975, df) * sqrt(T)
   data.frame(iso3 = z$iso3[1], age_band = z$age_band[1], log_hr_zero_vs_current = mu,
@@ -165,7 +182,9 @@ for (unit in c("rate_per100000", "deaths")) {
   res[[paste0("attributable_", unit, "_upper_95")]] <- baseline * res$af_upper_95
   stopifnot(max(abs(baseline - res[[paste0("counterfactual_", unit)]] - res[[paste0("attributable_", unit)]]), na.rm = TRUE) < 1e-7)
 }
-support <- cache$pieces[[1]]$support
+res$model_id <- cfg$result_id
+res$hiv_treatment <- if (cfg$model == "separate") "posterior_median" else "ten_posterior_draws"
+res$uncertainty <- cfg$interval_label
 res$zero_below_observed_support <- 0 < support$minimum[match(res$age_band, ages)]
 res$current_pfpr_outside_central95 <- res$pfpr_pct < support$p025[match(res$age_band, ages)] |
   res$pfpr_pct > support$p975[match(res$age_band, ages)]
@@ -177,11 +196,17 @@ totals <- do.call(rbind, lapply(split(res, res$iso3), function(z) data.frame(
   map_coverage_below_95pct = z$map_coverage_below_95pct[1],
   ihme_under5_deaths = sum(z$ihme_deaths), counterfactual_under5_deaths = sum(z$counterfactual_deaths),
   attributable_under5_deaths = sum(z$attributable_deaths),
-  attributable_fraction = sum(z$attributable_deaths) / sum(z$ihme_deaths))))
+  attributable_fraction = sum(z$attributable_deaths) / sum(z$ihme_deaths),
+  model_id = cfg$result_id, hiv_treatment = z$hiv_treatment[1], year = year)))
 cbh_atomic_csv(totals, file.path(out, year_text("country_totals_{year}.csv")))
 cbh_atomic_csv(support, file.path(out, "model_pfpr_support.csv"))
 files <- c(export, map_path, pop_path, boundary_path, paths,
-           "R_cbh/burden/01_country_attributable.R", "R_cbh/burden/settings.R")
+           "R_cbh/burden/01_country_attributable.R", "R_cbh/burden/settings.R",
+           "R_cbh/burden/separate_effects.R")
 cbh_atomic_csv(data.frame(file = files, md5 = vapply(files, cbh_file_hash, "")), file.path(out, "provenance.csv"))
+writeLines(c(paste("Model:", cfg$label), paste("Result ID:", cfg$result_id),
+  paste("Age-band intervals:", cfg$interval_label),
+  "Country-total uncertainty is not calculated; cross-age sampling covariance is not assumed zero.",
+  "No fitted model is refitted or changed by this calculation."), file.path(out, "model_specification.txt"))
 message("Saved country/age estimates: ", sum(totals$status == "estimated"), "/", nrow(totals), " countries.")
 print(totals[totals$iso3 == "COD", ], row.names = FALSE)

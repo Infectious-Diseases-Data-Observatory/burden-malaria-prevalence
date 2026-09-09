@@ -2,15 +2,22 @@
 source("R_cbh/load_pipeline.R")
 source("R_cbh/analysis/model.R")
 source("R_cbh/burden/settings.R")
-year <- cbh_burden_year()
+cfg <- cbh_burden_options()
+year <- cfg$year
 year_text <- function(x) gsub("{year}", as.character(year), x, fixed = TRUE)
 library(ggplot2)
 library(patchwork)
 spec <- cbh_trial_spec()
-out <- file.path("results/cbh", spec$id, year_text("country_burden_{year}"))
+out <- file.path("results/cbh", cfg$result_id, year_text("country_burden_{year}"))
 r <- cbh_read_csv(file.path(out, year_text("country_age_attributable_{year}.csv")))
 t <- cbh_read_csv(file.path(out, year_text("country_totals_{year}.csv")))
 src <- cbh_read_csv(file.path(out, "ihme_disjoint_age_inputs.csv"))
+if ("model_id" %in% names(r)) stopifnot(all(r$model_id == cfg$result_id))
+inference <- if (cfg$model == "separate") paste(
+  "The seven PfPR effects come from seven separately fitted age-band models, each with its own calendar-year spline, confounder coefficients and random-effect variances.",
+  "The saved posterior-median child HIV-incidence imputation is held fixed. Age-band intervals use the within-fit coefficient covariance and normal 95% limits on the log-HR scale; HIV-imputation uncertainty is not included.") else paste(
+  "The seven PfPR effects come from the joint shared-calendar-year model and its ten HIV-incidence uncertainty refits.",
+  "Contrasts are pooled on the log-HR scale using within-fit covariance plus between-imputation variance and finite-imputation t intervals. Point HRs exponentiate pooled mean log HRs.")
 ages <- cbh_config()$age_bands$age_band
 z <- r[r$iso3 == "COD", ]; z <- z[match(ages, z$age_band), ]
 stopifnot(nrow(z) == 7, all(is.finite(z$attributable_rate_per100000)))
@@ -60,8 +67,8 @@ c <- ggplot(z, aes(label, attributable_rate_per100000)) +
        y = "Deaths per 100,000 person-years") + sty
 figure <- ((a | b) / c) + plot_layout(guides = "collect", heights = c(1.15, 1)) +
   plot_annotation(title = year_text("DR Congo: malaria contribution to under-five mortality, {year}"),
-    subtitle = sprintf("National population-weighted PfPR2-10: %.2f%% -> 0%% | IHME all-cause rates | Shared-calendar-year mortality model", z$pfpr_pct[1]),
-    caption = paste(year_text("A-B: synthetic cohort under {year} hazards; point estimates. C: signed rate difference; intervals cover model and HIV-imputation uncertainty only."),
+    subtitle = sprintf("National population-weighted PfPR2-10: %.2f%% -> 0%% | %s", z$pfpr_pct[1], cfg$label),
+    caption = paste(paste0(year_text("A-B: synthetic cohort under {year} hazards; point estimates. C: signed rate difference; intervals: "), cfg$interval_label, "."),
       "Ages 2-4 share one IHME baseline rate; deaths allocated equally. Neonatal: 0-27 days mapped to the <1-month model effect.",
       year_text("MAP {year} weighted using GPW 2020 population geography. IHME/MAP uncertainty and survey-design uncertainty are not included."), sep = "\n"),
     theme = theme(plot.title = element_text(face = "bold", size = 17), plot.caption = element_text(hjust = 0, size = 10)))
@@ -74,6 +81,7 @@ table_rows <- vapply(seq_len(nrow(z)), function(i) sprintf("| %s | %.1f | %.1f |
   z$attributable_rate_per100000[i], z$attributable_rate_per100000_lower_95[i],
   z$attributable_rate_per100000_upper_95[i], z$attributable_deaths[i]), "")
 writeLines(c(year_text("# National malaria-attributable mortality, {year}"), "",
+  paste("**Mortality model:**", cfg$label, "(result ID:", paste0("`", cfg$result_id, "`).")), "",
   sprintf("Estimates are available for **%d of %d countries** in the new IHME export. Countries without usable MAP coverage remain missing: %s.",
     sum(t$status == "estimated"), nrow(t), paste(t$country[t$status != "estimated"], collapse = ", ")), "",
   sprintf("**Exposure coverage:** %d estimated countries have MAP covering less than 95%% of population weight within the raster footprint. Their estimates apply the covered-area mean to the whole country and should be treated as provisional. Swaziland/Eswatini has only %.1f%% coverage; its value is especially poorly representative. Missing pixels are not assumed malaria-free. DR Congo has %.1f%% coverage. The 95%% threshold is a reporting flag, not an exclusion rule.",
@@ -81,7 +89,7 @@ writeLines(c(year_text("# National malaria-attributable mortality, {year}"), "",
     100*t$map_population_coverage_within_raster[t$iso3 == "SWZ"],
     100*t$map_population_coverage_within_raster[t$iso3 == "COD"]), "",
   year_text("Each country's {year} national PfPR2-10 is evaluated on each fitted age-specific spline. The zero-PfPR hazard ratio is exp[f_g(0)-f_g(P_country)]. Counterfactual mortality rate = IHME rate x HR; attributable rate = IHME rate x (1-HR). Death counts use the same fraction and fixed annual person-time. No adjustment is made to other covariates, calendar year, or country random effects in this contrast: those terms cancel in the current additive model."), "",
-  "The seven PfPR effects come from the latest shared-calendar-year mortality model and its ten HIV-incidence uncertainty refits. Contrasts are pooled on the log-HR scale using within-fit covariance plus between-imputation variance and finite-imputation t intervals. Reported point HRs exponentiate pooled mean log HRs. Bounds condition on IHME and MAP point estimates, fitted smoothing parameters, and the age allocation. They do not include source-estimate, survey-design or residual-clustering uncertainty. National total death counts are point estimates; marginal age-band interval endpoints are not summed into total intervals.", "",
+  paste(inference, "Bounds condition on IHME and MAP point estimates, fitted smoothing parameters, and the age allocation. They do not include source-estimate, survey-design or residual-clustering uncertainty. National total death counts are point estimates; marginal age-band interval endpoints are not summed into total intervals. Separate fitting does not imply independent sampling errors across age bands."), "",
   "## Source handling and assumptions", "",
   year_text("- The selected IHME export is the file dated 2026-09-09 10-58-22. Only All causes / Deaths / Both sexes / {year} is used. Six disjoint source age groups are checked against Under 1 and Under 5 totals; those aggregates are never counted twice. Original rate/count lower and upper bounds are retained in the source output."),
   "- Early and late neonatal deaths are added. Their combined annual rate is total deaths divided by the sum of their implied person-years, not the sum or simple mean of rates. The IHME 0-27-day group uses the model's <1-completed-month PfPR effect, an explicit boundary approximation.",
@@ -93,7 +101,7 @@ writeLines(c(year_text("# National malaria-attributable mortality, {year}"), "",
   sprintf("National PfPR: **%.2f%%**. IHME under-five deaths: **%s**. Signed model-attributable deaths: **%s** (**%.1f%%**), holding the annual population exposure fixed.",
     dr$pfpr_pct, format(round(dr$ihme_under5_deaths), big.mark = ","),
     format(round(dr$attributable_under5_deaths), big.mark = ","), 100 * dr$attributable_fraction), "",
-  "All rates below are per 100,000 person-years. Age-band intervals reflect model/HIV-imputation uncertainty only.", "",
+  paste("All rates below are per 100,000 person-years. Age-band intervals reflect", paste0(cfg$interval_label, ".")), "",
   "| Age | IHME rate | Zero-PfPR rate | Attributable rate (95% interval) | Attributable annual deaths |",
   "|---|---:|---:|---:|---:|", table_rows, "",
   year_text("![DRC malaria contribution](drc_malaria_contribution_{year}.png)"), "",

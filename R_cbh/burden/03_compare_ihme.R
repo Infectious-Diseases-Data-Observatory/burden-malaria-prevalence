@@ -3,15 +3,17 @@
 source("R_cbh/load_pipeline.R")
 source("R_cbh/analysis/model.R")
 source("R_cbh/burden/settings.R")
-year <- cbh_burden_year()
+cfg <- cbh_burden_options()
+year <- cfg$year
 year_text <- function(x) gsub("{year}", as.character(year), x, fixed = TRUE)
 library(ggplot2)
 library(patchwork)
 spec <- cbh_trial_spec()
-out <- file.path("results/cbh", spec$id, year_text("country_burden_{year}"))
+out <- file.path("results/cbh", cfg$result_id, year_text("country_burden_{year}"))
 model_path <- file.path(out, year_text("country_totals_{year}.csv"))
 ihme_path <- "data/ihme_malaria_u5_deaths_by_age_country_year.csv"
 model <- cbh_read_csv(model_path)
+if ("model_id" %in% names(model)) stopifnot(all(model$model_id == cfg$result_id))
 ihme <- cbh_read_csv(ihme_path)
 ihme <- ihme[ihme$Year == year & ihme$Sex == "Both" & ihme$Age == "Under 5" &
              ihme$Condition == "Malaria" & ihme$Measure == "Deaths" & ihme$Unit == "Number", ]
@@ -61,7 +63,7 @@ logplot <- ggplot(matched, aes(ihme_malaria_deaths, attributable_under5_deaths))
                      y = "Our malaria-attributable deaths (log scale)", colour = NULL) + sty
 scatter <- (linear | logplot) + plot_layout(guides = "collect") +
   plot_annotation(title = year_text("Under-five malaria mortality by country, {year}"),
-    subtitle = sprintf("%d matched countries | Dashed line: equal estimates | Above the line: our estimate is higher", nrow(matched)),
+    subtitle = sprintf("%s\n%d matched countries | Dashed line: equal estimates | Above the line: our estimate is higher", cfg$label, nrow(matched)),
     caption = paste("Our estimate: all-cause mortality reduction under national PfPR2-10 -> 0%. IHME: cause-specific malaria deaths.",
       "Point estimates only; joint uncertainty for model country totals is not available. Orange points have limited MAP population coverage.",
       "Ages 2-4 use equal baseline rates and equal death/person-time shares. Three countries lack model estimates because MAP is missing.", sep = "\n"),
@@ -82,7 +84,7 @@ by_country <- ggplot(matched, aes(y = country_label)) +
   scale_colour_manual(values = c("IHME malaria" = "#253746", "Our attributable estimate" = "#16747C")) +
   scale_shape_manual(values = c("IHME malaria" = 16, "Our attributable estimate" = 17)) +
   scale_x_log10(breaks = log_breaks, labels = axis_label) +
-  labs(title = year_text("Country-by-country comparison, {year}"), subtitle = "Under-five annual death counts; countries ordered by IHME estimate",
+  labs(title = year_text("Country-by-country comparison, {year}"), subtitle = paste(cfg$label, "\nUnder-five annual death counts; countries ordered by IHME estimate"),
     x = "Deaths (log scale)", y = NULL, colour = NULL, shape = NULL,
     caption = "* MAP covers less than 95% of population weight within the available raster footprint.\nModel totals are signed sums, including negative age-band contributions. Point estimates only.") + sty
 ggsave(file.path(out, year_text("model_vs_ihme_malaria_by_country_{year}.png")), by_country, device = ragg::agg_png,
@@ -92,6 +94,7 @@ rows <- vapply(seq_len(nrow(special)), function(i) sprintf("| %s | %s | %s | %.2
   special$country[i], format(round(special$attributable_under5_deaths[i]), big.mark = ","),
   format(round(special$ihme_malaria_deaths[i]), big.mark = ","), special$model_to_ihme_ratio[i]), "")
 writeLines(c(year_text("# Model versus IHME malaria mortality, {year}"), "",
+  paste("**Mortality model:**", cfg$label, "(result ID:", paste0("`", cfg$result_id, "`).")), "",
   sprintf(year_text("The comparison matches %d countries on ISO3, {year}, both sexes and under-five age. The x-axis uses IHME **malaria** deaths, not IHME all-cause deaths. All %d matched counts are positive and appear on both the linear and logarithmic panels."), nrow(matched), nrow(matched)), "",
   "Our estimate is the signed reduction in all-cause mortality predicted under zero national PfPR. IHME reports cause-specific malaria deaths. These are related but different estimands: our fitted association can reflect indirect effects and residual confounding. They should not be interpreted as interchangeable measurements or as independent validation against observed deaths.", "",
   "| Country | Our attributable deaths | IHME malaria deaths | Model / IHME |",
