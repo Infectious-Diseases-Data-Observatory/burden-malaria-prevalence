@@ -2,6 +2,14 @@
 
 Updated 8 September 2026. The active specification is an exploratory implementation of the [seven-band model](PFPR_AGE_BAND_MODEL.md), now adjusting for **child HIV incidence with model-based imputations**. These issues remain open; fitting the model does not resolve them. The [incidence model documentation](../R_cbh/hiv/README.md) describes validation, censoring and uncertainty propagation.
 
+## Country burden update: 9 September 2026
+
+The [2024 national burden stage](../R_cbh/burden/README.md) uses the new finer-age IHME export. The remaining 2-4-year block is split using the user-authorized equal-rate/equal-person-time assumption. Its uncertainty is not included in the model intervals. The 0-27-day source group uses the <1-completed-month fitted PfPR effect; this boundary approximation remains explicit.
+
+Population-weighted national PfPR now includes grid-cell area in the GPW 2020 density weights; the historical national extraction omitted cell area. These are 2024 MAP values weighted by a fixed 2020 all-age population surface. Eleven of the 42 estimable countries have MAP coverage below 95% of population weight within the available raster footprint; Eswatini has only 2.6%. Applying covered-area prevalence nationally is provisional. Cape Verde, Lesotho and São Tomé and Príncipe have no usable prevalence in this extraction. Missing areas are not set to zero. A full-coverage exposure surface, including the treatment of non-endemic areas, needs resolving before final national burden estimates. The older DHS regional exposure extraction has not been changed by this national-weight correction.
+
+The PfPR-to-zero calculation retains negative attributable effects and flags zero-exposure extrapolation. Causal interpretation and transfer of the common fitted curves to countries outside the fitting sample remain assumptions. Conditional age-band intervals propagate model/HIV-imputation uncertainty but omit IHME/MAP source uncertainty, survey-design uncertainty, age-allocation uncertainty and smoothing-parameter uncertainty. Country total deaths currently have point estimates only.
+
 ## Decisions for the current trial
 
 - Seven completed-month bands: <1, 1–5, 6–11, 12–23, 24–35, 36–47 and 48–59.

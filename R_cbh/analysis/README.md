@@ -1,5 +1,7 @@
 # Exploratory age-band fit
 
+The [national burden stage](../burden/README.md) applies this model's PfPR-to-zero contrasts to country-level 2024 IHME rates and deaths, including the user-selected equal-rate/equal-person-time allocation within ages 2-4 years.
+
 **Active specification, 8 September 2026:** use log child HIV incidence at band entry, with missing/censored rates supplied by the [incidence imputation model](../hiv/README.md). Calendar year now enters through one shared spline across age bands. The earlier incidence model with age-specific time splines remains under `age_band_hiv_incidence_v2/`; the historical prevalence fit also remains available separately.
 
 Run from the project root after completing the dataset build:
