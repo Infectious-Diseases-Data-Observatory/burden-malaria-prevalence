@@ -1,4 +1,6 @@
-# Proposed joint PfPR model using Burstein's age bands
+# Joint sensitivity specification using Burstein's age bands
+
+**Status update, 9 September 2026:** the [analysis plan](ANALYSIS_PLAN.md) now designates seven separate age-band models as primary (section 3.1). Each primary fit has its own PfPR spline, calendar-year spline, confounder coefficients and survey/country/region random effects and variances. This document preserves the earlier joint model as a key sensitivity comparator, including its shared calendar-year spline; references to the proposed trial below describe that historical specification. The observation unit, seven age bands, cloglog likelihood, full-band offset and band-entry exposure timing also apply to the separate-age primary. Existing model and burden outputs have not been relabeled or rerun by this plan revision.
 
 Draft for the next model trial, 7 September 2026. The user now proposes Burstein's seven age bands and a full model with confounders X and an age-dependent PfPR effect. This develops that proposal as a joint model. The earlier six-band, separately fitted models remain historical specifications. The new [R_cbh dataset builder](../R_cbh/README.md) implements the observation structure below; existing fitting scripts remain unchanged.
 
