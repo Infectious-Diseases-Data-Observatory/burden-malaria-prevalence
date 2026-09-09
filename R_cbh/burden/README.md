@@ -5,6 +5,7 @@ Run from the repository root after completing the shared-calendar-year mortality
 ```sh
 Rscript R_cbh/burden/01_country_attributable_2024.R
 Rscript R_cbh/burden/02_report_country_attributable_2024.R
+Rscript R_cbh/burden/03_compare_ihme_2024.R
 ```
 
 The calculation uses the IHME all-cause export dated **2026-09-09 10-58-22**, restricted to 2024 and both sexes. For country c and model age band g:
@@ -36,5 +37,6 @@ Outputs are under `results/cbh/age_band_hiv_incidence_shared_time_v3/country_bur
 - `ihme_source_2024.csv`, `ihme_disjoint_age_inputs.csv`: public source estimates and nonoverlapping inputs with source uncertainty bounds.
 - `individual_log_hazard_contrasts.csv`, `model_pfpr_support.csv`, `provenance.csv`: uncertainty and source auditing.
 - `drc_period_life_table_2024.csv`, `drc_malaria_contribution_2024.png`, `REPORT.md`: DRC example and readable findings.
+- `model_vs_ihme_malaria_2024.csv`, `model_vs_ihme_malaria_2024.png`, `model_vs_ihme_malaria_by_country_2024.png`, `IHME_COMPARISON.md`, `comparison_provenance.csv`: 2024 under-five comparison against the existing IHME malaria death export, including a scatter plot and a chart labelling every matched country. These compare point estimates of all-cause mortality reduction with cause-specific malaria counts. Joint model country-total intervals are not available. Source release/version alignment remains to be verified.
 
 The DRC figure follows Burstein et al. (2018), Figure 1, by showing conditional age-band mortality and survival, with a third panel for annual attributable mortality rates. The period life table uses piecewise constant hazards and a 28-day neonatal boundary, integrating early and late neonatal source rates separately. It describes a synthetic cohort exposed to 2024 mortality conditions; its survival difference is not multiplied by births to calculate annual attributable deaths.
