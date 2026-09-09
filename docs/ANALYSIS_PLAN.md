@@ -2,6 +2,8 @@
 
 Draft for review · 7 September 2026 · Based on repository commit `17828d1`
 
+**Key sensitivity update, 9 September 2026:** the separate-age, geographic and survey-period PfPR spline comparisons are now **required key sensitivity analyses for the current seven-band CBH model**. This priority was agreed after inspecting the exploratory results. Section [3.4.1](#key-pfpr-spline-sensitivity-analysis-current-seven-band-cbh-model) records the specification, findings and reporting requirements; the [combined figure](<../Key results/pfpr_spline_sensitivity_by_age_geography_period.png>) is retained in Key results.
+
 **Subsequent model trial:** the user has requested Burstein's seven age bands and exclusion of maternal death fraction. The [proposed joint PfPR age-band model](PFPR_AGE_BAND_MODEL.md) specifies this trial, including a complementary log–log rate parameterization and age-specific confounder effects for review. The six-band separate-fit specification below records the earlier primary plan and is not the specification for this new trial.
 
 **Mortality model revision, 8 September 2026:** the current seven-band trial uses one shared calendar-year spline across all age bands, alongside age-specific PfPR splines and confounder coefficients. This change applies to the mortality model; the separate child/adolescent time trends in HIV imputation are retained.
@@ -12,7 +14,7 @@ Draft for review · 7 September 2026 · Based on repository commit `17828d1`
 
 **Use the newer person-time analysis as the primary analysis**, as confirmed during this review. Build one pipeline with three stages: **make analysis datasets → fit primary and sensitivity analyses → plot saved results**. The survey-region mortality approach becomes a limited sensitivity and migration reference. The earlier three-component pipeline in `R/` should leave the active workflow once its remaining data-building functions have been transferred.
 
-This is a plan, not a refactor or a new results report. The review covered the structure, dependencies and analytical specifications of all 77 R scripts in `R/` and `R_dhs/`, plus the root runner, with detailed inspection of the person-time and shared data-processing code. All 78 scripts parsed under R 4.6.0. No raw DHS records or fitted-model objects were opened, and no analysis was rerun. Current sample sizes, model diagnostics and numerical results therefore remain unverified. The [code audit and complete script disposition](CODE_AUDIT.md) provide the supporting evidence.
+The original 7 September review covered the structure, dependencies and analytical specifications of all 77 R scripts in `R/` and `R_dhs/`, plus the root runner, with detailed inspection of the person-time and shared data-processing code. All 78 scripts parsed under R 4.6.0. At that review stage, no raw DHS records or fitted-model objects were opened and no analysis was rerun, so numerical results were unverified. The dated implementation updates and the current CBH sensitivity results below record subsequent work. The [code audit and complete script disposition](CODE_AUDIT.md) provide the historical review's supporting evidence.
 
 ## 1. Scientific questions and reporting choices
 
@@ -191,8 +193,9 @@ For `mgcv` uncertainty, evaluate the smoothing-uncertainty-corrected covariance 
 
 Each sensitivity should have a specification ID, one stated change, declared sample, saved estimates and diagnostics. Report the primary fit on the corresponding restricted sample where needed to distinguish a specification effect from a sample-composition effect. Avoid automatically crossing every choice with every other choice.
 
-| Priority | Question | Prespecified comparisons | Existing code to reuse |
+| Priority | Question | Planned comparisons | Existing code to reuse |
 |---|---|---|---|
+| **Key required — current CBH model** | **Stability of age-specific PfPR curves** | **Separate age-band fits; West vs East/Central Africa; early vs late survey years. Specification and completed exploratory results in section 3.4.1.** | **`R_cbh/sensitivity/01_fit.R`, `02_report.R`** |
 | Required | Recall window | All five windows vs windows 1–4 vs window 1 only | `42` |
 | Required | Exposure timing | Lag 0 vs lag 1; complete MAP coverage vs current boundary-year borrowing; segment-specific vs pooled under-5 year weights | `40–42`; ideas from `17/27` |
 | Required | Covariate timing | Person-time-year national values vs survey-year values | External joins in `03`, currently inherited by `42` |
@@ -207,6 +210,34 @@ Each sensitivity should have a specification ID, one stated change, declared sam
 | Optional extension | Independent comparisons | MAP vs measured parasitaemia/fieldwork season; trial triangulation; IHME share analysis; ITN/ACT targeting | `12/13/21/22/24` |
 
 Older-child mortality (5–14 years), neonatal mortality as a covariate and the extensive three-way region/time model ladder leave the default workflow. They can be revived for a specific scientific question; the person-time primary does not require them.
+
+### 3.4.1 Key PfPR spline sensitivity analysis — current seven-band CBH model
+
+<a id="key-pfpr-spline-sensitivity-analysis-current-seven-band-cbh-model"></a>
+
+**Status and purpose.** Promote this suite to a required part of reporting the current age-specific mortality analysis and assessing subsequent national burden extrapolation. The initial results were inspected on 9 September 2026 before this priority was agreed; this is not a claim of prospective prespecification. Retain and report all comparisons regardless of the direction or statistical significance of the estimated effects. These specifications apply to the seven-band child–age-band model, rather than the historical six-band negative-binomial plan above.
+
+**Reference and fixed inputs.** Use the joint unweighted binomial complementary log–log model with seven age bands (<1, 1–5, 6–11, 12–23, 24–35, 36–47 and 48–59 completed months), separate PfPR splines and confounder coefficients by age, one shared calendar-year spline, survey/country-by-age/region random intercepts and the full-band-width offset. For the initial sensitivity screen, hold the saved posterior-median child HIV-incidence imputation fixed across every fit. Keep the same complete-case selection for the other confounders, their scaling and exposure timing at band entry. The reference contains 5,885,022 child-band records and 82,415 deaths from 105 surveys in 34 countries.
+
+Run the following as **three separate comparisons**, without automatically crossing geography and period:
+
+| Comparison | Required implementation |
+|---|---|
+| Separate age-band fits | Fit seven independent models. Each has its own PfPR spline (k=5), calendar-year spline (k=6), confounder coefficients and survey/country/region random intercepts. Within one age band, country replaces country-by-age. This also relaxes the reference model's shared time function and common random-effect variances; the reference already has separate PfPR curves by age. |
+| Geography | Fit two joint seven-band models: UN M49 Western Africa versus Eastern plus Middle (Central) Africa. Exclude Southern Africa from this comparison only: Namibia, Eswatini and South Africa in the current sample. The groups contain 13 and 18 countries, respectively. Keep a shared time spline within each geographic fit. |
+| Survey period | Take the median metadata survey year, counting each included survey once. Assign all records from surveys at or below the median to early, and all records from surveys above it to late. The present median is 2012: 53 surveys in 2003–2012 and 52 in 2013–2024. Keep surveys intact, assign ties to early, and retain all countries. Retrospective exposure years can overlap between groups. Keep a shared time spline within each period fit. |
+
+Re-estimate smoothing parameters in every new fit, retaining the same cubic regression spline basis dimensions; knots adapt to each fitting sample. Record the exact sample, country/survey assignments, formula, exposure support, convergence and smoothing diagnostics for every fit.
+
+**Required comparison figure.** Overlay each sensitivity curve with the joint reference as `f_g(P) - f_g(20)`, using common axes and the same 20% PfPR reference. Show pointwise 95% intervals and each fit's central 95% exposure range. Report 40%→20% hazard ratios as a numerical anchor, alongside full curves and support flags; this one contrast does not capture all important shape differences. Compare curves on overlapping exposure support and distinguish changes in sample composition from changes in specification.
+
+**Initial findings to retain.** Separate age-band fits leave the overall spline shapes broadly similar to the reference; the largest absolute difference over common central exposure ranges is approximately 0.10 on the log-hazard-ratio scale. Geographic differences are clearest at low PfPR in older children, particularly 48–59 months, where West Africa has a steeper rise toward 20% prevalence. Period differences are clearest at 24–35 and 48–59 months. For 48–59 months, the 40%→20% hazard ratio is 0.93 (95% interval 0.81–1.08) early versus 1.16 (1.01–1.33) late. These findings make the shape near low prevalence and its stability across populations and periods key checks before interpreting PfPR-to-zero burden estimates.
+
+**Interpretation and remaining checks.** The eleven new fits converged and had finite coefficients and covariance matrices. The reference and West Africa fits have small negative smoothing-Hessian eigenvalues, so smoothing stability remains an open check. The initial intervals condition on one HIV imputation and the fitted smoothing parameters; they omit survey-design, residual-clustering and MAP uncertainty. The comparisons are descriptive, not formal tests of curve differences or proof of causal effect heterogeneity. For final inference, address the outstanding uncertainty and numerical checks, and assess country composition and exposure support when interpreting geographic and period differences.
+
+![Key sensitivity: PfPR splines by age, geography and survey period](<../Key results/pfpr_spline_sensitivity_by_age_geography_period.png>)
+
+Implementation: [sensitivity code and instructions](../R_cbh/sensitivity/README.md). Results: [full report, contrasts and diagnostics](../results/cbh/age_band_hiv_incidence_shared_time_v3/sensitivity_single_imputation/REPORT.md). Figure source: `R_cbh/sensitivity/02_report.R`; curated copy: `Key results/pfpr_spline_sensitivity_by_age_geography_period.png`.
 
 ### 3.5 Secondary national burden
 

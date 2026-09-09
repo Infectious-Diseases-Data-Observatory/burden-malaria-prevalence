@@ -1,7 +1,7 @@
 # =============================================================================
 # 33_key_results.R — gather the key sensitivity-analysis figures in one folder.
 #
-# Copies a curated set of figures from results/dhs_rebuild into "Key results/"
+# Copies a curated set of figures from the DHS and CBH results into "Key results/"
 # under descriptive names and writes a README there saying what each one shows
 # and which script draws it. Nothing is computed here, so the producing scripts
 # must have run first; run_all.R orders them that way.
@@ -15,11 +15,21 @@ source("R_dhs/00_config.R")
 KEY_RESULTS_DIR <- file.path(REPO_ROOT, "Key results")
 dir.create(KEY_RESULTS_DIR, showWarnings = FALSE)
 
-figure <- function(source, target, script, shows) {
+figure <- function(source, target, script, shows, source_dir = RESULTS_DIR) {
   data.frame(source = source, target = target, script = script, shows = shows,
-             stringsAsFactors = FALSE)
+             source_dir = source_dir, stringsAsFactors = FALSE)
 }
 key_figures <- rbind(
+  figure("all_sensitivity_splines.png",
+         "pfpr_spline_sensitivity_by_age_geography_period.png",
+         "R_cbh/sensitivity/02_report.R",
+         paste("Key sensitivity for the current seven-band CBH model: separate age fits,",
+               "West versus East/Central Africa (Southern Africa excluded), and early",
+               "(2003-2012) versus late (2013-2024) surveys, overlaid with the joint reference.",
+               "One fixed median HIV-incidence imputation; log hazard ratios relative to",
+               "20% PfPR, pointwise 95% conditional intervals and each fit's central 95% exposure range.",
+               "See [the report](../results/cbh/age_band_hiv_incidence_shared_time_v3/sensitivity_single_imputation/REPORT.md)."),
+         source_dir = file.path(REPO_ROOT, "results/cbh/age_band_hiv_incidence_shared_time_v3/sensitivity_single_imputation")),
   figure("study_flow_diagram.png",
          "study_flow_diagram.png",
          "11_study_flow.R",
@@ -148,7 +158,7 @@ key_figures <- rbind(
                "block (neonatal, 1-11 months, 1-4 years) against IHME."))
 )
 
-key_figures$source_path <- file.path(RESULTS_DIR, key_figures$source)
+key_figures$source_path <- file.path(key_figures$source_dir, key_figures$source)
 missing <- key_figures$source[!file.exists(key_figures$source_path)]
 if (length(missing)) {
   stop("Missing figures, run their scripts first: ",
@@ -166,16 +176,19 @@ readme <- c(
   "# Key results",
   "",
   paste("Curated figures from the DHS/MIS malaria prevalence and child",
-        "mortality analysis. Every file here is a copy of a figure in",
-        "`results/dhs_rebuild/`; the source script and the time the figure was",
+        "mortality analysis. Figures are copied from `results/dhs_rebuild/` or",
+        "`results/cbh/`; the source script and the time the figure was",
         "generated are given for each. Regenerate with",
         "`Rscript R_dhs/33_key_results.R` after re-running the producing",
-        "scripts (or `Rscript R_dhs/run_all.R`, which does both)."),
+        "scripts. The CBH sensitivity figure requires the separate",
+        "`R_cbh/sensitivity/01_fit.R` and `02_report.R` stages first."),
   "",
-  sprintf(paste("The primary analysis uses the %d-month mortality window and",
-                "MAP prevalence in the survey year. Post-neonatal mortality is",
-                "the primary outcome; neonatal mortality is the negative",
-                "control."), CHMORT_PERIOD),
+  paste("The current analysis estimates the PfPR association with all-cause mortality",
+        "in seven age bands, including neonates. The first figure is a required key",
+        "sensitivity analysis in the [analysis plan](../docs/ANALYSIS_PLAN.md).",
+        "The other figures document earlier survey-region and person-time analyses;",
+        "their historical primary-outcome and negative-control labels do not define",
+        "the current model."),
   "",
   "| File | What it shows | Source | Generated |",
   "|---|---|---|---|",
