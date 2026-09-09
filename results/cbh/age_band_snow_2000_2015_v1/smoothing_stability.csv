@@ -1,0 +1,2 @@
+"fit_id","original_min_hessian","strict_min_hessian","strict_max_gradient","strict_converged","max_central_log_hr_change","original_hr40to20","strict_hr40to20","elapsed_seconds","original_fREML","strict_fREML","strict_selected","original_fit_md5","strict_fit_md5"
+"map_matched_age_5",-0.000279836127581855,0.712327377086703,3.02222673553842e-07,TRUE,0.0262082369344958,0.891502869138185,0.914397560310694,17.261,31903.7587882341,31900.3193200585,TRUE,"cd353ac4d472395b35e602006a28aaeb","46526c936feb1b96427623d0d405591a"

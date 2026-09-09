@@ -1,0 +1,7 @@
+Annual polygon CSV / posterior draw maximum mean error (percentage points):
+2.41584530158e-13
+Region weight checks: 1128
+Maximum region mean error: 4.12114786740858e-13
+Fractional raster-cell population sum: 125, verified analytically and against terra.
+Country identifiers, complete annual keys, source/cache signatures and no post-2015 carry-forward: passed.
+Population coverage is retained; rows below 50% are excluded in dataset preparation.

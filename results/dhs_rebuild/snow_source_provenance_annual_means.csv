@@ -1,0 +1,6 @@
+"file","md5"
+"/Users/jameswatson/Documents/Claude Projects/MIS:DHS malaria prevalence/data/snow_prevalence_model/polygons_520.gpkg","1593c75337753f862ee85dbbbbfb5931"
+"/Users/jameswatson/Documents/Claude Projects/MIS:DHS malaria prevalence/data/pop/gpw_v4_population_density_rev11_2020_2.5m.tif","57dedc11fe7412f2b12782ba9f67c045"
+"R_dhs/51_snow_polygon_prevalence.R","2eb1f40bfe653d7e3af2dac06b42cbb1"
+"R_dhs/00_config.R","49f75a1d455e2f9c010fcb9b477254fd"
+"/Users/jameswatson/Documents/Claude Projects/MIS:DHS malaria prevalence/data/snow_prevalence_model/snow_pfpr_by_polygon_year.csv","a7b58d30d0356cf1f791bbb98c82a0fa"
