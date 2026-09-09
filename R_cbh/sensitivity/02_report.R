@@ -7,6 +7,10 @@ if (any(!args %in% "--include-south")) stop("Argument: --include-south")
 include_south <- "--include-south" %in% args
 suffix <- if (include_south) "sensitivity_single_imputation_with_south" else "sensitivity_single_imputation"
 out <- file.path("results/cbh/age_band_hiv_incidence_shared_time_v3", suffix)
+# R's deparse() adds trailing spaces to wrapped formulas; clean report text only.
+for (path in list.files(out, pattern = "_formula\\.txt$", full.names = TRUE)) {
+  writeLines(trimws(readLines(path), which = "right"), path)
+}
 d <- cbh_read_csv(file.path(out, "pfpr_curves.csv"))
 diag <- cbh_read_csv(file.path(out, "fit_diagnostics.csv"))
 surveys <- cbh_read_csv(file.path(out, "survey_groups.csv"))
@@ -76,7 +80,8 @@ p <- style(ggplot(ov, aes(pfpr_pct, log_hazard_ratio, colour = series, group = s
   labs(title = "PfPR spline sensitivity analyses", subtitle = "Reference: the joint seven-band model with one shared calendar-year spline", caption = caption) +
   theme(strip.text.y = element_text(angle = 0, size = 9))
 ggsave(file.path(out, "all_sensitivity_splines.png"), p, width = 23, height = 11, dpi = 180, device = ragg::agg_png, bg = "white")
-ggsave(file.path(out, "all_sensitivity_splines.pdf"), p, width = 23, height = 11, device = cairo_pdf, bg = "white")
+ggsave(file.path(out, "all_sensitivity_splines.pdf"), p, width = 23, height = 11,
+  device = "pdf", useDingbats = FALSE, bg = "white")
 
 # A familiar numerical contrast accompanies the curves, with explicit support flags.
 hr <- d[d$pfpr_pct == 40, c("fit_id", "model", "series", "age_band", "log_hazard_ratio", "standard_error",
@@ -134,15 +139,15 @@ md <- c("# PfPR spline sensitivity analyses", "",
   "Values are HR (pointwise 95% interval). * denotes a contrast outside that fit's central 95% exposure range; see CSV for observed-range flags.", "",
   "## Interpretation and limitations", "",
   "- Separate age fits change time adjustment and variance pooling as well as separating the data; differences cannot be attributed only to removing shared PfPR information (the reference already has separate age-specific PfPR curves).",
-  "- Geographic and period differences can reflect country/sample composition, exposure support and residual confounding as well as effect heterogeneity. Period is survey year, not the child's exposure year.",
+  "- Geographic and period differences can reflect country/sample composition, exposure support and residual confounding as well as effect heterogeneity. Period is survey year, not the child's exposure year; retrospective exposure-year windows can overlap across period groups.",
   "- A single HIV imputation is held fixed. Intervals omit imputation, survey-design, residual-clustering, MAP and smoothing-parameter uncertainty. No survey weights are used.",
   "- Comparisons with the reference use overlapping data. Ribbon overlap and the descriptive curve-distance measures are not formal tests of differences.",
   paste0("- All fits report convergence and finite coefficients/covariance. ", sum(diag$min_smoothing_hessian_eigenvalue < -1e-8, na.rm = TRUE),
     " fits (including the reference if applicable) have a negative smoothing-Hessian eigenvalue below -1e-8; see diagnostics. Smoothing stability remains an exploratory limitation."), "",
   "## Reproduction and files", "",
   "Run from the project root:", "", "```sh",
-  paste("Rscript R_cbh/sensitivity/01_fit.R", if (include_south) "--include-south" else ""),
-  paste("Rscript R_cbh/sensitivity/02_report.R", if (include_south) "--include-south" else ""), "```", "",
+  paste0("Rscript R_cbh/sensitivity/01_fit.R", if (include_south) " --include-south" else ""),
+  paste0("Rscript R_cbh/sensitivity/02_report.R", if (include_south) " --include-south" else ""), "```", "",
   "Private fits remain under the ignored data/derived_cbh/models directory. Outputs here contain aggregate statistics only.", "",
   "- `survey_groups.csv`: exact survey-year and geographic assignments.",
   "- `pfpr_curves.csv`, `pfpr_support.csv`: predictions, intervals and exposure support.",

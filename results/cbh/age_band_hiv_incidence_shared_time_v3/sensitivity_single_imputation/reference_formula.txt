@@ -1,0 +1,7 @@
+death ~ 0 + age_band + s(pfpr_pct, by = age_band, bs = "cr",
+    k = 5) + s(calendar_year, bs = "cr", k = 6) + age_band:(sex +
+    multiple_birth + z_birth_order + z_maternal_age_birth + z_maternal_education_years +
+    wealth_quintile + urban + z_log_hiv_incidence + z_log_gdp_pc +
+    z_log_health_expenditure_pc + z_political_stability) + s(survey,
+    bs = "re") + s(country_age, bs = "re") + s(region, bs = "re") +
+    offset(log(band_years))
