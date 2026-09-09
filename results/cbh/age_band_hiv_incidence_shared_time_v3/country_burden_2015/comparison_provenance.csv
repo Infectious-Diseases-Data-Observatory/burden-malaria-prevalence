@@ -1,0 +1,5 @@
+"file","md5"
+"results/cbh/age_band_hiv_incidence_shared_time_v3/country_burden_2015/country_totals_2015.csv","d2a1c05476e61539ab6026d325e7da17"
+"data/ihme_malaria_u5_deaths_by_age_country_year.csv","cf47e55a09b04d7b3d534b65b208d20c"
+"R_cbh/burden/03_compare_ihme.R","f3d95d2f126ad2940f496f433236b563"
+"R_cbh/burden/settings.R","0db80c9d33e1aee9ced397c13c2bdcb0"
