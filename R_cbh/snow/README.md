@@ -117,3 +117,26 @@ This fits seven additional age-band models and reuses the saved references.
 The same records, knots, covariates and HIV imputation are retained. New fits
 and aggregates are saved under `penalty_sensitivity/gamma2/`; the combined
 comparison with gamma 1, 1.4 and cs is under its `comparison/` directory.
+
+## MAP versus Snow at gamma=2 and national mortality scenarios
+
+```sh
+Rscript R_cbh/snow/08_fit_map_comparison_gamma2.R
+Rscript R_cbh/snow/09_report_map_comparison_gamma2.R
+Rscript R_cbh/snow/10_compare_burden_gamma2.R --exposure=map
+```
+
+Stage 08 fits matched MAP and Snow models through 2015 and full-period MAP
+models, all with gamma=2 and the original cr knots. It reuses the full-sample
+Snow gamma=2 fits. Outcomes, confounders and offsets are identical within each
+matched pair; original model hashes and input frames are verified. Compact
+PfPR coefficients/covariances are checked against full prediction matrices.
+
+Stage 10 holds the existing national MAP prevalence and IHME all-cause inputs
+fixed for 2005, 2015 and 2024, evaluating each fitted curve's contrast to zero
+PfPR. A Snow-fitted 2024 scenario uses MAP exposure and transport of the
+pre-2016 relationship; it is not a Snow prevalence estimate for 2024. Country
+totals are point estimates; age-band conditional intervals and support flags
+are provided. The previous gamma=1 MAP burden estimates are retained for
+comparison. Outputs: `results/cbh/map_snow_gamma2_v1/`, with `burden/` for
+national results. Private fits remain under `data/derived_cbh/models/`.
