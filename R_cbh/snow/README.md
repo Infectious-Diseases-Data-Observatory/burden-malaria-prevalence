@@ -81,3 +81,27 @@ conditional model intervals and do not account for survey design or smoothing
 parameter uncertainty. Source MCMC and sparse-data limitations from the input
 README are carried into the report. This stage changes neither the primary
 MAP fits nor the national mortality burden estimates.
+
+## Snow-only penalisation sensitivities
+
+```sh
+Rscript R_cbh/snow/06_fit_penalties.R
+Rscript R_cbh/snow/07_report_penalties.R
+```
+
+Two separate analyses compare with the saved full Snow sample: `gamma=1.4`
+with the existing PfPR `cr` basis, and PfPR `cs` with `gamma=1`. Both retain
+PfPR k=5 and calendar-year `cr`, k=6, with the exact original knots. Gamma
+affects smoothing selection across the model; the cs change applies only to
+PfPR. No combined gamma/cs fit or MAP fit is run. There are seven new fits for
+each analysis, with seven saved references. Outcomes, covariates and offsets
+are checked directly against the reference model frame. The existing
+covariate scaling, median child HIV-incidence imputation and eligibility
+through 2015 are unchanged.
+
+Numerically flagged new fits receive a tighter-tolerance restart with their
+specified gamma preserved. Selection follows the same numerical criteria as
+the original Snow pipeline, with attempts and selected paths recorded.
+Results and private fits are in the respective `penalty_sensitivity/`
+subdirectories. Reports include paired and combined spline plots, effective
+degrees of freedom, 40-to-20 hazard ratios and conditional intervals.
