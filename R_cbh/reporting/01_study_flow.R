@@ -61,34 +61,31 @@ cbh_atomic_csv(s,file.path(out,"survey_selection.csv"))
 # Coordinates leave substantial white space; 16-19 pt text at native 11-inch width.
 # Main labels contain only stages and counts. Eligibility/covariate details are in the caption.
 nodes <- data.frame(
-  id=c("registry","entered","eligible","sample","models","effects","burden","omit_surveys","omit_eligibility","omit_missing"),
-  x=c(rep(3.8,5),2.45,8.3,9.4,9.4,9.4),
-  y=c(11.45,9.35,7.25,5.15,3.05,.75,.75,10.4,8.3,6.2),
-  w=c(rep(6.9,5),4.4,6.0,3.65,3.65,3.65),
-  h=c(1.35,1.35,1.35,1.65,1.35,1.25,1.25,1.2,1.2,1.2),
-  role=c(rep("main",5),rep("output",2),rep("excluded",3)),
+  id=c("registry","entered","eligible","sample","omit_surveys","omit_eligibility","omit_missing"),
+  x=c(rep(3.8,4),9.4,9.4,9.4),
+  y=c(11.45,9.35,7.25,5.15,10.4,8.3,6.2),
+  w=c(rep(6.9,4),3.65,3.65,3.65),
+  h=c(1.35,1.35,1.35,1.65,1.2,1.2,1.2),
+  role=c(rep("main",4),rep("excluded",3)),
   heading=c("Survey registry","Band entries within 5 years","Eligible child–age bands","Primary analysis sample",
-    "Seven age-specific mortality models","Age-specific effects","Attributable mortality",
     paste(fmt(n$omitted),"surveys excluded"),paste(fmt(n$excluded_eligibility),"excluded"),paste(fmt(n$excluded_missing),"excluded")),
   detail=c(sprintf("%s surveys · %s countries",fmt(n$registry),fmt(n$registry_countries)),
     paste(fmt(n$entered),"child–age bands"),paste(fmt(n$eligible),"records"),
     sprintf("%s records · %s deaths\n%s surveys · %s countries",fmt(n$primary),fmt(n$deaths),fmt(n$surveys),fmt(n$countries)),
-    "MAP prevalence · gamma = 2","","2005 · 2015 · 2024","No MAP geography","Band or year ineligible","Missing MAP or covariates"))
+    "No MAP geography","Band or year ineligible","Missing MAP or covariates"))
 cbh_atomic_csv(nodes,file.path(out,"figure_labels.csv"))
-fill <- c(main="#EAF2F8",output="#EDF5F0",excluded="#F6F3EF")
-border <- c(main="#346A8C",output="#547964",excluded="#A29588")
-p <- ggplot()+theme_void()+coord_cartesian(xlim=c(0,11.5),ylim=c(0,12.25),expand=FALSE,clip="off")+
+fill <- c(main="#EAF2F8",excluded="#F6F3EF")
+border <- c(main="#346A8C",excluded="#A29588")
+p <- ggplot()+theme_void()+coord_cartesian(xlim=c(0,11.5),ylim=c(4.1,12.25),expand=FALSE,clip="off")+
   theme(plot.margin=margin(8,12,8,12))
 segment <- function(x,y,xe,ye,arrow=FALSE) {
   if(arrow) annotate("segment",x=x,y=y,xend=xe,yend=ye,colour="#687780",linewidth=.7,
     arrow=grid::arrow(length=grid::unit(2.5,"mm"),type="closed"))
   else annotate("segment",x=x,y=y,xend=xe,yend=ye,colour="#687780",linewidth=.7)
 }
-for(i in 1:4) p <- p+segment(3.8,nodes$y[i]-nodes$h[i]/2,3.8,nodes$y[i+1]+nodes$h[i+1]/2,TRUE)
+for(i in 1:3) p <- p+segment(3.8,nodes$y[i]-nodes$h[i]/2,3.8,nodes$y[i+1]+nodes$h[i+1]/2,TRUE)
 # Exclusion branches leave the connecting lines, not the retained sample boxes.
 for(y in c(10.4,8.3,6.2)) p <- p+segment(3.8,y,9.4-3.65/2,y,TRUE)
-p <- p+segment(3.8,3.05-1.35/2,3.8,1.75)+segment(2.45,1.75,8.3,1.75)+
-  segment(2.45,1.75,2.45,.75+1.25/2,TRUE)+segment(8.3,1.75,8.3,.75+1.25/2,TRUE)
 for(i in seq_len(nrow(nodes))) {
   z <- nodes[i,]; small <- z$role=="excluded"
   p <- p+annotate("rect",xmin=z$x-z$w/2,xmax=z$x+z$w/2,ymin=z$y-z$h/2,ymax=z$y+z$h/2,
@@ -101,14 +98,13 @@ for(i in seq_len(nrow(nodes))) {
   if(has_detail) p <- p+annotate("text",x=z$x,y=detail_y,label=z$detail,family="sans",
     size=if(small) 5.25 else 5.8,lineheight=1.16,colour="#243D49")
 }
-ggsave(file.path(out,"study_flow_diagram.png"),p,width=11,height=11.4,dpi=300,device=ragg::agg_png,bg="white")
-caption <- c("# Figure caption — primary analysis flow","",
-  sprintf("**Figure. Study inclusion and analysis flow for the primary MAP analysis.** The survey registry contains %s surveys in %s countries. %s surveys lack MAP geography, leaving %s processed surveys in %s countries. Counts below the registry refer to child–age-band records, not unique children, and begin after birth-history validity checks and confirmation that the child reached the band alive.",fmt(n$registry),fmt(n$registry_countries),fmt(n$omitted),fmt(n$built),fmt(n$built_countries)),"",
+ggsave(file.path(out,"study_flow_diagram.png"),p,width=11,height=7.6,dpi=300,device=ragg::agg_png,bg="white")
+caption <- c("# Figure caption — primary sample inclusion","",
+  sprintf("**Figure. Sample inclusion for the primary MAP analysis.** The survey registry contains %s surveys in %s countries. %s surveys lack MAP geography, leaving %s processed surveys in %s countries. Counts below the registry refer to child–age-band records, not unique children, and begin after birth-history validity checks and confirmation that the child reached the band alive.",fmt(n$registry),fmt(n$registry_countries),fmt(n$omitted),fmt(n$built),fmt(n$built_countries)),"",
   sprintf("The processed surveys contain %s recorded births across their complete birth histories; %s pass history-validity checks, including %s births within 60 months before interview. These birth totals exclude the surveys skipped for missing MAP geography. Children born earlier can still contribute later age-band entries within the five-year window.",fmt(n$recorded_births),fmt(n$valid_births),fmt(n$recent_valid_births)),"",
   sprintf("Among %s band entries within the 60 months before interview, %s have an incomplete potential band and %s have entry years outside 2000–2024. Requiring the full potential band to end by interview for deaths and survivors alike leaves %s eligible records. A further %s lack usable regional MAP/geography, and %s lack at least one required covariate after joining child HIV incidence. Covariate exclusions count records once, even if several values are missing. The final sample contains %s records and %s deaths from %s surveys in %s countries.",fmt(n$entered),fmt(n$incomplete),fmt(n$outside_year),fmt(n$eligible),fmt(n$missing_map),fmt(n$missing_covariates),fmt(n$primary),fmt(n$deaths),fmt(n$surveys),fmt(n$countries)),"",
   "Seven completed-month bands are analyzed separately: <1, 1–5, 6–11, 12–23, 24–35, 36–47 and 48–59. The outcome is death during the band. Annual regional MAP PfPR₂–₁₀ and national covariates are assigned at band-entry year; exposure is not averaged over time until death. There is no prevalence floor or requirement for a death in each region/band. Eligible MAP records after 2015 are retained.","",
-  "Models use an unweighted binomial complementary log–log likelihood, a log full-band-width offset, fREML estimation in mgcv::bam, gamma=2, cubic regression splines for PfPR (cr, k=5) and calendar year (cr, k=6), and separate survey, country and survey-versioned region random intercepts in each age band. Adjustment variables are sex, multiple birth, birth order, maternal age, maternal education, wealth quintile, urban residence, log child HIV incidence, log GDP per capita, log health expenditure per capita and political stability. Child HIV incidence uses the fixed posterior-median imputation informed by adolescent incidence; other model covariates require complete cases. Vaccines and maternal death fraction are excluded.","",
-  "Age-specific effects compare specified PfPR values. The secondary national calculation applies the fitted change from annual population-weighted national MAP prevalence to zero to IHME all-cause age-band rates and deaths in 2005, 2015 and 2024. The IHME 2–4-year rate is shared across three model bands, with deaths/person-time split equally. Point estimates cover 42 countries with available national MAP exposure. Country-total uncertainty is not estimated; age-band intervals condition on fixed exposure, HIV imputation and smoothing parameters. Snow prevalence comparisons are supplementary and do not determine primary sample eligibility.","",
+  "Adjustment variables are sex, multiple birth, birth order, maternal age, maternal education, wealth quintile, urban residence, log child HIV incidence, log GDP per capita, log health expenditure per capita and political stability. Child HIV incidence uses the fixed posterior-median imputation informed by adolescent incidence; other model covariates require complete cases. Vaccines and maternal death fraction are excluded.","",
   "Counts are read from the saved build/eligibility/selection ledgers and reconciled with the seven selected full-sample MAP gamma=2 fits. See [counts](flow_counts.csv), [survey selection](survey_selection.csv), [provenance](provenance.csv) and the [analysis plan](../../../../docs/ANALYSIS_PLAN.md).")
 writeLines(caption,file.path(out,"CAPTION.md"))
 provenance <- c(unname(input_paths),"R_cbh/reporting/01_study_flow.R","R_cbh/00_config.R")

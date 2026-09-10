@@ -34,7 +34,7 @@ key_figures <- rbind(
          "study_flow_diagram.png",
          "R_cbh/reporting/01_study_flow.R (via R_dhs/11_study_flow.R)",
          paste("Current primary inclusion flow: DHS child–age-band eligibility,",
-               "MAP/covariate availability and seven separate MAP mortality models with gamma=2.",
+               "MAP/covariate availability and the final primary analysis sample.",
                "Counts reconcile to 5,885,022 records and 82,415 deaths in 105 surveys/34 countries.",
                "Detailed [caption and exclusions](../results/cbh/map_snow_gamma2_v1/study_flow/CAPTION.md)."),
          source_dir = file.path(REPO_ROOT, "results/cbh/map_snow_gamma2_v1/study_flow")),

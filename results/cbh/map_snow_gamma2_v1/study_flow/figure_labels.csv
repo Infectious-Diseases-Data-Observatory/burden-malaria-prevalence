@@ -4,9 +4,6 @@
 "eligible",3.8,7.25,6.9,1.35,"main","Eligible child–age bands","6,431,363 records"
 "sample",3.8,5.15,6.9,1.65,"main","Primary analysis sample","5,885,022 records · 82,415 deaths
 105 surveys · 34 countries"
-"models",3.8,3.05,6.9,1.35,"main","Seven age-specific mortality models","MAP prevalence · gamma = 2"
-"effects",2.45,0.75,4.4,1.25,"output","Age-specific effects",""
-"burden",8.3,0.75,6,1.25,"output","Attributable mortality","2005 · 2015 · 2024"
 "omit_surveys",9.4,10.4,3.65,1.2,"excluded","4 surveys excluded","No MAP geography"
 "omit_eligibility",9.4,8.3,3.65,1.2,"excluded","1,413,279 excluded","Band or year ineligible"
 "omit_missing",9.4,6.2,3.65,1.2,"excluded","546,341 excluded","Missing MAP or covariates"
