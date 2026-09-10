@@ -1,0 +1,22 @@
+"fit_id","rows","deaths","countries","surveys","regions","converged","iterations","rank","coefficients","finite_coefficients","finite_covariance","elapsed_seconds","min_smoothing_hessian_eigenvalue","max_smoothing_gradient","warnings","series","age_band","pfpr_basis","gamma","input_verified"
+"reference_age_1",620799,18763,31,69,587,TRUE,13,711,711,TRUE,TRUE,23.4,0.323465151716961,5.84163758361456e-05,"openMP not available: single threaded computation only","reference","<1","cr",1,TRUE
+"gamma14_age_1",620799,18763,31,69,587,TRUE,14,711,711,TRUE,TRUE,20.924,0.0832954991701489,2.10779618612378e-05,"openMP not available: single threaded computation only","gamma14","<1","cr",1.4,TRUE
+"cs_age_1",620799,18763,31,69,587,TRUE,13,711,711,TRUE,TRUE,21.677,0.119157586845319,1.35371566187814e-05,"openMP not available: single threaded computation only","cs","<1","cs",1,TRUE
+"reference_age_2",552179,8278,31,69,587,TRUE,18,711,711,TRUE,TRUE,29.417,0.000236177162607484,0.0002359335718182,"openMP not available: single threaded computation only","reference","1-5","cr",1,TRUE
+"gamma14_age_2",552179,8278,31,69,587,TRUE,16,711,711,TRUE,TRUE,20.454,0.000141720022486144,0.000141209185810859,"openMP not available: single threaded computation only","gamma14","1-5","cr",1.4,TRUE
+"cs_age_2",552179,8278,31,69,587,TRUE,16,711,711,TRUE,TRUE,24.178,0.0488415995339997,0.0106646131366688,"openMP not available: single threaded computation only","cs","1-5","cs",1,TRUE
+"reference_age_3",524318,8046,31,69,587,TRUE,13,711,711,TRUE,TRUE,23.062,0.000240451586106753,0.000240224533372027,"openMP not available: single threaded computation only","reference","6-11","cr",1,TRUE
+"gamma14_age_3",524318,8046,31,69,587,TRUE,14,711,711,TRUE,TRUE,19.095,0.00018212629519301,0.000182141415310374,"openMP not available: single threaded computation only","gamma14","6-11","cr",1.4,TRUE
+"cs_age_3",524318,8046,31,69,587,TRUE,14,711,711,TRUE,TRUE,17.791,0.000231260931191855,0.000231048274754487,"openMP not available: single threaded computation only","cs","6-11","cs",1,TRUE
+"reference_age_4",446360,7854,31,69,587,TRUE,21,711,711,TRUE,TRUE,26.358,0.000281312109491829,0.000281480726955699,"openMP not available: single threaded computation only","reference","12-23","cr",1,TRUE
+"gamma14_age_4",446360,7854,31,69,587,TRUE,14,711,711,TRUE,TRUE,14.387,0.000153044487522631,0.000153086013751312,"openMP not available: single threaded computation only","gamma14","12-23","cr",1.4,TRUE
+"cs_age_4",446360,7854,31,69,587,TRUE,16,711,711,TRUE,TRUE,16.558,0.00030438306041653,0.000304580731477114,"openMP not available: single threaded computation only","cs","12-23","cs",1,TRUE
+"reference_age_5",443341,6363,31,69,587,TRUE,24,711,711,TRUE,TRUE,36.198,0.827869850124679,0.000165722632658571,"openMP not available: single threaded computation only","reference","24-35","cr",1,TRUE
+"gamma14_age_5",443341,6363,31,69,587,TRUE,12,711,711,TRUE,TRUE,12.963,0.506924117706644,1.16529008664656e-12,"openMP not available: single threaded computation only","gamma14","24-35","cr",1.4,TRUE
+"cs_age_5",443341,6363,31,69,587,TRUE,22,711,711,TRUE,TRUE,20.288,0.822404371326622,0.000177861557560277,"openMP not available: single threaded computation only","cs","24-35","cs",1,TRUE
+"reference_age_6",426863,3801,31,69,587,TRUE,18,711,711,TRUE,TRUE,24.314,0.000284443764712221,0.000284598311612733,"openMP not available: single threaded computation only","reference","36-47","cr",1,TRUE
+"gamma14_age_6",426863,3801,31,69,587,TRUE,18,711,711,TRUE,TRUE,17.105,0.000110348575885836,0.000110369922607181,"openMP not available: single threaded computation only","gamma14","36-47","cr",1.4,TRUE
+"cs_age_6",426863,3801,31,69,587,TRUE,17,711,711,TRUE,TRUE,23.346,0.000133446744403265,0.000133480656709242,"openMP not available: single threaded computation only","cs","36-47","cs",1,TRUE
+"reference_age_7",415450,2152,31,69,587,TRUE,22,711,711,TRUE,TRUE,29.452,0.0488611631816642,1.42374407303691e-05,"openMP not available: single threaded computation only","reference","48-59","cr",1,TRUE
+"gamma14_age_7",415450,2152,31,69,587,TRUE,22,711,711,TRUE,TRUE,25.786,0.00831047624823893,1.64939276992015e-05,"openMP not available: single threaded computation only","gamma14","48-59","cr",1.4,TRUE
+"cs_age_7",415450,2152,31,69,587,TRUE,24,711,711,TRUE,TRUE,25.069,0.0308360165550811,1.15799370803416e-05,"openMP not available: single threaded computation only","cs","48-59","cs",1,TRUE
