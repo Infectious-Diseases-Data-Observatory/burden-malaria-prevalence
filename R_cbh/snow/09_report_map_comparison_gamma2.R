@@ -2,6 +2,8 @@
 source("R_cbh/load_pipeline.R")
 library(ggplot2)
 out <- "results/cbh/map_snow_gamma2_v1"
+writeLines(trimws(readLines(file.path(out,"model_formula.txt")),which="right"),
+  file.path(out,"model_formula.txt"))
 d <- cbh_read_csv(file.path(out,"pfpr_curves.csv"))
 diag <- cbh_read_csv(file.path(out,"fit_diagnostics.csv"))
 sm <- cbh_read_csv(file.path(out,"smooth_summaries.csv"))
