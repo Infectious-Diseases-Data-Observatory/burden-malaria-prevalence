@@ -1,21 +1,26 @@
 #!/usr/bin/env Rscript
-# Two separate Snow-only changes: gamma=1.4, or a PfPR shrinkage cubic basis.
+# Snow-only penalty fits; --gamma2 adds a separate gamma=2 run.
 source("R_cbh/load_pipeline.R")
 source("R_cbh/sensitivity/model.R")
 library(mgcv)
 args <- commandArgs(trailingOnly=TRUE)
-stopifnot(all(args %in% "--force"))
+stopifnot(all(args %in% c("--force","--gamma2")))
 id <- "age_band_snow_2000_2015_v1"
 base_private <- file.path("data/derived_cbh/models",id)
 base_out <- file.path("results/cbh",id)
 private <- file.path(base_private,"penalty_sensitivity")
 out <- file.path(base_out,"penalty_sensitivity")
+if("--gamma2" %in% args) {
+  private <- file.path(private,"gamma2")
+  out <- file.path(out,"gamma2")
+}
 dir.create(private,recursive=TRUE,showWarnings=FALSE)
 dir.create(out,recursive=TRUE,showWarnings=FALSE)
 manifest <- cbh_read_csv(file.path(base_out,"selected_fit_manifest.csv"))
 manifest <- manifest[manifest$series=="snow",]
 stopifnot(nrow(manifest)==7)
 specs <- data.frame(series=c("reference","gamma14","cs"),basis=c("cr","cr","cs"),gamma=c(1,1.4,1))
+if("--gamma2" %in% args) specs <- data.frame(series=c("reference","gamma2"),basis="cr",gamma=c(1,2))
 cbh_atomic_csv(specs,file.path(out,"specifications.csv"))
 code <- c("R_cbh/snow/06_fit_penalties.R","R_cbh/sensitivity/model.R")
 code_hash <- vapply(code,cbh_file_hash,"")
@@ -119,6 +124,6 @@ for(i in seq_len(nrow(manifest))) {
   }
   rm(baseline,d);gc(FALSE)
 }
-stopifnot(length(diagnostics)==21L)
+stopifnot(length(diagnostics)==nrow(manifest)*nrow(specs))
 cbh_atomic_csv(data.frame(file=code,md5=unname(code_hash)),file.path(out,"code_provenance.csv"))
 message("Snow penalty sensitivities complete")

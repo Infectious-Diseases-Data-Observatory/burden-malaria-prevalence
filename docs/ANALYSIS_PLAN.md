@@ -248,6 +248,8 @@ Older-child mortality (5–14 years), neonatal mortality as a covariate and the 
 
 **Snow penalisation sensitivity, 10 September 2026.** Compare two separate changes against the seven full-sample Snow fits: (1) retain PfPR `cr`, k=5, and increase `bam` gamma from 1 to 1.4; (2) change only PfPR to `cs`, k=5, with gamma=1. Retain calendar-year `cr`, k=6, original knots, identical records and adjustment set, and fixed median HIV imputation. Gamma affects smoothing selection throughout the model; cs adds shrinkage of the PfPR linear component as well as curvature. Neither imposes monotonicity. Compare full curves, EDF and supported 40%→20% contrasts with conditional intervals, without selecting the preferred result by significance or visual agreement. [Code](../R_cbh/snow/README.md) and [results](../results/cbh/age_band_snow_2000_2015_v1/penalty_sensitivity/REPORT.md) are separate from the original Snow and MAP results.
 
+**Additional Snow gamma=2 sensitivity.** Extend the penalisation comparison with seven separate age-band fits using PfPR `cr`, k=5, calendar-year `cr`, k=6, and gamma=2. Reuse the exact full Snow sample, reference knots, adjustment set and fixed HIV imputation. Compare with gamma=1 and 1.4, retaining the separate cs analysis for context. The [extended comparison](../results/cbh/age_band_snow_2000_2015_v1/penalty_sensitivity/gamma2/comparison/REPORT.md) reports curves, EDF, supported contrasts and numerical diagnostics.
+
 ### 3.4.1 Key PfPR spline sensitivity analysis — current seven-band CBH model
 
 <a id="key-pfpr-spline-sensitivity-analysis-current-seven-band-cbh-model"></a>

@@ -105,3 +105,15 @@ the original Snow pipeline, with attempts and selected paths recorded.
 Results and private fits are in the respective `penalty_sensitivity/`
 subdirectories. Reports include paired and combined spline plots, effective
 degrees of freedom, 40-to-20 hazard ratios and conditional intervals.
+
+To add the Snow-only `cr`, `gamma=2` sensitivity:
+
+```sh
+Rscript R_cbh/snow/06_fit_penalties.R --gamma2
+Rscript R_cbh/snow/07_report_penalties.R --gamma2
+```
+
+This fits seven additional age-band models and reuses the saved references.
+The same records, knots, covariates and HIV imputation are retained. New fits
+and aggregates are saved under `penalty_sensitivity/gamma2/`; the combined
+comparison with gamma 1, 1.4 and cs is under its `comparison/` directory.
