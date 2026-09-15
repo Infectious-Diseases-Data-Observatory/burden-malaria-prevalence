@@ -34,3 +34,9 @@ The fixed HIV imputation, unweighted likelihood, conditional covariance, inherit
 `04_diagnostics.R` exports the aggregate union of included regions per survey. `reporting/03_survey_map.R` combines this with the registry and existing country outlines to regenerate the survey map for the current primary sample (105 surveys/34 countries), without fitting or rebuilding individual records. `reporting/04_paper_figures.R` records the three figure filenames, source hashes and separate captions. These stages are included in the primary runner. The runner writes only inside this project; copying the three PNGs to Overleaf is a separate explicit action and never edits TeX.
 
 Manuscript typography: 20 pt axis titles, 16 pt ticks and legend text, and 18 pt age/year facet labels. Map labels use 4.5 mm text and Figure 3 country labels use 5 mm text. Figure widths are unchanged; Figure 1 is taller (13 × 10 inches) to accommodate the larger timeline labels and stacked legends.
+
+## Age-band results table
+
+The primary report includes each band's observed deaths and percentage of the 82,415 observed under-five deaths, PfPR spline EDF, and hazard ratios (conditional 95% intervals) for 40%→20% and 20%→0%. The fitting-time column is omitted. Percentages use largest-remainder rounding at one decimal so the seven displayed shares sum to 100.0%; the CSV also retains unrounded shares.
+
+`Rscript R_cbh/reporting/05_age_band_table.R` regenerates the standalone Markdown, CSV and LaTeX table in `results/cbh/primary_map_gamma2_v1/tables/`. The full reporting stage uses the same generator. Paste `age_band_results.tex` into the manuscript; it uses `booktabs` and has no document preamble. No Overleaf file is changed by these commands.

@@ -2,6 +2,7 @@
 # Plotting only: read aggregates, never fit models or prepare exposures.
 source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
+source("R_cbh/reporting/age_band_table.R")
 library(ggplot2)
 settings <- cbh_primary_settings();out <- settings$out
 writeLines(trimws(readLines(file.path(out,"model_formula.txt")),which="right"),file.path(out,"model_formula.txt"))
@@ -120,18 +121,14 @@ p <- ggplot(g,aes(pfpr_midpoint,residual_per1000))+geom_hline(yintercept=0,colou
     caption="Ten-percentage-point bins; cells with fewer than 100 records are omitted. Point area reflects records. This is not held-out validation.")+base
 save_plot(p,"outcome_residuals_by_pfpr.png",14,8)
 fmt <- function(x) format(round(x),big.mark=",",trim=TRUE)
+age_table <- cbh_primary_age_table(out,ages)
 md <- c("# Primary MAP analysis rerun","",
   sprintf("Seven age-band models were freshly fitted at gamma=2 using %s children, %s child-band records and %s deaths (%s surveys; %s countries). Dataset preparation, HIV imputation and national exposure/IHME input preparation were not rerun.",
     fmt(sample$distinct_children),fmt(sample$records),fmt(sample$deaths),fmt(sample$surveys),fmt(sample$countries)),"",
   "The unweighted binomial complementary-log-log model uses a fixed log band-width offset; separate cr PfPR (k=5) and calendar-year (k=6) splines, the saved scaled confounders, and survey/country/region random intercepts in each age band. Reference knot locations, sample selection and posterior-median child HIV incidence are unchanged. See [formula](model_formula.txt), [knots](../../../R_cbh/primary/reference_knots.csv) and [analysis plan](../../../docs/ANALYSIS_PLAN.md).","",
   "![PfPR curves](pfpr_splines.png)","",
-  "| Completed months | Records | Deaths | PfPR EDF | HR: 40% to 20% (95% interval) | Fit seconds |",
-  "|---|---:|---:|---:|---:|---:|",
-  vapply(ages,function(a) {
-    x <- diag[diag$age_band==a,];h <- hr[hr$age_band==a,];e <- edf$edf[edf$age_band==a]
-    sprintf("| %s | %s | %s | %.2f | %.3f (%.3f–%.3f) | %.1f |",a,fmt(x$rows),fmt(x$deaths),e,
-      h$hazard_ratio_40_to_20,h$lower_95,h$upper_95,x$elapsed_seconds)
-  },""),"",
+  age_table,"",
+  "[LaTeX table fragment](tables/age_band_results.tex) · [Table data](tables/age_band_results.csv)","",
   "[40% to 20% figure](pfpr_40_to_20.png) · [All curve estimates](pfpr_curves.csv) · [Attributable-fraction anchors](pfpr_attributable_fraction_anchors.csv)","",
   "## National mortality","",
   "For each age band, HR = exp[f_g(0) − f_g(P_country)]. The IHME all-cause rate/count is multiplied by HR for the counterfactual and by (1 − HR) for the attributable contribution. National MAP prevalence and IHME inputs are held at the existing values for each year. Ages 2–4 share the IHME rate and split deaths/person-time equally; early/late neonatal inputs share the <1-month model effect.","",
@@ -151,9 +148,9 @@ md <- c("# Primary MAP analysis rerun","",
   "Reproduce the primary analysis, without data setup: `Rscript run_all.R --primary`. This forces fresh fitting. To regenerate aggregates/figures from verified current fits, use `Rscript R_cbh/primary/run.R --report-only`."
 )
 writeLines(md,file.path(out,"REPORT.md"))
-files <- c("pfpr_curves.csv","pfpr_40_to_20_contrasts.csv","fit_diagnostics.csv","primary_sample.csv","pfpr_edf.csv",
+files <- c("pfpr_curves.csv","pfpr_40_to_20_contrasts.csv","pfpr_20_to_zero_contrasts.csv","tables/age_band_results.csv","fit_diagnostics.csv","primary_sample.csv","pfpr_edf.csv",
   "burden/year_summary.csv","burden/country_totals.csv","burden/country_age_estimates.csv","burden/drc_life_table.csv",
   "burden/comparison_with_previous_primary.csv","comparison_with_previous_curves.csv","grouped_outcome_checks.csv","fitted_outcome_checks.csv")
-paths <- c(file.path(out,files),"R_cbh/primary/03_report.R","R_cbh/primary/settings.R")
+paths <- c(file.path(out,files),"R_cbh/primary/03_report.R","R_cbh/primary/settings.R","R_cbh/reporting/age_band_table.R")
 cbh_atomic_csv(data.frame(file=paths,md5=vapply(paths,cbh_file_hash,"")),file.path(out,"report_provenance.csv"))
 message("Primary MAP figures and report complete")

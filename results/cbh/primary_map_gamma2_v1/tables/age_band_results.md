@@ -1,0 +1,14 @@
+# Primary age-band results
+
+| Completed months | Records | Deaths (% of U5 deaths) | PfPR EDF | HR: 40% to 20% (95% interval) | HR: 20% to 0% (95% interval) |
+|---|---:|---:|---:|---:|---:|
+| <1 | 1,042,571 | 30,086 (36.5%) | 2.28 | 0.965 (0.936–0.995) | 0.968 (0.922–1.018) |
+| 1-5 | 935,677 | 12,137 (14.7%) | 1.98 | 0.926 (0.889–0.965) | 0.899 (0.841–0.961) |
+| 6-11 | 895,573 | 11,291 (13.7%) | 2.59 | 0.837 (0.795–0.882) | 0.746 (0.681–0.818) |
+| 12-23 | 772,578 | 11,062 (13.4%) | 3.53 | 0.872 (0.813–0.936) | 0.532 (0.469–0.604) |
+| 24-35 | 768,240 | 9,168 (11.1%) | 3.61 | 0.843 (0.779–0.911) | 0.448 (0.388–0.518) |
+| 36-47 | 744,682 | 5,477 (6.7%) | 3.40 | 0.823 (0.756–0.895) | 0.501 (0.430–0.583) |
+| 48-59 | 725,701 | 3,194 (3.9%) | 3.39 | 0.955 (0.863–1.058) | 0.505 (0.424–0.601) |
+| **Total** | **5,885,022** | **82,415 (100.0%)** | — | — | — |
+
+Deaths are observed deaths in the primary analysis sample; percentages use all 82,415 under-five deaths as the denominator. Displayed percentages use largest-remainder rounding to one decimal place and sum to 100.0%. Records are child–age-band observations, so a child can contribute multiple records. EDF: effective degrees of freedom of the PfPR spline. Both contrast columns are adjusted mortality hazard ratios for reducing PfPR from the first value to the second. Intervals are conditional on fitted smoothing parameters, exposure and the fixed HIV imputation; zero PfPR is below observed exposure support in every band.

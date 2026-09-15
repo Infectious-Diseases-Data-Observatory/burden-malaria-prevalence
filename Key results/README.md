@@ -9,6 +9,7 @@ The primary analysis uses seven separate age-band models, MAP prevalence, cr PfP
 | Figure 1: survey map and timing | [Figure](../results/cbh/primary_map_gamma2_v1/survey_map/survey_map_and_timing.png) and [caption](../results/cbh/primary_map_gamma2_v1/survey_map/CAPTION.md) |
 | Inclusion flow | [Figure](../results/cbh/primary_map_gamma2_v1/study_flow/study_flow_diagram.png) and [caption](../results/cbh/primary_map_gamma2_v1/study_flow/CAPTION.md) |
 | Seven PfPR curves | [Figure](../results/cbh/primary_map_gamma2_v1/pfpr_splines.png) and [estimates](../results/cbh/primary_map_gamma2_v1/pfpr_curves.csv) |
+| Age-band results table | [Table](../results/cbh/primary_map_gamma2_v1/tables/age_band_results.md) and [LaTeX fragment](../results/cbh/primary_map_gamma2_v1/tables/age_band_results.tex) |
 | PfPR 40% to 20% effects | [Figure](../results/cbh/primary_map_gamma2_v1/pfpr_40_to_20.png) and [contrasts](../results/cbh/primary_map_gamma2_v1/pfpr_40_to_20_contrasts.csv) |
 | Diagnostics | [Numerical checks](../results/cbh/primary_map_gamma2_v1/fit_diagnostics.csv) and [fitted outcomes](../results/cbh/primary_map_gamma2_v1/fitted_outcome_checks.csv) |
 | Mortality, 2005/2015/2024 | [Country figure](../results/cbh/primary_map_gamma2_v1/burden/country_deaths_all_years.png) and [country totals](../results/cbh/primary_map_gamma2_v1/burden/country_totals.csv) |
