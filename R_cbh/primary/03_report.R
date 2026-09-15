@@ -4,6 +4,7 @@ source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 library(ggplot2)
 settings <- cbh_primary_settings();out <- settings$out
+writeLines(trimws(readLines(file.path(out,"model_formula.txt")),which="right"),file.path(out,"model_formula.txt"))
 ages <- cbh_config()$age_bands$age_band
 age_factor <- function(x) factor(x,levels=ages,labels=paste(ages,"months"))
 read <- function(x) cbh_read_csv(file.path(out,x))
