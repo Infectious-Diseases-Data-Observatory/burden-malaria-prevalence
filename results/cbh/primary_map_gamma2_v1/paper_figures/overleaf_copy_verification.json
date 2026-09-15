@@ -15,26 +15,31 @@
       "figure": "1",
       "filename": "survey_map_and_timing.png",
       "source": "results/cbh/primary_map_gamma2_v1/survey_map/survey_map_and_timing.png",
-      "md5": "a3da52d7f39d7a4b6c46ac37a4733645"
+      "md5": "813759e2d51cb94b35481497af8d1867"
     },
     {
       "figure": "2",
       "filename": "fig2_pfpr_mortality_by_age.png",
       "source": "results/cbh/primary_map_gamma2_v1/pfpr_splines.png",
-      "md5": "79aec40b36a6a1d9255c3e86395ddb85"
+      "md5": "f5525de3b48286b884558621789c7aa1"
     },
     {
       "figure": "3",
       "filename": "fig3_country_estimates_vs_ihme.png",
       "source": "results/cbh/primary_map_gamma2_v1/burden/country_vs_ihme.png",
-      "md5": "f290763746c1e8f8f39d1f083d48c1b1"
+      "md5": "4a1071578fef74800b79eb84d706d92e"
     }
   ],
   "latest_update": {
-    "figure": 3,
-    "axis_minimum": 1000,
+    "change": "Larger fonts in all three manuscript figures",
+    "axis_title_pt": 20,
+    "axis_tick_pt": 16,
+    "facet_label_pt": 18,
+    "figure_3_axis_minimum": 1000,
     "changed_files": [
-      "figures/fig3_country_estimates_vs_ihme.png"
+      "figures/fig2_pfpr_mortality_by_age.png",
+      "figures/fig3_country_estimates_vs_ihme.png",
+      "figures/survey_map_and_timing.png"
     ],
     "all_other_files_unchanged": true
   }

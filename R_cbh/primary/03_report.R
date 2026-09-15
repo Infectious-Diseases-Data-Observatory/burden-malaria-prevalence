@@ -21,6 +21,11 @@ stopifnot(nrow(diag)==7,all(diag$series=="map_full"),all(diag$converged),all(dia
 base <- theme_minimal(base_size=14)+theme(panel.grid.minor=element_blank(),
   plot.title=element_text(face="bold"),strip.text=element_text(face="bold"),
   plot.caption=element_text(hjust=0,size=11),legend.position="bottom")
+# Larger typography for the three manuscript figures, at unchanged plot widths.
+paper <- base+theme(text=element_text(size=20),axis.title=element_text(size=20),
+  axis.text=element_text(size=16),strip.text=element_text(size=18,face="bold"),
+  legend.title=element_text(size=18),legend.text=element_text(size=16),
+  panel.spacing=grid::unit(24,"pt"),plot.margin=margin(10,24,10,10))
 d$age_label <- age_factor(d$age_band)
 p <- ggplot(d[d$within_central_support,],aes(pfpr_pct,log_hazard_ratio))+
   geom_hline(yintercept=0,colour="grey65",linewidth=.4)+
@@ -28,7 +33,7 @@ p <- ggplot(d[d$within_central_support,],aes(pfpr_pct,log_hazard_ratio))+
   geom_ribbon(aes(ymin=lower_95,ymax=upper_95),fill="#215E91",alpha=.17)+
   geom_line(colour="#215E91",linewidth=1)+facet_wrap(~age_label,ncol=4)+
   scale_x_continuous(limits=c(0,100),breaks=c(0,20,40,60,80,100))+
-  labs(x="PfPR[2–10] (%)",y="Log hazard ratio relative to PfPR = 20%")+base
+  labs(x="PfPR[2–10] (%)",y="Log hazard ratio\nrelative to PfPR = 20%")+paper
 save_plot(p,"pfpr_splines.png",14,8)
 hr$age_label <- factor(hr$age_band,levels=rev(ages))
 p <- ggplot(hr,aes(hazard_ratio_40_to_20,age_label))+
@@ -71,12 +76,12 @@ p <- ggplot(plot_rows,aes(ihme_malaria_deaths,attributable_under5_deaths))+
   geom_abline(slope=1,intercept=0,colour="grey65",linetype=2)+
   geom_point(colour="#215E91",size=2.5,alpha=.8)+
   ggrepel::geom_text_repel(data=plot_rows[plot_rows$iso3 %in% c("COD","NGA","AGO","UGA","TZA"),],
-    aes(label=iso3),size=3.5,seed=20260915,max.overlaps=Inf,min.segment.length=0)+
+    aes(label=iso3),size=5,seed=20260915,max.overlaps=Inf,min.segment.length=0)+
   facet_wrap(~year,nrow=1)+coord_equal(xlim=log_limits,ylim=log_limits,expand=FALSE)+
   scale_x_log10(breaks=log_breaks,labels=log_labels)+
   scale_y_log10(breaks=log_breaks,labels=log_labels)+
-  labs(x="IHME malaria deaths before age 5",y="Model-attributable deaths before age 5")+base+
-  theme(panel.spacing.x=grid::unit(1.5,"lines"),plot.margin=margin(6,20,6,6))
+  labs(x="IHME malaria deaths before age 5",y="Model-attributable deaths\nbefore age 5")+paper+
+  theme(panel.spacing.x=grid::unit(40,"pt"),plot.margin=margin(10,26,10,10))
 # Both axes have exactly the same base-10 transform and range; no pseudocount.
 stopifnot(identical(p$scales$get_scales("x")$trans$name,"log-10"),
   identical(p$scales$get_scales("y")$trans$name,"log-10"))

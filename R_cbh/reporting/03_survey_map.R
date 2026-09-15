@@ -42,11 +42,13 @@ centres <- suppressWarnings(sf::st_coordinates(sf::st_point_on_surface(sf::st_ge
 outline$lon <- centres[,1];outline$lat <- centres[,2]
 map <- ggplot(outline)+geom_sf(aes(fill=surveys),colour="white",linewidth=.3)+
   ggrepel::geom_text_repel(data=sf::st_drop_geometry(outline),aes(lon,lat,label=country),
-    size=3,seed=20260915,max.overlaps=Inf,min.segment.length=0,box.padding=.15,
+    size=4.5,seed=20260915,max.overlaps=Inf,min.segment.length=0,box.padding=.15,
     segment.colour="grey60",segment.size=.25)+
   scale_fill_gradient(low="#DCEAF3",high="#12557A",name="Surveys",breaks=scales::breaks_pretty(4))+
-  theme_minimal(base_size=13)+theme(axis.title=element_blank(),axis.text=element_blank(),
-    panel.grid=element_blank(),legend.position="bottom")
+  guides(fill=guide_colourbar(barwidth=grid::unit(1.9,"in"),barheight=grid::unit(.2,"in")))+
+  theme_minimal(base_size=20)+theme(axis.title=element_blank(),axis.text=element_blank(),
+    panel.grid=element_blank(),legend.position="bottom",
+    legend.title=element_text(size=18),legend.text=element_text(size=16))
 x$country_label <- factor(x$country,levels=outline$country[order(outline$lat)])
 timeline <- ggplot(x,aes(year,country_label))+
   geom_line(aes(group=country_label),colour="grey85",linewidth=.4)+
@@ -54,10 +56,13 @@ timeline <- ggplot(x,aes(year,country_label))+
   scale_size_continuous(range=c(1.2,4),name="Regions")+
   scale_shape_manual(values=c(DHS=16,MIS=17),name="Type")+
   scale_x_continuous(breaks=seq(2000,2025,5))+
-  labs(x="Survey year",y=NULL)+theme_minimal(base_size=13)+
-  theme(panel.grid.minor=element_blank(),legend.position="bottom")
+  labs(x="Survey year",y=NULL)+theme_minimal(base_size=20)+
+  guides(size=guide_legend(order=1,nrow=1),shape=guide_legend(order=2,nrow=1))+
+  theme(panel.grid.minor=element_blank(),legend.position="bottom",axis.text=element_text(size=16),
+    axis.title=element_text(size=20),legend.title=element_text(size=18),legend.text=element_text(size=16),
+    legend.box="vertical",legend.spacing.y=grid::unit(0,"pt"),plot.margin=margin(8,26,8,8))
 p <- map+timeline+plot_layout(widths=c(1,1.15))
-ggsave(file.path(out,"survey_map_and_timing.png"),p,width=13,height=8.5,dpi=300,device=ragg::agg_png,bg="white")
+ggsave(file.path(out,"survey_map_and_timing.png"),p,width=13,height=10,dpi=300,device=ragg::agg_png,bg="white")
 x$country_label <- NULL
 cbh_atomic_csv(x,file.path(out,"survey_coverage.csv"))
 cbh_atomic_csv(summary,file.path(out,"country_summary.csv"))
