@@ -29,6 +29,6 @@ The fixed HIV imputation, unweighted likelihood, conditional covariance, inherit
 
 ## Paper figures
 
-`03_report.R` exports the primary PfPR and country-versus-IHME figures without titles, subtitles or embedded captions. Both country-comparison axes use a true log10 scale and common limits; missing/nonpositive pairs are listed in `burden/log10_plot_exclusions.csv`. The other mortality figures retain their existing scales.
+`03_report.R` exports the primary PfPR and country-versus-IHME figures without titles, subtitles or embedded captions. Both country-comparison axes use a true log10 scale and common limits starting at 1,000 deaths; points below the minimum on either axis are outside the plotting window, with their estimates retained in the tables; missing/nonpositive pairs are listed in `burden/log10_plot_exclusions.csv`. The other mortality figures retain their existing scales.
 
 `04_diagnostics.R` exports the aggregate union of included regions per survey. `reporting/03_survey_map.R` combines this with the registry and existing country outlines to regenerate the survey map for the current primary sample (105 surveys/34 countries), without fitting or rebuilding individual records. `reporting/04_paper_figures.R` records the three figure filenames, source hashes and separate captions. These stages are included in the primary runner. The runner writes only inside this project; copying the three PNGs to Overleaf is a separate explicit action and never edits TeX.

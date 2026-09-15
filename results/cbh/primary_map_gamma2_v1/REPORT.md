@@ -30,7 +30,7 @@ For each age band, HR = exp[f_g(0) − f_g(P_country)]. The IHME all-cause rate/
 
 ![Country estimates](burden/country_vs_ihme.png)
 
-Both axes use a true log10 scale with identical limits. All 42 estimable countries per year are retained; [excluded country-year rows](burden/log10_plot_exclusions.csv) have unavailable estimates. No pseudocount is added. Titles and subtitles are omitted from the paper's PfPR and country-comparison figures; years and age-band facet labels remain.
+Both axes use a true log10 scale with identical limits starting at 1,000 deaths. Countries below 1,000 on either axis fall outside the displayed range; [these rows](burden/log10_below_display_minimum.csv) and all underlying estimates are retained. There are 42 estimable countries per year; [excluded country-year rows](burden/log10_plot_exclusions.csv) have unavailable estimates. No pseudocount is added. Titles and subtitles are omitted from the paper's PfPR and country-comparison figures; years and age-band facet labels remain.
 
 [Every country's figure](burden/country_deaths_all_years.png) · [Country totals](burden/country_totals.csv) · [Age-band rates and deaths](burden/country_age_estimates.csv) · [Age contributions](burden/deaths_by_age.png) · [DRC survival](burden/drc_survival.png)
 
