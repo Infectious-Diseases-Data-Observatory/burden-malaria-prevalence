@@ -8,11 +8,12 @@ manifest <- cbh_read_csv(file.path(out,"fit_manifest.csv"))
 provenance <- cbh_read_csv(file.path(out,"fit_input_provenance.csv"))
 stopifnot(nrow(manifest)==7,all(manifest$series=="map_full"),
   identical(cbh_file_hash(settings$data),provenance$md5[provenance$file==settings$data]))
-checks <- groups <- list()
+checks <- groups <- coverage <- list()
 for(i in seq_len(nrow(manifest))) {
   m <- manifest[i,]
   stopifnot(identical(cbh_file_hash(m$model_file),m$md5))
   saved <- readRDS(m$model_file);f <- saved$fit
+  coverage[[i]] <- unique(f$model[c("survey","country","region")])
   p <- f$fitted.values;y <- f$model$death
   stopifnot(saved$gamma==2,all(is.finite(p)),all(p>0 & p<1),length(p)==nrow(f$model))
   checks[[i]] <- data.frame(age_band=m$age_band,records=length(y),observed_deaths=sum(y),
@@ -35,6 +36,10 @@ for(i in seq_len(nrow(manifest))) {
   message("Verified stored model and fitted outcomes for ",m$age_band," months")
   rm(saved,f,p,y,dt);gc(FALSE)
 }
+coverage <- unique(rbindlist(coverage))
+coverage <- coverage[,.(regions=uniqueN(region)),by=.(survey,country)]
+stopifnot(nrow(coverage)==105,uniqueN(coverage$country)==34)
+cbh_atomic_csv(as.data.frame(coverage),file.path(out,"survey_coverage.csv"))
 cbh_atomic_csv(do.call(rbind,checks),file.path(out,"fitted_outcome_checks.csv"))
 cbh_atomic_csv(do.call(rbind,groups),file.path(out,"grouped_outcome_checks.csv"))
 cbh_atomic_csv(data.frame(file=c(manifest$model_file,"R_cbh/primary/04_diagnostics.R"),

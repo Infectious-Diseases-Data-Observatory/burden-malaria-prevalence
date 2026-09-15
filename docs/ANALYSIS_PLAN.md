@@ -212,11 +212,14 @@ Retain signed contributions, zero/current-prevalence support flags and condition
 | Reporting location | Content | Authoritative selection |
 |---|---|---|
 | Main results | Study flow, survey/sample coverage and seven age-band descriptive summaries | Full MAP sample and its exclusion ledger |
+| Main results: Figure 1 | Survey map and timing for the 105 included surveys in 34 countries | `survey_map/survey_map_and_timing.png` under current primary results |
 | Main results | Seven primary PfPR curves, X%→Y% contrasts and diagnostics | `map_full`, gamma=2, from `results/cbh/primary_map_gamma2_v1/` |
 | Main results: secondary burden | Country estimates and age contributions for 2005/2015/2024 using the primary model | Primary-only burden files linked above |
 | Supplementary results | Matched MAP–Snow curves and contrasts; available-sample comparisons; all Snow smoothing trials and Snow mortality scenarios | [Supplementary index](<../Supplementary results/README.md>) |
 | Supplementary sensitivity results | Structure, geography, survey period, timing, design, missingness and other declared checks | Label old gamma=1 exploratory results separately from planned gamma=2 refits |
 | Historical archive | Six-band person-time/count models, old joint fits and earlier burden outputs | [Archived plan](ANALYSIS_PLAN_BEFORE_MAP_GAMMA2.md), original result directories and code audit |
+
+The paper's Figure 2 is the primary PfPR-by-age curve figure; Figure 3 is the country comparison with IHME for 2005/2015/2024, using true base-10 logarithmic scales on both axes with the same limits. All 42 estimable countries per year have positive values and remain visible. The three paper figures omit titles, subtitles and embedded captions; separate caption text and filename mappings are in the [paper figure manifest](../results/cbh/primary_map_gamma2_v1/paper_figures/CAPTIONS.md). Preparing/copying figures does not edit manuscript TeX.
 
 Plotting-only stages must read saved aggregate estimates and must not refit, change exposure definitions or select models according to available cache files. Label source, sample period, gamma, age bands, contrast and uncertainty. A combined MAP–Snow figure is supplementary; a main-results figure must select only the full MAP gamma=2 series. Keep links to authoritative saved artifacts instead of copying figures into competing locations.
 

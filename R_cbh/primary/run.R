@@ -7,7 +7,8 @@ if(length(args)>1L || (length(args) && !args %in% c("--report-only","--resume"))
 settings <- cbh_primary_settings()
 stages <- c(fit="R_cbh/primary/01_fit.R",effects="R_cbh/primary/02_effects.R",
   diagnostics="R_cbh/primary/04_diagnostics.R",report="R_cbh/primary/03_report.R",
-  flow="R_cbh/reporting/01_study_flow.R",index="R_cbh/reporting/02_results_index.R")
+  flow="R_cbh/reporting/01_study_flow.R",survey_map="R_cbh/reporting/03_survey_map.R",
+  paper_figures="R_cbh/reporting/04_paper_figures.R",index="R_cbh/reporting/02_results_index.R")
 if("--report-only" %in% args) stages <- stages[names(stages)!="fit"]
 dir.create(settings$out,recursive=TRUE,showWarnings=FALSE)
 log <- list()

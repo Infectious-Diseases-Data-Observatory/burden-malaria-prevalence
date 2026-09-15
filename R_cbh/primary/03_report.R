@@ -6,7 +6,7 @@ library(ggplot2)
 settings <- cbh_primary_settings();out <- settings$out
 writeLines(trimws(readLines(file.path(out,"model_formula.txt")),which="right"),file.path(out,"model_formula.txt"))
 ages <- cbh_config()$age_bands$age_band
-age_factor <- function(x) factor(x,levels=ages,labels=paste(ages,"months"))
+age_factor <- function(x) factor(x,levels=ages,labels=ifelse(ages=="<1","<1 month",paste(ages,"months")))
 read <- function(x) cbh_read_csv(file.path(out,x))
 save_plot <- function(p,name,width,height) ggsave(file.path(out,name),p,width=width,height=height,
   dpi=240,device=ragg::agg_png,bg="white")
@@ -28,9 +28,7 @@ p <- ggplot(d[d$within_central_support,],aes(pfpr_pct,log_hazard_ratio))+
   geom_ribbon(aes(ymin=lower_95,ymax=upper_95),fill="#215E91",alpha=.17)+
   geom_line(colour="#215E91",linewidth=1)+facet_wrap(~age_label,ncol=4)+
   scale_x_continuous(limits=c(0,100),breaks=c(0,20,40,60,80,100))+
-  labs(title="PfPR and mortality by age",subtitle="Primary MAP analysis · separate age-band models · gamma = 2",
-    x="PfPR[2–10] (%)",y="Log hazard ratio relative to PfPR = 20%",
-    caption="Curves show the central 95% of each band's exposure distribution. Shading: conditional pointwise 95% intervals.")+base
+  labs(x="PfPR[2–10] (%)",y="Log hazard ratio relative to PfPR = 20%")+base
 save_plot(p,"pfpr_splines.png",14,8)
 hr$age_label <- factor(hr$age_band,levels=rev(ages))
 p <- ggplot(hr,aes(hazard_ratio_40_to_20,age_label))+
@@ -56,17 +54,29 @@ p <- ggplot(long,aes(deaths,country,colour=source,shape=source))+
     caption="42 countries with national MAP exposure. Model estimates are all-cause reductions under zero PfPR; IHME is a cause-specific comparator.")+base+
   theme(axis.text.y=element_text(size=11))
 save_plot(p,"burden/country_deaths_all_years.png",15,14)
-p <- ggplot(z,aes(ihme_malaria_deaths,attributable_under5_deaths))+
-  geom_abline(slope=1,intercept=0,colour="grey65",linetype=2)+geom_point(colour="#215E91",size=2.5,alpha=.8)+
-  geom_text(data=z[z$iso3 %in% c("COD","NGA","AGO","UGA","TZA"),],aes(label=iso3),
-    size=3.5,hjust=-.1,vjust=-.5,check_overlap=TRUE)+facet_wrap(~year,nrow=1)+
-  coord_equal(xlim=c(min(0,z$attributable_under5_deaths),1.13*max(z$attributable_under5_deaths,z$ihme_malaria_deaths)),
-    ylim=c(min(0,z$attributable_under5_deaths),1.13*max(z$attributable_under5_deaths,z$ihme_malaria_deaths)),expand=FALSE)+
-  scale_x_continuous(labels=scales::label_number(scale_cut=scales::cut_short_scale()),expand=expansion(mult=c(.04,.13)))+
-  scale_y_continuous(labels=scales::label_number(scale_cut=scales::cut_short_scale()),expand=expansion(mult=c(.04,.13)))+
-  labs(title="Country mortality estimates versus IHME",subtitle="Primary MAP analysis · gamma = 2",
-    x="IHME malaria deaths before age 5",y="Model-attributable deaths before age 5",
-    caption="Each point is a country. Dashed line: equality. Country totals are point estimates.")+base
+# True log10 scales require positive values: keep missing/nonpositive estimates
+# in the source tables and explicitly record any rows unavailable for this plot.
+plot_rows <- totals[is.finite(totals$ihme_malaria_deaths) & totals$ihme_malaria_deaths>0 &
+  is.finite(totals$attributable_under5_deaths) & totals$attributable_under5_deaths>0,]
+excluded <- totals[!paste(totals$iso3,totals$year) %in% paste(plot_rows$iso3,plot_rows$year),]
+cbh_atomic_csv(excluded,file.path(out,"burden/log10_plot_exclusions.csv"))
+stopifnot(nrow(plot_rows)>0)
+log_limits <- 10^range(floor(log10(min(plot_rows$ihme_malaria_deaths,plot_rows$attributable_under5_deaths))),
+  ceiling(log10(max(plot_rows$ihme_malaria_deaths,plot_rows$attributable_under5_deaths))))
+log_breaks <- 10^seq(log10(log_limits[1]),log10(log_limits[2]))
+log_labels <- function(x) parse(text=paste0("10^",round(log10(x))))
+p <- ggplot(plot_rows,aes(ihme_malaria_deaths,attributable_under5_deaths))+
+  geom_abline(slope=1,intercept=0,colour="grey65",linetype=2)+
+  geom_point(colour="#215E91",size=2.5,alpha=.8)+
+  ggrepel::geom_text_repel(data=plot_rows[plot_rows$iso3 %in% c("COD","NGA","AGO","UGA","TZA"),],
+    aes(label=iso3),size=3.5,seed=20260915,max.overlaps=Inf,min.segment.length=0)+
+  facet_wrap(~year,nrow=1)+coord_equal()+
+  scale_x_log10(limits=log_limits,breaks=log_breaks,labels=log_labels,expand=expansion(mult=.025))+
+  scale_y_log10(limits=log_limits,breaks=log_breaks,labels=log_labels,expand=expansion(mult=.025))+
+  labs(x="IHME malaria deaths before age 5",y="Model-attributable deaths before age 5")+base
+# Both axes have exactly the same base-10 transform and range; no pseudocount.
+stopifnot(identical(p$scales$get_scales("x")$trans$name,"log-10"),
+  identical(p$scales$get_scales("y")$trans$name,"log-10"))
 save_plot(p,"burden/country_vs_ihme.png",15,6)
 b <- bands[is.finite(bands$attributable_deaths),]
 b <- aggregate(b$attributable_deaths,b[c("year","age_band")],sum);names(b)[3] <- "deaths"
@@ -121,6 +131,7 @@ md <- c("# Primary MAP analysis rerun","",
   vapply(seq_len(nrow(sums)),function(i)sprintf("| %d | %d | %s | %s |",sums$year[i],sums$countries[i],
     fmt(sums$attributable_under5_deaths[i]),fmt(sums$ihme_malaria_deaths[i])),""),"",
   "![Country estimates](burden/country_vs_ihme.png)","",
+  "Both axes use a true log10 scale with identical limits. All 42 estimable countries per year are retained; [excluded country-year rows](burden/log10_plot_exclusions.csv) have unavailable estimates. No pseudocount is added. Titles and subtitles are omitted from the paper's PfPR and country-comparison figures; years and age-band facet labels remain.","",
   "[Every country's figure](burden/country_deaths_all_years.png) · [Country totals](burden/country_totals.csv) · [Age-band rates and deaths](burden/country_age_estimates.csv) · [Age contributions](burden/deaths_by_age.png) · [DRC survival](burden/drc_survival.png)","",
   "All 45 countries remain in the tables; Cape Verde, Lesotho and São Tomé and Príncipe lack national MAP estimates. Totals use the same 42 estimable countries. Missing estimates are not zero; negative attributable estimates are retained. National prevalence uses the saved GPW 2020 population weights in each scenario year. Evaluating a nonlinear spline at national mean prevalence differs from averaging local attributable effects.","",
   "## Verification and limits","",

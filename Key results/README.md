@@ -6,6 +6,7 @@ The primary analysis uses seven separate age-band models, MAP prevalence, cr PfP
 
 | Result | Output |
 |---|---|
+| Figure 1: survey map and timing | [Figure](../results/cbh/primary_map_gamma2_v1/survey_map/survey_map_and_timing.png) and [caption](../results/cbh/primary_map_gamma2_v1/survey_map/CAPTION.md) |
 | Inclusion flow | [Figure](../results/cbh/primary_map_gamma2_v1/study_flow/study_flow_diagram.png) and [caption](../results/cbh/primary_map_gamma2_v1/study_flow/CAPTION.md) |
 | Seven PfPR curves | [Figure](../results/cbh/primary_map_gamma2_v1/pfpr_splines.png) and [estimates](../results/cbh/primary_map_gamma2_v1/pfpr_curves.csv) |
 | PfPR 40% to 20% effects | [Figure](../results/cbh/primary_map_gamma2_v1/pfpr_40_to_20.png) and [contrasts](../results/cbh/primary_map_gamma2_v1/pfpr_40_to_20_contrasts.csv) |
@@ -14,6 +15,8 @@ The primary analysis uses seven separate age-band models, MAP prevalence, cr PfP
 | Comparison with IHME | [Scatter plots](../results/cbh/primary_map_gamma2_v1/burden/country_vs_ihme.png) |
 | Age contributions | [Figure](../results/cbh/primary_map_gamma2_v1/burden/deaths_by_age.png) and [country-age estimates](../results/cbh/primary_map_gamma2_v1/burden/country_age_estimates.csv) |
 | DRC synthetic-cohort survival | [Figure](../results/cbh/primary_map_gamma2_v1/burden/drc_survival.png) |
+
+[Paper figure manifest and captions](../results/cbh/primary_map_gamma2_v1/paper_figures/CAPTIONS.md)
 
 Snow exposure comparisons are [supplementary](<../Supplementary results/README.md>). The previous MAP gamma=2 outputs remain in `results/cbh/map_snow_gamma2_v1/`, with a numerical comparison in the new report.
 

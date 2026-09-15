@@ -1,0 +1,33 @@
+{
+  "destination": "/Users/jameswatson/Dropbox/Apps/Overleaf/malaria-burden-reassessment/figures",
+  "changed_files": [
+    "figures/fig2_pfpr_mortality_by_age.png",
+    "figures/fig3_country_estimates_vs_ihme.png",
+    "figures/survey_map_and_timing.png"
+  ],
+  "tex_files_unchanged": [
+    "main.tex",
+    "SText1_model_specification.tex"
+  ],
+  "backup": "archive/2026-09-15-overleaf-figures/survey_map_and_timing.png",
+  "figures": [
+    {
+      "figure": "1",
+      "filename": "survey_map_and_timing.png",
+      "source": "results/cbh/primary_map_gamma2_v1/survey_map/survey_map_and_timing.png",
+      "md5": "a3da52d7f39d7a4b6c46ac37a4733645"
+    },
+    {
+      "figure": "2",
+      "filename": "fig2_pfpr_mortality_by_age.png",
+      "source": "results/cbh/primary_map_gamma2_v1/pfpr_splines.png",
+      "md5": "79aec40b36a6a1d9255c3e86395ddb85"
+    },
+    {
+      "figure": "3",
+      "filename": "fig3_country_estimates_vs_ihme.png",
+      "source": "results/cbh/primary_map_gamma2_v1/burden/country_vs_ihme.png",
+      "md5": "c378272880d4f89cf673f81da4fe61de"
+    }
+  ]
+}

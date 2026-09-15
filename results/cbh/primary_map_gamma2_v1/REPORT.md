@@ -30,6 +30,8 @@ For each age band, HR = exp[f_g(0) − f_g(P_country)]. The IHME all-cause rate/
 
 ![Country estimates](burden/country_vs_ihme.png)
 
+Both axes use a true log10 scale with identical limits. All 42 estimable countries per year are retained; [excluded country-year rows](burden/log10_plot_exclusions.csv) have unavailable estimates. No pseudocount is added. Titles and subtitles are omitted from the paper's PfPR and country-comparison figures; years and age-band facet labels remain.
+
 [Every country's figure](burden/country_deaths_all_years.png) · [Country totals](burden/country_totals.csv) · [Age-band rates and deaths](burden/country_age_estimates.csv) · [Age contributions](burden/deaths_by_age.png) · [DRC survival](burden/drc_survival.png)
 
 All 45 countries remain in the tables; Cape Verde, Lesotho and São Tomé and Príncipe lack national MAP estimates. Totals use the same 42 estimable countries. Missing estimates are not zero; negative attributable estimates are retained. National prevalence uses the saved GPW 2020 population weights in each scenario year. Evaluating a nonlinear spline at national mean prevalence differs from averaging local attributable effects.
