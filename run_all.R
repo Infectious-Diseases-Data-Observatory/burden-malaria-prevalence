@@ -1,18 +1,32 @@
-# run_all.R — reproduce the whole analysis. Run from the repository root:
-#   Rscript run_all.R
-# 01 fetches inputs into data/ (idempotent); 02-04 write figures/tables to results/.
-# Component 3 runs before Component 2 (it builds the shared per-region prevalence
-# table and the RDT->microscopy conversion that Component 2 consumes).
-
-source("R/00_utils.R")             # config + helpers
-source("R/01_fetch_data.R")        # inputs -> data/ (needs internet; DHS/IHME logins — see README)
-source("R/02_component1_country.R")# Component 1: country-level share vs PfPR (+GDP,+DTP3, outliers)
-source("R/03_component3_rdt_microscopy.R") # Component 3: RDT<->microscopy conversion (+ prevalence table)
-source("R/04_component2_dhs.R")    # Component 2: DHS multivariable mixed model
-source("R/05_prediction_10_to_30.R") # cross-component prediction: total U5MR, 10% -> 30% PfPR
-source("R/06_attributable_fraction.R") # malaria-attributable fraction of child deaths vs PfPR
-source("R/07_ng_drc_malaria_deaths.R") # NG/DRC malaria deaths: national vs subnational (admin-1)
-source("R/08_country_malaria_deaths.R")# malaria deaths for all countries with PfPR2-10 > 10%
-source("R/09_method_comparison.R")     # overlay Component 1 & 2 on shared axes (method comparison)
-source("R/10_triangulation_rct.R")     # RCT triangulation: predicted vs observed mortality effect (ITN trials)
-message("\nAll components complete. See results/ for figures and tables.")
+#!/usr/bin/env Rscript
+# Explicit routing only: a bare invocation must not launch superseded models,
+# downloads or a long refit. See docs/ANALYSIS_PLAN.md and docs/CODE_AUDIT.md.
+args <- commandArgs(trailingOnly = TRUE)
+if (!length(args) || identical(args, "--help")) {
+  cat(paste(c(
+    "Current primary: seven separate MAP age-band models, gamma=2.",
+    "There is not yet a consolidated end-to-end primary rebuild.",
+    "",
+    "Local dataset build: Rscript R_cbh/01_make_analysis_data.R",
+    "HIV incidence: Rscript R_cbh/hiv/01_fit_incidence.R (fits the imputation model)",
+    "Modelling data only: Rscript R_cbh/analysis/01_fit_complete_case.R --prepare-only",
+    "Existing primary fits: results/cbh/map_snow_gamma2_v1/fit_manifest.csv; select map_full",
+    "Current refit implementation: R_cbh/snow/08_fit_map_comparison_gamma2.R",
+    "  Requires historical reference fits and also fits supplementary series.",
+    "Inclusion figure: Rscript R_cbh/reporting/01_study_flow.R",
+    "Results index: Rscript R_cbh/reporting/02_results_index.R",
+    "",
+    "Rscript run_all.R --check-inputs   checks local dataset prerequisites",
+    "Rscript run_all.R --audit          verifies saved primary models without refitting",
+    "",
+    "Old runners: archive/2026-09-15-code-audit/ (historical use only).",
+    "Full audit and outstanding planned analyses: docs/CODE_AUDIT.md"
+  ), collapse = "\n"), "\n")
+} else {
+  scripts <- c("--check-inputs" = "R_cbh/01_make_analysis_data.R", "--audit" = "R_cbh/audit/01_verify_saved_primary.R")
+  if (length(args) != 1L || !args %in% names(scripts))
+    stop("Use --help, --check-inputs or --audit; legacy run-all modes have been archived.")
+  trailing <- if (args == "--check-inputs") "--check-inputs" else character()
+  status <- system2(file.path(R.home("bin"), "Rscript"), c(scripts[[args]], trailing))
+  if (status != 0L) stop("Stage failed with status ", status)
+}

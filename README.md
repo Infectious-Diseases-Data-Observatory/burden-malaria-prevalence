@@ -1,5 +1,7 @@
 # Malaria prevalence and child mortality
 
+> **Current analysis (15 September 2026):** seven separate child–age-band models using MAP prevalence and `gamma=2`. Start with the [analysis plan](docs/ANALYSIS_PLAN.md), [code audit](docs/CODE_AUDIT.md) and [current result index](<Key results/README.md>). `Rscript run_all.R --help` lists explicit current commands. The survey-region description below is historical; superseded scripts are in [the archive](archive/2026-09-15-code-audit/).
+
 Relationship between *Plasmodium falciparum* parasite prevalence (MAP PfPR₂₋₁₀)
 and all-cause child mortality across sub-Saharan Africa, estimated at the
 DHS/MIS survey-region level and extrapolated to a national malaria-attributable

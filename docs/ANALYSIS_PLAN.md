@@ -1,6 +1,6 @@
 # Analysis plan: malaria prevalence and child mortality
 
-Updated 10 September 2026. This is a working analysis plan revised after inspection of exploratory results, not a prospective preregistration. The [previous plan](ANALYSIS_PLAN_BEFORE_MAP_GAMMA2.md) preserves the original audit, superseded specifications and decision history; the [code audit](CODE_AUDIT.md) records the historical script disposition.
+Updated 15 September 2026 (implementation audit; primary specification unchanged). This is a working analysis plan revised after inspection of exploratory results, not a prospective preregistration. The [previous plan](ANALYSIS_PLAN_BEFORE_MAP_GAMMA2.md) preserves the original audit, superseded specifications and decision history; the [code audit](CODE_AUDIT.md) compares each component with the current implementation and records the archival changes.
 
 **Current primary analysis:** seven separate child–age-band mortality models using **annual MAP PfPR₂–₁₀ at band entry**, fitted with **`mgcv::bam`, `gamma = 2`, PfPR `bs = "cr", k = 5`, and calendar-year `bs = "cr", k = 6`**. Use the full eligible MAP sample, including eligible observations after 2015. Each age band has its own time spline, confounder coefficients and survey/country/region random effects and variance parameters. Section 3.1 gives the complete specification.
 
@@ -71,7 +71,7 @@ Report missingness and exclusions by country, survey, year, age and exposure. Mi
 | `results/cbh/map_snow_gamma2_v1/fit_manifest.csv` | Selected gamma=2 fitted objects; **filter `series == "map_full"` for primary** |
 | Aggregate selection, missingness, geography and model diagnostics | Inspectable accounting without microdata |
 
-The primary fitting sample contains **5,885,022 child-band records and 82,415 deaths from 105 surveys in 34 countries**. Keep raw/derived microdata and fitted objects under ignored `data/`; export only approved aggregates to results. Validate unique child-band keys and input hashes. A future consolidated data stage must operate independently of existing outcome models and results tables; current gamma=2 refits reuse verified stored model frames.
+The primary fitting sample contains **1,817,912 distinct children contributing 5,885,022 child-band records and 82,415 deaths from 105 surveys in 34 countries**. The [15 September verification](../results/cbh/code_audit_2026_09_15/primary_fit_checks.csv) compared every primary fitted outcome, predictor and offset with the saved prepared sample and verified the selected model hashes and knots. Keep raw/derived microdata and fitted objects under ignored `data/`; export only approved aggregates to results. Validate unique child-band keys and input hashes. A future consolidated data stage must operate independently of existing outcome models and results tables; current gamma=2 refits reuse verified stored model frames.
 
 ## 3. Stage 2 — primary and sensitivity analyses
 
@@ -224,7 +224,11 @@ Plotting-only stages must read saved aggregate estimates and must not refit, cha
 
 The primary fits and 2005/2015/2024 burden estimates **already exist**; this decision does not require another fit. They were produced in the comparison workflow [08_fit_map_comparison_gamma2.R](../R_cbh/snow/08_fit_map_comparison_gamma2.R), [09_report_map_comparison_gamma2.R](../R_cbh/snow/09_report_map_comparison_gamma2.R) and [10_compare_burden_gamma2.R](../R_cbh/snow/10_compare_burden_gamma2.R). The `snow/` code location and comparison result ID reflect implementation history, not the new primary/supplementary designation.
 
-**Command-routing limitation:** older [sensitivity fitting](../R_cbh/sensitivity/01_fit.R) and [burden defaults](../R_cbh/burden/settings.R) still refer to gamma=1-era fits. Do not use those defaults as a gamma=2 primary run. Consolidating the primary specification into a shared configuration, providing a dedicated primary entry point and generating MAP-only main figures remain implementation tasks. Until then, use the explicit manifest/series selections above. This plan revision changes documentation and reporting designation, not runtime defaults or fitted objects.
+**15 September audit and cleanup:** the [component-by-component audit](CODE_AUDIT.md) verifies that the saved primary specification and data match this plan, while distinguishing unimplemented sensitivities and unresolved upstream issues. Sixty-eight superseded scripts were moved to [the archive](../archive/2026-09-15-code-audit/), along with preserved copies of three replaced entry points. Existing data, fitted objects and numerical results were not changed.
+
+The root and DHS `run_all.R` commands now provide explicit current-stage guidance instead of automatically launching old analyses. `Rscript run_all.R --audit` verifies saved primary models without refitting; `--check-inputs` checks local dataset prerequisites. The [results index](<../Key results/README.md>) now selects the authoritative MAP gamma=2 series and labels historical outputs separately.
+
+**Remaining command-routing limitation:** older [sensitivity fitting](../R_cbh/sensitivity/01_fit.R) and [burden defaults](../R_cbh/burden/settings.R) still refer to gamma=1-era fits. `analysis/01_fit_complete_case.R` should be used with `--prepare-only` for dataset preparation; its default fit is historical. These scripts remain because they provide reference frames/knots or input tables used by the selected workflow. Do not use those defaults as a gamma=2 primary run. A shared primary specification, independent primary-only fresh fitter and MAP-only main plotting stages remain implementation tasks. Use the explicit manifest/series selections above.
 
 Retain the three-stage workflow: **make datasets → fit declared models and calculate effects → plot saved results**. Priorities are:
 
@@ -232,6 +236,6 @@ Retain the three-stage workflow: **make datasets → fit declared models and cal
 2. Complete primary-compatible gamma=2 joint, geographic and period sensitivity fits; preserve historical comparisons with their actual settings.
 3. Resolve the [open data and inference issues](OPEN_ANALYSIS_ISSUES.md), especially regional exposure coverage, missing-data selection, calendar/age coding, imputation uncertainty and survey/within-child dependence.
 4. Consolidate the independent data build and prediction interfaces. Rebuild from a declared input snapshot, verify cache hashes and ensure that fresh fitting does not require an older fitted outcome model.
-5. Retire surplus scripts only after replacement outputs and dependencies are verified. Keep historical code/results traceable; do not execute legacy external-copy actions during migration.
+5. Finish separating input-only functions from the retained legacy bridges, then archive their remaining surplus branches. The 15 September cleanup removed the superseded independent modelling/plotting scripts; still-needed producers were retained with explicit reasons. Keep historical code/results traceable and do not execute legacy external-copy actions during migration.
 
 Completion requires auditable survey accounting, validated child-band eligibility and joins, consistent primary specification and artifact selection, reviewed diagnostics, declared uncertainty and reproducible main/supplementary figures. Historical six-band/count-model choices are preserved in the archive and must not override this plan.

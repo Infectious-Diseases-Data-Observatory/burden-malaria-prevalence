@@ -1,5 +1,7 @@
 # Exploratory age-band fit
 
+> Historical joint-model workflow. Use `01_fit_complete_case.R --prepare-only` for modelling-data preparation; its default fit and the other trial commands below are not the selected seven separate MAP gamma=2 models. They remain dependencies/comparators. See [the audit](../../docs/CODE_AUDIT.md).
+
 The [sensitivity stage](../sensitivity/README.md) compares this joint fit with separate age-band fits and geographic and survey-period splits, holding one HIV imputation fixed.
 
 The [national burden stage](../burden/README.md) applies this model's PfPR-to-zero contrasts to country-level 2024 IHME rates and deaths, including the user-selected equal-rate/equal-person-time allocation within ages 2-4 years.

@@ -1,3 +1,5 @@
+> Historical audit: its four R scripts were moved to `archive/2026-09-15-code-audit/results/dhs_rebuild/covariate_audit/`. WASH is not in the current primary adjustment set; the original findings and tables below are retained.
+
 # Audit of the DHS household covariates (improved water, improved sanitation), 2026-09-03
 
 `imp_water`, `imp_sanit` and `elec_dhs` in the analysis dataset are household-deduplicated,

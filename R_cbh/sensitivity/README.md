@@ -1,5 +1,7 @@
 # Single-imputation PfPR sensitivity fits
 
+> The commands below reproduce historical gamma=1 comparisons. Geographic and period subsets are joint models. The planned separate-age gamma=2 subgroup fits have not yet been implemented; see [the audit](../../docs/CODE_AUDIT.md).
+
 Run from the project root after the current shared-time mortality model has been fitted:
 
 ```sh

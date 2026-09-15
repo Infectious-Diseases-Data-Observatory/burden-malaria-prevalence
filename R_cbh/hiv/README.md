@@ -1,5 +1,7 @@
 # Child HIV incidence imputation
 
+> The HIV incidence model remains current. Mortality commands below refer to the historical joint workflow; the selected primary has seven separate MAP gamma=2 fits with one median incidence imputation. See [the audit](../../docs/CODE_AUDIT.md).
+
 This replaces the active mortality model's HIV prevalence adjustment with **child HIV incidence**, as requested on 8 September 2026. Units are new infections per 1,000 uninfected population, both sexes, ages 0–14. The adolescent predictor is the corresponding reported rate for ages 15–19. No population denominator is fetched or calculated.
 
 ## Run

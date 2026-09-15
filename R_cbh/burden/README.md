@@ -1,5 +1,7 @@
 # National malaria-attributable mortality by year
 
+> The commands below default to historical gamma=1 estimates and also prepare inputs reused by gamma=2. Current primary country results are `map_full` in `results/cbh/map_snow_gamma2_v1/burden/`; do not treat this folder’s defaults as current primary estimates. See [the audit](../../docs/CODE_AUDIT.md).
+
 Scripts accept `--year=YYYY` (2000-2024; default 2024) and `--model=separate|joint` (default **separate**, the primary specification selected on 9 September 2026). Each model/year has a separate output directory. Historical joint-model outputs are preserved. The same fitted PfPR curves and fixed GPW 2020 population geography are used across years.
 
 The primary update uses the **seven existing separate age-band fits and one fixed posterior-median HIV-incidence imputation**, from `data/derived_cbh/models/age_band_hiv_incidence_shared_time_v3/sensitivity_single_imputation/age_1.rds` through `age_7.rds`. Each fit has its own calendar-year curve, confounder coefficients and random-effect variances. No mortality model is refitted by the burden scripts. The historical `--model=joint` option uses the joint shared-calendar-year model and ten HIV-incidence uncertainty refits.
