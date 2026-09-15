@@ -2,15 +2,17 @@
 # Primary CBH flow, adapted from R_dhs/11_study_flow.R. Aggregate inputs only.
 source("R_cbh/load_pipeline.R")
 library(ggplot2)
-out <- "results/cbh/map_snow_gamma2_v1/study_flow"
+source("R_cbh/primary/settings.R")
+root <- cbh_primary_settings()$out
+out <- file.path(root,"study_flow")
 dir.create(out,recursive=TRUE,showWarnings=FALSE)
 input_paths <- c(
   survey_manifest="data/derived_cbh/survey_manifest.csv",
   child_checks="data/derived_cbh/child_checks.csv",
   eligibility="data/derived_cbh/eligibility_flow.csv",
   selection="results/cbh/age_band_hiv_incidence_shared_time_v3/selection.csv",
-  diagnostics="results/cbh/map_snow_gamma2_v1/fit_diagnostics.csv",
-  fits="results/cbh/map_snow_gamma2_v1/fit_manifest.csv")
+  diagnostics=file.path(root,"fit_diagnostics.csv"),
+  fits=file.path(root,"fit_manifest.csv"))
 m <- cbh_read_csv(input_paths[["survey_manifest"]])
 c <- cbh_read_csv(input_paths[["child_checks"]])
 e <- cbh_read_csv(input_paths[["eligibility"]])

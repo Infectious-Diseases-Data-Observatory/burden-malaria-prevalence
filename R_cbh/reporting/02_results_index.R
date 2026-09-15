@@ -1,28 +1,27 @@
 #!/usr/bin/env Rscript
-# Index authoritative outputs; never fit models or copy legacy figures over them.
+# Link authoritative current primary outputs; keep historical/supplementary labels.
 source("R_cbh/load_pipeline.R")
-root <- "results/cbh/map_snow_gamma2_v1"
-m <- cbh_read_csv(file.path(root, "fit_manifest.csv"))
-d <- cbh_read_csv(file.path(root, "fit_diagnostics.csv"))
-m <- m[m$series == "map_full", ]; d <- d[d$series == "map_full", ]
-stopifnot(nrow(m) == 7L, nrow(d) == 7L, all(d$gamma == 2), all(d$converged), all(d$input_verified))
-paths <- c("study_flow/study_flow_diagram.png", "study_flow/CAPTION.md", "pfpr_curves.csv",
-  "pfpr_40_to_20_contrasts.csv", "fit_diagnostics.csv", "burden/country_age_estimates.csv",
-  "burden/country_totals.csv", "burden/year_summary.csv")
-stopifnot(all(file.exists(file.path(root, paths))))
-dir.create("Key results", showWarnings = FALSE)
-writeLines(c(
-  "# Key results — primary MAP analysis", "",
-  "Seven separate age-band models; MAP PfPR at band entry; gamma=2; one median child HIV-incidence imputation. The primary sample contains 5,885,022 child-band records and 82,415 deaths from 105 surveys in 34 countries.", "",
-  "| Result | Authoritative output / selection |", "|---|---|",
-  "| Inclusion flow | [Figure](../results/cbh/map_snow_gamma2_v1/study_flow/study_flow_diagram.png) and [caption](../results/cbh/map_snow_gamma2_v1/study_flow/CAPTION.md) |",
-  "| Seven PfPR curves | [Saved curve estimates](../results/cbh/map_snow_gamma2_v1/pfpr_curves.csv), `series == map_full` |",
-  "| PfPR 40% to 20% effects | [Contrasts](../results/cbh/map_snow_gamma2_v1/pfpr_40_to_20_contrasts.csv), `series == map_full` |",
-  "| Numerical diagnostics | [Diagnostics](../results/cbh/map_snow_gamma2_v1/fit_diagnostics.csv), `series == map_full` |",
-  "| Country burden, 2005/2015/2024 | [Country-age estimates](../results/cbh/map_snow_gamma2_v1/burden/country_age_estimates.csv) and [country totals](../results/cbh/map_snow_gamma2_v1/burden/country_totals.csv), `series == map_full`; [year totals](../results/cbh/map_snow_gamma2_v1/burden/year_summary.csv), `map_full_gamma2` |", "",
-  "A dedicated MAP-only curve and burden plotting stage is still needed. The combined MAP–Snow figures are supplementary. See the [supplementary index](<../Supplementary results/README.md>) and the [component-by-component audit](../docs/CODE_AUDIT.md).", "",
-  "## Historical figures", "",
-  "Existing older PNGs in this directory are retained for traceability, not designated primary results. Their [original index](../archive/2026-09-15-code-audit/Key%20results/README.md) is preserved. The gamma=1 [geography/period/structure figure](pfpr_spline_sensitivity_by_age_geography_period.png) remains a key exploratory result; its planned gamma=2 replacements have not been run.", "",
-  "Regenerate the inclusion figure with `Rscript R_cbh/reporting/01_study_flow.R` and this index with `Rscript R_cbh/reporting/02_results_index.R`. The older `R_dhs/11_study_flow.R` and `R_dhs/33_key_results.R` commands delegate to these scripts."
-), "Key results/README.md")
-message("Updated primary results index; historical figures left intact.")
+source("R_cbh/primary/settings.R")
+root <- cbh_primary_settings()$out
+x <- cbh_read_csv(file.path(root,"fit_diagnostics.csv"))
+stopifnot(nrow(x)==7L,all(x$series=="map_full"),all(x$gamma==2),all(x$converged),all(x$input_verified))
+link <- function(label,path) sprintf("[%s](../%s/%s)",label,root,path)
+dir.create("Key results",showWarnings=FALSE)
+writeLines(c("# Key results — primary MAP analysis","",
+  "The primary analysis uses seven separate age-band models, MAP prevalence, cr PfPR splines and gamma=2. The full sample contains 1,817,912 children, 5,885,022 child-band records and 82,415 deaths from 105 surveys in 34 countries.","",
+  link("Primary analysis report and rerun verification","REPORT.md"),"",
+  "| Result | Output |","|---|---|",
+  paste("| Inclusion flow |",link("Figure","study_flow/study_flow_diagram.png"),"and",link("caption","study_flow/CAPTION.md"),"|"),
+  paste("| Seven PfPR curves |",link("Figure","pfpr_splines.png"),"and",link("estimates","pfpr_curves.csv"),"|"),
+  paste("| PfPR 40% to 20% effects |",link("Figure","pfpr_40_to_20.png"),"and",link("contrasts","pfpr_40_to_20_contrasts.csv"),"|"),
+  paste("| Diagnostics |",link("Numerical checks","fit_diagnostics.csv"),"and",link("fitted outcomes","fitted_outcome_checks.csv"),"|"),
+  paste("| Mortality, 2005/2015/2024 |",link("Country figure","burden/country_deaths_all_years.png"),"and",link("country totals","burden/country_totals.csv"),"|"),
+  paste("| Comparison with IHME |",link("Scatter plots","burden/country_vs_ihme.png"),"|"),
+  paste("| Age contributions |",link("Figure","burden/deaths_by_age.png"),"and",link("country-age estimates","burden/country_age_estimates.csv"),"|"),
+  paste("| DRC synthetic-cohort survival |",link("Figure","burden/drc_survival.png"),"|"),"",
+  "Snow exposure comparisons are [supplementary](<../Supplementary results/README.md>). The previous MAP gamma=2 outputs remain in `results/cbh/map_snow_gamma2_v1/`, with a numerical comparison in the new report.","",
+  "## Historical figures","",
+  "Older PNGs in this directory are retained for traceability. The gamma=1 [geography/period/structure figure](pfpr_spline_sensitivity_by_age_geography_period.png) remains a key exploratory result; planned gamma=2 replacements have not been run. See the [original index](../archive/2026-09-15-code-audit/Key%20results/README.md).","",
+  "Run `Rscript run_all.R --primary` to refit and regenerate the primary results from prepared inputs. Use `Rscript R_cbh/primary/run.R --report-only` for saved fits. The standalone reporting scripts and old `R_dhs/11_study_flow.R` and `R_dhs/33_key_results.R` wrappers use the same primary selection."
+),"Key results/README.md")
+message("Updated primary results index")

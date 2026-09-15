@@ -2,9 +2,15 @@
 
 15 September 2026 · Plan: [ANALYSIS_PLAN.md](ANALYSIS_PLAN.md) · Source baseline: `f44fa326b58735f6266315398be154233da09138`.
 
-The **saved primary MAP gamma=2 models agree with the declared model and prepared data**. The pipeline as a whole does **not yet implement every component of the plan**. The largest gaps are the inherited regional MAP extraction, primary-compatible sensitivity fits, survey/design and imputation uncertainty, and a standalone primary fitting/reporting workflow.
+The **saved primary MAP gamma=2 models agree with the declared model and prepared data**. The pipeline as a whole does **not yet implement every component of the plan**. At the audit baseline, the largest gaps were the inherited regional MAP extraction, primary-compatible sensitivity fits, survey/design and imputation uncertainty, and a standalone primary fitting/reporting workflow. The follow-up below records the new primary-only rerun.
 
 This review checks code behaviour against the plan; agreement with the plan is not evidence that the adjustment set identifies a causal effect. No DHS model or HIV imputation model was refitted, no source was downloaded, and no existing scientific estimates or data were changed. Synthetic model tests did fit small simulated models. The saved primary dataset and model frames were read locally for verification; only aggregates were exported.
+
+## Follow-up: primary-only rerun
+
+After this audit, the user requested a complete primary analysis rerun without data setup. [R_cbh/primary/](../R_cbh/primary/README.md) now provides that entry point: `Rscript run_all.R --primary`. Seven MAP gamma=2 models were freshly fitted directly from the prepared sample with the preserved reference knots. New effects, country mortality for 2005/2015/2024, fitted-outcome checks, primary-only figures, inclusion flow and the results index are in [primary_map_gamma2_v1](../results/cbh/primary_map_gamma2_v1/REPORT.md). All seven passed the numerical checks and reproduced the preceding results to numerical precision. The preceding data, models and comparison outputs remain unchanged.
+
+This addresses the standalone primary fitter/reporting gap identified below. The component matrix remains the record of the audit baseline: its references to that gap are historical. The inherited regional MAP extraction, planned gamma=2 sensitivities, survey/design and imputation uncertainty remain unresolved. The new in-sample grouped outcome checks do not replace influence analysis or held-out validation. National burden still consumes explicit baseline columns from the existing national input tables; no input preparation was rerun.
 
 ## Changes made
 

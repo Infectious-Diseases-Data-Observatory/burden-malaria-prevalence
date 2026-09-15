@@ -1,5 +1,7 @@
 # Complete-birth-history dataset pipeline
 
+**Primary analysis without data setup:** `Rscript run_all.R --primary` freshly fits the seven MAP gamma=2 models and regenerates primary summaries, diagnostics, country mortality and figures. See [primary pipeline](primary/README.md) and [current report](../results/cbh/primary_map_gamma2_v1/REPORT.md). The dataset-building instructions below are a separate stage.
+
 > The current primary uses seven separate MAP models at gamma=2. This page documents the base dataset; some older fitting references below describe historical joint models. See [the plan](../docs/ANALYSIS_PLAN.md) and [audit](../docs/CODE_AUDIT.md) for authoritative commands and outstanding work.
 
 Stage 1 of the new pipeline for the [seven-band PfPR model](../docs/PFPR_AGE_BAND_MODEL.md). It reads local Births Recodes and external-data snapshots, creates child–age-band records, and checks eligibility and joins. It does not fit a model. No legacy fitting script or fitted object is required.

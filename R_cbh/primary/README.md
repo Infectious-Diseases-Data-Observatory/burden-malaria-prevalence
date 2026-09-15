@@ -1,0 +1,28 @@
+# Primary MAP pipeline
+
+Run from the project root:
+
+```sh
+Rscript run_all.R --primary
+```
+
+This forces seven fresh age-band fits, then recalculates contrasts, national mortality for 2005/2015/2024, aggregate diagnostics, primary-only figures, the inclusion flow and the key-results index. It does not rebuild the dataset, refit HIV imputation, extract rasters, or run Snow/sensitivity models.
+
+- `01_fit.R`: unweighted binomial cloglog `bam`, `gamma=2`, `cr` PfPR (`k=5`) and calendar year (`k=6`), fixed full-band-width offset, saved confounder scaling, separate survey/country/region random effects in each band. Prepared data are the fitting input; the committed knot snapshot preserves the promoted primary basis. Fit caches are validated by data/code/knots/software hashes. Tight-tolerance restarts are allowed only for numerical failures, under the same specification.
+- `02_effects.R`: validated compact PfPR contrasts, conditional intervals, country-age and country totals, and a DRC synthetic-cohort life table. Reuses the existing national MAP and IHME input columns, with file hashes; no data setup. It does not reuse old attributable estimates when calculating new estimates. The old primary estimates are read only for comparison.
+- `04_diagnostics.R`: verifies saved model and prepared-input hashes; aggregates fitted/observed outcomes without exporting individual records. These are in-sample checks, not held-out validation or formal influence diagnostics.
+- `03_report.R`: reads only aggregate results to make figures and a report.
+- Existing `reporting/` scripts regenerate the inclusion-only flow and link the current primary outputs in `Key results/README.md`.
+
+The prepared sample is `data/derived_cbh/models/age_band_hiv_incidence_shared_time_v3/complete_case_dataset.rds`. New fitted objects stay under ignored `data/derived_cbh/models/primary_map_gamma2_v1/`; shareable aggregate outputs are in `results/cbh/primary_map_gamma2_v1/`. Older `map_snow_gamma2_v1` outputs remain unchanged.
+
+```sh
+# Continue a failed run, retaining only valid completed fit caches:
+Rscript R_cbh/primary/run.R --resume
+# Recalculate summaries, diagnostics and figures from current saved primary fits:
+Rscript R_cbh/primary/run.R --report-only
+```
+
+`reference_knots.csv` was extracted from the hash-verified promoted MAP gamma=2 fits for the first migration. The previous comparison manifest is still read to identify the matching historical fit IDs; its models are not fitting inputs when the committed knot snapshot exists. Reference national inputs live under `results/cbh/age_band_separate_v1/country_burden_<year>/`. These dependencies are explicit and fingerprinted; this is an analysis rerun, not a reconstruction of upstream inputs.
+
+The fixed HIV imputation, unweighted likelihood, conditional covariance, inherited regional MAP extraction issues, and national mean-exposure and IHME age-allocation assumptions remain as documented in `docs/ANALYSIS_PLAN.md` and `docs/CODE_AUDIT.md`. No aggregate confidence intervals are constructed by summing age-band limits or assuming independent age models. Negative contributions and missing-country rows are retained.
