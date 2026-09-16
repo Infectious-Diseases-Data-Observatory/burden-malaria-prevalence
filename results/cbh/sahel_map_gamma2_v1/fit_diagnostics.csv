@@ -1,0 +1,8 @@
+"fit_id","rows","deaths","countries","surveys","regions","converged","iterations","rank","coefficients","finite_coefficients","finite_covariance","elapsed_seconds","min_smoothing_hessian_eigenvalue","max_smoothing_gradient","warnings","age_band","gamma","input_verified"
+"sahel_12N_age_1",216672,6041,7,25,196,TRUE,15,252,252,TRUE,TRUE,2.276,0.01459910644588,5.5079474439168e-06,"openMP not available: single threaded computation only","<1",2,TRUE
+"sahel_12N_age_2",193385,2186,7,25,196,TRUE,14,252,252,TRUE,TRUE,2.06,4.41675761998344e-05,8.54876300307566e-05,"openMP not available: single threaded computation only","1-5",2,TRUE
+"sahel_12N_age_3",185812,1866,7,25,196,TRUE,17,252,252,TRUE,TRUE,2.523,4.50935444255037e-05,6.11344185825607e-05,"openMP not available: single threaded computation only","6-11",2,TRUE
+"sahel_12N_age_4",161994,2050,7,25,196,TRUE,21,252,252,TRUE,TRUE,2.392,6.90149083498258e-05,7.10793650889039e-05,"openMP not available: single threaded computation only","12-23",2,TRUE
+"sahel_12N_age_5",162041,2007,7,25,196,TRUE,20,252,252,TRUE,TRUE,2.46,1.96220005990174e-05,1.96225259277601e-05,"openMP not available: single threaded computation only","24-35",2,TRUE
+"sahel_12N_age_6",157102,1137,7,25,196,TRUE,28,252,252,TRUE,TRUE,3.008,2.07786975000341e-05,3.0515948882174e-05,"openMP not available: single threaded computation only","36-47",2,TRUE
+"sahel_12N_age_7",153493,712,7,25,196,TRUE,27,252,252,TRUE,TRUE,2.737,1.60852528830549e-05,2.96278507656156e-05,"openMP not available: single threaded computation only","48-59",2,TRUE

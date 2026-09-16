@@ -1,0 +1,8 @@
+"fit_id","age_band","model_file","md5","selected_version","prepared_data_md5"
+"sahel_12N_age_1","<1","data/derived_cbh/models/sahel_map_gamma2_v1/sahel_12N_age_1.rds","c4c4e2d9dcb2eda77dfb834d2340e36c","original","ce2f9078666dd31eef9356eb6e1fcb75"
+"sahel_12N_age_2","1-5","data/derived_cbh/models/sahel_map_gamma2_v1/sahel_12N_age_2.rds","c837a6ee434da22c7a98cf427a345780","original","ce2f9078666dd31eef9356eb6e1fcb75"
+"sahel_12N_age_3","6-11","data/derived_cbh/models/sahel_map_gamma2_v1/sahel_12N_age_3.rds","f043d06e44683c5c4051147af06d71a5","original","ce2f9078666dd31eef9356eb6e1fcb75"
+"sahel_12N_age_4","12-23","data/derived_cbh/models/sahel_map_gamma2_v1/sahel_12N_age_4.rds","d511b5842d3125df56ccb767068c5412","original","ce2f9078666dd31eef9356eb6e1fcb75"
+"sahel_12N_age_5","24-35","data/derived_cbh/models/sahel_map_gamma2_v1/sahel_12N_age_5.rds","62fefc84363c1c13295339cc0b4521ad","original","ce2f9078666dd31eef9356eb6e1fcb75"
+"sahel_12N_age_6","36-47","data/derived_cbh/models/sahel_map_gamma2_v1/sahel_12N_age_6.rds","d436832b3f5492744f316ddb3b3c8c1b","original","ce2f9078666dd31eef9356eb6e1fcb75"
+"sahel_12N_age_7","48-59","data/derived_cbh/models/sahel_map_gamma2_v1/sahel_12N_age_7.rds","dd06b89fc70caaf41fdcdbb49d01d882","original","ce2f9078666dd31eef9356eb6e1fcb75"
