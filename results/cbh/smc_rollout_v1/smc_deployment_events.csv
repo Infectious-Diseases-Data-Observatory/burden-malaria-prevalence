@@ -1,0 +1,27 @@
+event_id,iso3,start_year,end_year,start_month,event_type,geographic_scope,evidence_summary,source_ids,accessed_on
+SMC001,BFA,2014,2014,,programme_start,National programme pilot in seven districts,First documented programme delivery; local operational pilots included.,BFA1,2026-09-16
+SMC002,TCD,2012,2012,,programme_start,Local MSF operational delivery in Moissala,First documented programme delivery; local operational pilots included.,MSF1,2026-09-16
+SMC003,GMB,2014,2014,,programme_start,Upper River and Central River regions,First documented programme delivery; local operational pilots included.,ACCESS1,2026-09-16
+SMC004,MLI,2012,2012,,programme_start,Local MSF operational pilot in Koutiala,First documented programme delivery; local operational pilots included.,MSF1,2026-09-16
+SMC005,MRT,2022,2022,,programme_start,First implementation as reported by WHO; initial districts unresolved,First documented programme delivery; local operational pilots included.,WHO1,2026-09-16
+SMC006,NER,2013,2013,,programme_start,MSF-supported programme delivery,First documented programme delivery; local operational pilots included.,NER1,2026-09-16
+SMC007,NGA,2013,2013,7,programme_start,Local programme launch in Katsina,First documented programme delivery; local operational pilots included.,NGA1,2026-09-16
+SMC008,SEN,2013,2013,,programme_start,National programme started in four districts,First documented programme delivery; local operational pilots included.,SEN1,2026-09-16
+SMC009,BFA,2019,2019,,district_rollout_milestone,All health districts,Expansion from the 2014 launch reached all districts; individual coverage not implied.,BFA2,2026-09-16
+SMC010,TCD,2014,2014,,programme_expansion,Additional districts; complete list not extracted,Expanded beyond the early Moissala programme.,TCD1;TCD2,2026-09-16
+SMC011,MLI,2015,2015,,district_rollout_milestone,48 districts,Implementer report describes delivery in 48 districts.,MLI2,2026-09-16
+SMC012,MLI,2016,2016,,district_rollout_milestone,Nationwide districts,PMI retrospectively reports all 64 districts; an earlier in-season plan used 63.,MLI1;MLI2,2026-09-16
+SMC013,NER,2014,2014,,programme_expansion,Magaria; Madaoua; Bouza; Madarounfa; Guidan Roumdji,"Five MSF-supported districts in Zinder, Tahoua and Maradi; names normalized from source spellings.",NER2,2026-09-16
+SMC014,NGA,2014,2014,,policy_adoption,Eligible areas nationally,Policy adoption followed local implementation.,NGA2,2026-09-16
+SMC015,SEN,2008,2010,,research_delivery,Three central Senegal study districts,Stepped-wedge research implementation; separate from later national programme.,SEN2,2026-09-16
+SMC016,SEN,2014,2014,,programme_expansion,Southern target districts,National programme expanded after four-district start.,SEN1,2026-09-16
+SMC017,SEN,2018,2018,,campaign_interruption,Designated national SMC areas,No campaign because of health-worker strikes.,SEN3;SEN4,2026-09-16
+SMC018,SEN,2019,2019,,campaign_resumption,National programme target areas,Campaigns resumed after the 2018 interruption.,SEN3,2026-09-16
+SMC019,SEN,2019,2019,,programme_expansion,Diourbel and Kaolack districts,Districts added; not a whole-region coverage assertion.,SEN3,2026-09-16
+SMC020,SEN,2020,2020,,geographic_withdrawal,Sedhiou region,Region removed from SMC eligibility.,SEN3,2026-09-16
+SMC021,BFA,2015,2016,,access_smc_delivery,ACCESS-SMC project areas,Project-supported delivery during these seasons; not first introduction or complete national coverage.,ACCESS1,2026-09-16
+SMC022,TCD,2015,2016,,access_smc_delivery,ACCESS-SMC project areas,Project-supported delivery during these seasons; not first introduction or complete national coverage.,ACCESS1,2026-09-16
+SMC023,GMB,2015,2016,,access_smc_delivery,ACCESS-SMC project areas,Project-supported delivery during these seasons; not first introduction or complete national coverage.,ACCESS1,2026-09-16
+SMC024,MLI,2015,2016,,access_smc_delivery,ACCESS-SMC project areas,Project-supported delivery during these seasons; not first introduction or complete national coverage.,ACCESS1,2026-09-16
+SMC025,NER,2015,2016,,access_smc_delivery,ACCESS-SMC project areas,Project-supported delivery during these seasons; not first introduction or complete national coverage.,ACCESS1,2026-09-16
+SMC026,NGA,2015,2016,,access_smc_delivery,ACCESS-SMC project areas,Project-supported delivery during these seasons; not first introduction or complete national coverage.,ACCESS1,2026-09-16

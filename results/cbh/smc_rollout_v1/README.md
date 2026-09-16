@@ -1,0 +1,40 @@
+# SMC introduction and deployment in the Sahel
+
+Evidence collected on **16 September 2026** from public programme reports, implementation studies and WHO publications. Scope: the seven countries represented in the current ≥12°N sensitivity, plus Nigeria. This is a curated extraction of web evidence, not a complete district-year coverage database or a systematic review of earlier clinical trials.
+
+| Country | First documented programme delivery, including local operational pilots | Deployment context |
+|---|---:|---|
+| Burkina Faso | 2014 | Started in seven health districts; gradual expansion reached all districts in 2019. [BFA1](https://idrc-crdi.ca/en/research-in-action/burkina-fasos-promising-strategy-eradicate-malaria), [BFA2](https://pmc.ncbi.nlm.nih.gov/articles/PMC9074217/) |
+| Chad | 2012 | MSF delivery in Moïssala; later expansion from 2014 and ACCESS-SMC support in 2015–2016. Some later papers call 2013 the introduction year; preserve the directly documented 2012 local deployment. [MSF1](https://www.msf.org/mali-and-chad-novel-prevention-programme-has-dramatically-reduced-malaria-cases), [TCD1](https://files.givewell.org/files/DWDA%202009/Malaria%20Consortium/SMC_in_Chad_Coverage_surveys_2017.pdf) |
+| The Gambia | 2014 | Upper River and Central River regions; delivery continued there under ACCESS-SMC in 2015–2016. [ACCESS1](https://msh.org/wp-content/uploads/2021/01/access-smc_partnership_effectiveness_of_smc_at_scale_in_west_and_central_africa_-_an_observational_study.pdf) |
+| Mali | 2012 | MSF operational pilot in Koutiala; nationwide district rollout reported for 2016. [MSF1](https://www.msf.org/mali-and-chad-novel-prevention-programme-has-dramatically-reduced-malaria-cases), [MLI1](https://www.pmi.gov/wp-content/uploads/2021/03/2017-pmi-eleventh-annual-report.pdf) |
+| Mauritania | 2022 | WHO explicitly identifies 2022 as first implementation. Earlier policy inclusion does not establish delivery. Initial district locations remain unresolved. [WHO1](https://cdn.who.int/media/docs/default-source/malaria/world-malaria-reports/world-malaria-report-2023-global-briefing-kit-eng.pdf#page=8) |
+| Niger | 2013 | Confirmed by MSF's programme evaluation; expansion included five MSF-supported districts in 2014. [NER1](https://evaluation.msf.org/evaluation-report/executive-summary-chemical-prevention-of-seasonal-malaria-in-niger), [NER2](https://evaluation.msf.org/evaluation-report/capitalisation-de-la-mise-en-oeuvre-de-la-chimio-prevention-du-paludisme-0) |
+| Nigeria | 2013 | Programme launched in Katsina in July; national policy adoption followed in 2014. [NGA1](https://www.malariaconsortium.org/news/seasonal-malaria-chemoprevention-leading-the-way-on-an-innovative-approach-in-nigeria), [NGA2](https://pmc.ncbi.nlm.nih.gov/articles/PMC10088202/) |
+| Senegal | 2013 | National programme began in four districts and expanded in 2014. Separate research delivery occurred in 2008–2010. [SEN1](https://www.malariaconsortium.org/media-library/media-files/201603150447-smc-expert-meeting-report---mmv.pdf#page=17), [SEN2](https://pmc.ncbi.nlm.nih.gov/articles/PMC5119693/) |
+
+## Files and definitions
+
+- `smc_country_introduction.csv`: one record per country, ISO3, inclusion in the current Sahel sensitivity, first documented programme year, setting, evidence IDs and interpretation notes. The year refers to delivery somewhere in the country, including operational pilots, rather than universal access or the first clinical trial.
+- `smc_deployment_events.csv`: dated programme starts, research delivery, expansion, policy adoption, interruptions and withdrawal. Events record what a source reports; unlisted country-years and locations are **unknown**, not zero. An event's ending year is the end of that documented period, not evidence that delivery ceased afterward.
+- `sources.csv`: source titles, organizations, URLs, publication dates where verified, access date, relevant locator and access method. `indexed_excerpt` flags sources whose relevant passage was available in web-search text but whose full page/PDF could not be opened. No inaccessible document is described as fully downloaded or reviewed.
+
+Evidence was extracted and checked manually from web search/open/find results. French programme terminology includes *chimioprévention du paludisme saisonnier* (CPS). Evidence fields contain short paraphrases; no full articles or personal data are copied. The tables are the reviewable public evidence snapshot; live websites can change.
+
+## Distinctions and unresolved issues
+
+**Country introduction does not identify SMC exposure in our DHS regions.** Koutiala and Moïssala local introductions must not be assigned automatically to every region north of 12°N. Health districts and DHS survey regions require a geographic crosswalk, and campaign months and actual coverage are still needed. Reported nationwide district rollout likewise does not mean every eligible child received every cycle.
+
+**Senegal requires a time-varying history.** The national implementation study reports a campaign interruption in 2018, resumption and addition of Diourbel/Kaolack districts in 2019, and removal of Sédhiou from eligibility in 2020. The 2018 interruption is also reported in PMI documentation. These events are recorded explicitly. [SEN3](https://ajpme.jams.pub/article/3/2/299/htm), [SEN4](https://www.pmi.gov/wp-content/uploads/2022/01/FY-2022-Senegal-MOP.pdf). The selected additions are districts, not evidence that every part of their enclosing region received treatment. The study's administrative coverage percentages sometimes exceed 100%; they must not be used uncritically as individual treatment probabilities.
+
+**Conflicting labels are retained.** A later Chad study describes introduction in 2013, while MSF's contemporaneous report documents delivery in 2012; the table uses 2012 for first local programme delivery and retains the conflict. [TCD2](https://pmc.ncbi.nlm.nih.gov/articles/PMC8885336/). Niger's surveillance paper uses both 2012 and 2013; MSF's implementation evaluation supports 2013 for programme delivery. [NER3](https://pmc.ncbi.nlm.nih.gov/articles/PMC10799420/). Mali's 2016 district counts differ between an in-season plan (63) and PMI's retrospective report (64); the nationwide rollout milestone is recorded without resolving district denominators. [MLI2](https://www.malariaconsortium.org/news/access-smc-strengthens-pharmacovigilance-practices-in-maliandnbsp), [MLI1](https://www.pmi.gov/wp-content/uploads/2021/03/2017-pmi-eleventh-annual-report.pdf).
+
+**Mauritania is a policy-versus-delivery distinction.** Inclusion in OPT-SMC policy documents is not an earlier implementation date. Use WHO's explicitly reported 2022 first deployment pending any substantiated evidence of earlier local campaigns. [WHO2](https://tdr.who.int/activities/seasonal-malaria-chemoprevention-opt-smc-project), [WHO1](https://cdn.who.int/media/docs/default-source/malaria/world-malaria-reports/world-malaria-report-2023-global-briefing-kit-eng.pdf#page=8).
+
+Earlier experimental chemoprevention is not exhaustively catalogued. The Senegal 2008–2010 trial is an identified example, not a claim that no earlier trials occurred there or elsewhere. Missing trial dates in the country table mean not extracted.
+
+## Implications for a later mortality sensitivity
+
+These dates can identify periods before routine national deployment, with explicit exceptions for local pilots/trials. They cannot yet support a validated region-year treatment variable. A later restriction should use the calendar interval covered by each child–age band, not survey year alone; bands spanning a rollout season need a declared treatment rule. Age eligibility also matters: the conventional lower limit of three months splits the current 1–5-month band. Do not classify the entire band as eligible at entry. Country-level timing should not be interpreted as individual receipt or used to infer an SMC effect from our current Sahel/full-sample comparison.
+
+No mortality model, analysis dataset, primary result or manuscript file was changed by this evidence collection.
