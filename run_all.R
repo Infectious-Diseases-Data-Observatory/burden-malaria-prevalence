@@ -17,6 +17,8 @@ if (!length(args) || identical(args, "--help")) {
     "  Uses the saved prepared sample and fixed MAP knots; no supplementary fitting.",
     "Inclusion figure: Rscript R_cbh/reporting/01_study_flow.R",
     "Results index: Rscript R_cbh/reporting/02_results_index.R",
+    "Sahel mortality by calendar month (supplementary): Rscript R_cbh/seasonality/01_build_cells.R",
+    "  then Rscript R_cbh/seasonality/02_fit_and_plot.R",
     "",
     "Rscript run_all.R --check-inputs   checks local dataset prerequisites",
     "Rscript run_all.R --audit          verifies the preserved pre-rerun primary snapshot",

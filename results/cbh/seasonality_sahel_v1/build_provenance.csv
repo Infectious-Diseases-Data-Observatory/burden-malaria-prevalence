@@ -1,0 +1,8 @@
+"input","md5","built"
+"/Users/jameswatson/Documents/Claude Projects/MIS:DHS malaria prevalence/data/derived_dhs/survey_registry.csv","034691c9efb08455ffce1ea3c42581d3","2026-09-16 17:11:56 UTC"
+"/Users/jameswatson/Documents/Claude Projects/MIS:DHS malaria prevalence/R_cbh/config/survey_rules.csv","5a3aa4d24c104a30caae19979a9fe94b","2026-09-16 17:11:56 UTC"
+"/Users/jameswatson/Documents/Claude Projects/MIS:DHS malaria prevalence/R_cbh/config/region_overrides.csv","639a20739071f61ab146f3a081af1456","2026-09-16 17:11:56 UTC"
+"/Users/jameswatson/Documents/Claude Projects/MIS:DHS malaria prevalence/data/derived_dhs/map_pfpr_by_survey_region.csv","ab662078cd96f247f839434598f5ea12","2026-09-16 17:11:56 UTC"
+"data/derived_dhs/dhs_region_centroids.csv","857cc256f42bbc4d7b149941fc3312e5","2026-09-16 17:11:56 UTC"
+"R_cbh/seasonality/01_build_cells.R","ed1dcc11797bd017418a910eef1e01b1","2026-09-16 17:11:56 UTC"
+"R_cbh/seasonality/settings.R","dc9f7ddcab4580825a4b3eb2df65be15","2026-09-16 17:11:56 UTC"

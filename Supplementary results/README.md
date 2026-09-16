@@ -22,3 +22,11 @@ The country comparison evaluates both sets of curves at the **same national MAP 
 - [Snow gamma=1, 1.4 and 2 comparison](../results/cbh/age_band_snow_2000_2015_v1/penalty_sensitivity/gamma2/comparison/REPORT.md)
 
 The Snow cs fit used gamma=1; it changed only the PfPR basis. All Snow analyses retain their actual settings. MAP/gamma=2/cr is the primary specification.
+
+## Sahelian child mortality by calendar month
+
+Added 16 September 2026. A descriptive analysis of the all-cause death rate of children under two years by month of the year in Sahelian survey regions (boundary centroid at or above 11°N, west of the Horn of Africa; 247 regions in 41 surveys), by age band (<1, 1–5, 6–11, 12–23 completed months). Month of death is derived from month of birth and reported age at death; see [R_cbh/seasonality/README.md](../R_cbh/seasonality/README.md) for the derivation and its limits. It fits no prevalence model.
+
+- [Figure: pooled rates by month and the negative-binomial month effects](../results/cbh/seasonality_sahel_v1/sahel_mortality_by_calendar_month.png)
+- [Report with tables](../results/cbh/seasonality_sahel_v1/REPORT.md)
+- [Region list with centroids and mean MAP prevalence](../results/cbh/seasonality_sahel_v1/sahel_regions.csv)
