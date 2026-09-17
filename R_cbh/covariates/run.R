@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 # Local-only revised covariate pipeline. Public DHS retrieval is separate.
 args <- commandArgs(TRUE)
-stopifnot(all(args %in% "--complete-case-only"))
+stopifnot(all(args %in% c("--complete-case-only","--legacy-expanded")))
 scripts <- c("02_extract_regional.R",if(!"--complete-case-only" %in% args)"07_prepare_unicef.R",
   "03_audit_missingness.R","04_report.R","05_validate.R")
 for(script in scripts) {

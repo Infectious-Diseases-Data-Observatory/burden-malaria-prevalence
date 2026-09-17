@@ -92,19 +92,24 @@ cbh_regional_recode <- function(br, survey, rule, geo) {
       weighted.mean(100*ebf[infant & is.finite(ebf) & is.finite(w) & w>0],w[infant & is.finite(ebf) & is.finite(w) & w>0]) else NA_real_))
 }
 
-cbh_regional_spec <- function() {
+cbh_regional_spec <- function(expanded=FALSE) {
   regional <- c("male_pct","multiple_birth_pct","mean_birth_order","mean_maternal_age_birth",
     "mean_maternal_education_years","mean_wealth_quintile","urban_pct","dtp3_pct","measles_pct",
     "facility_delivery_pct","exclusive_breastfeeding_pct","short_birth_interval_pct",
     "improved_water_pct","improved_sanitation_pct","electricity_pct")
   annual <- c("log_hiv_incidence","log_gdp_pc","log_health_expenditure_pc","political_stability",
     "hib3_pct","pcv3_pct","rotavirus_pct")
-  list(id="regional_adjustment_v1",regional=regional,annual=annual,covariates=c(regional,annual))
+  if(!expanded) {
+    regional <- setdiff(regional,"exclusive_breastfeeding_pct")
+    annual <- setdiff(annual,c("hib3_pct","pcv3_pct","rotavirus_pct"))
+  }
+  list(id=if(expanded)"regional_adjustment_v1" else "regional_adjustment_reduced_v3",
+    regional=regional,annual=annual,covariates=c(regional,annual))
 }
 
-cbh_regional_formula <- function() {
+cbh_regional_formula <- function(expanded=FALSE) {
   as.formula(paste("death ~ s(pfpr_pct,bs='cr',k=5) + s(calendar_year,bs='cr',k=6) +",
-    paste(paste0("z_",cbh_regional_spec()$covariates),collapse=" + "),
+    paste(paste0("z_",cbh_regional_spec(expanded)$covariates),collapse=" + "),
     "+ s(survey,bs='re') + s(country,bs='re') + s(region,bs='re') + offset(log(band_years))"))
 }
 

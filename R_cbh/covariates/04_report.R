@@ -3,8 +3,8 @@ source("R_cbh/load_pipeline.R")
 source("R_cbh/covariates/settings.R")
 library(data.table)
 args <- commandArgs(TRUE)
-stopifnot(all(args %in% "--complete-case-only"))
-settings <- cbh_covariate_settings("--complete-case-only" %in% args)
+stopifnot(all(args %in% c("--complete-case-only","--legacy-expanded")))
+settings <- cbh_covariate_settings("--complete-case-only" %in% args,"--legacy-expanded" %in% args)
 out <- settings$out
 m <- fread(file.path(out,"missingness_summary.csv"))[baseline=="previous_primary"]
 s <- fread(file.path(out,"complete_case_summary.csv"))
@@ -26,6 +26,26 @@ comma <- function(x)format(x,big.mark=",",trim=TRUE,scientific=FALSE)
 old <- s[baseline=="previous_primary"]; new <- s[baseline=="eligible_MAP"]
 table <- sprintf("| %s | %.2f%% | %s |",labels[m$variable],m$missing_records_pct,comma(m$regions_with_all_missing))
 overview <- sprintf("| %s | %s | %s | %s | %.1f%% |",s$baseline,comma(s$records),comma(s$regions),comma(s$lost_regions),s$lost_regions_pct)
+if(!settings$expanded) {
+  stopifnot(m[variable=="urban_pct",missing_records]==0L)
+  imp <- fread(file.path(out,"imputation_by_survey.csv"))[baseline=="previous_primary",
+    .(imputed_records=sum(imputed_records),remaining_missing=sum(missing_records)),by=variable]
+  cbh_atomic_csv(imp,file.path(out,"imputation_summary.csv"))
+  lines <- c("# Reduced primary regional adjustment — 17 September 2026","",
+    "The primary adjustment set now has 18 scalar predictors. Hib3, PCV, rotavirus and exclusive breastfeeding are excluded from the formula and complete-case filter. Urban/rural residence is retained as urban_pct: the survey-weighted percentage urban among distinct mothers with a recent birth in each survey-region. It has no missing assigned values in any of the audited samples.","",
+    "DTP3 and measles remain, with the existing exact country/survey-year UNICEF fallback. Other missing regional summaries use the arithmetic mean of finite available regions in the same survey, independently for each variable. Donor regions are counted once, observed values are preserved, and whole-survey gaps remain missing. The four retained national annual predictors (HIV incidence, GDP, health expenditure and political stability) retain their band-entry-year assignment and existing HIV imputation. No pre-introduction vaccine zero-fill is needed by the reduced specification.","",
+    sprintf("Starting from **%s MAP-eligible child-band records in %s surveys**, complete cases retain **%s records, %s children, %s deaths, %s survey-regions, %s surveys and %s countries**. Remaining missingness is **%.2f%%** of starting records. These are data-availability counts; the revised mortality models have not been fitted.",
+      comma(new$records),comma(new$surveys),comma(new$retained_records),comma(new$retained_children),comma(new$retained_deaths),comma(new$retained_regions),comma(new$retained_surveys),comma(new$retained_countries),new$missing_records_pct),"",
+    "## Missingness in the previous fitted sample","",
+    "Denominator: 5,885,022 child-band records and 1,015 survey-regions. Percentages count records lacking their assigned aggregate covariate, not missing individual questionnaire responses.","",
+    "| Covariate | Records missing | Entirely unavailable survey-regions |","|---|---:|---:|---:|",table,"",
+    "## Alternative denominators","","| Starting sample | Records | Survey-regions | Regions lost | Regions lost (%) |","|---|---:|---:|---:|---:|",overview,"",
+    "Missingness across covariates overlaps. A survey-region is lost only if it retains zero records; partially affected regions are listed separately in the ledger. Source extraction tables can retain excluded variables for historical reproduction, but those variables are absent from the current wide overlay, formula and selection rule.","",
+    "[Complete-case counts](complete_case_summary.csv), [missingness](missingness_summary.csv), [survey-region ledger](selection_by_survey_region.csv), [regional imputation flags and donor counts](regional_mean_imputation.csv), [formula](planned_formula.txt), [validation](validation.txt).", "",
+    paste0("Current private overlay: `",settings$private,"/regional_covariates_wide.csv`. Run `Rscript R_cbh/covariates/run.R` to reproduce. Previous 22-variable results are preserved under `regional_adjustment_unicef_v2`; use `--legacy-expanded` to reproduce them."))
+  writeLines(lines,file.path(out,"README.md"))
+  quit(save="no",status=0)
+}
 source <- b[!is.finite(value),.(regions=.N,records=sum(records)),by=source]
 small <- b[complete_case_records>0,sum(small_denominator,na.rm=TRUE)]
 low <- b[complete_case_records>0,sum(low_precision,na.rm=TRUE)]

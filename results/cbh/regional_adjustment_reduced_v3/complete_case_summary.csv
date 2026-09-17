@@ -1,0 +1,4 @@
+"baseline","records","children","deaths","regions","surveys","countries","retained_records","retained_children","retained_deaths","retained_regions","lost_regions","partially_reduced_regions","retained_surveys","retained_countries","lost_regions_pct","missing_records_pct"
+"previous_primary",5885022,1817912,82415,1015,105,34,5617520,1737262,77999,973,42,0,100,34,4.13793103448276,4.54547153774446
+"eligible_MAP",6357802,1932325,90938,1113,120,36,5680117,1755838,78634,973,140,216,100,34,12.5786163522013,10.6591082893113
+"regional_baseline",5948359,1836702,83057,1015,105,34,5680117,1755838,78634,973,42,0,100,34,4.13793103448276,4.50951262356559

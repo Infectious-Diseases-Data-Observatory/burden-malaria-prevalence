@@ -6,14 +6,14 @@ source("R_cbh/covariates/regional.R")
 source("R_cbh/covariates/settings.R")
 source("R_cbh/covariates/unicef.R")
 library(data.table)
-cfg <- cbh_config(); spec <- cbh_regional_spec(); settings <- cbh_covariate_settings()
+cfg <- cbh_config(); spec <- cbh_regional_spec(expanded=TRUE); settings <- cbh_covariate_settings(expanded=TRUE)
 args <- commandArgs(TRUE); stopifnot(all(args %in% "--region-mean"))
 region_mean <- "--region-mean" %in% args
 scenario_id <- if(region_mean)"prenationwide_zero_region_mean_scenario" else "prenationwide_zero_scenario"
 out <- file.path(settings$out,scenario_id)
 dir.create(out,recursive=TRUE,showWarnings=FALSE)
 wide <- fread(file.path(settings$private,"regional_covariates_wide.csv"))
-filled_wide <- cbh_regional_mean_fill(wide)
+filled_wide <- cbh_regional_mean_fill(wide,spec$regional)
 if(region_mean) {
   private <- file.path(settings$private,scenario_id)
   dir.create(private,recursive=TRUE,showWarnings=FALSE)
@@ -145,7 +145,7 @@ print(country[variable=="any_vaccine" & missing_after>0])
 print(selection)
 
 # Standalone report from the saved aggregate outputs.
-report_dir <- file.path(cbh_covariate_settings()$out,scenario_id)
+report_dir <- file.path(cbh_covariate_settings(expanded=TRUE)$out,scenario_id)
 s <- fread(file.path(report_dir,"summary.csv"))
 c <- fread(file.path(report_dir,"country.csv"))
 q <- fread(file.path(report_dir,"survey.csv"))

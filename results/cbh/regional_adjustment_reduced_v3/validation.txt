@@ -1,0 +1,9 @@
+PASS: birth-weighted and distinct-mother-weighted summaries
+PASS: youngest eligible infant denominator and unknown feeding responses
+PASS: regional means retain records with missing individual values
+PASS: available-region means exclude NAs, preserve values, leave all-missing surveys unresolved and reject duplicate regions
+PASS: current 18 regional/annual confounders include urban proportion and exclude Hib3/PCV/rotavirus/exclusive breastfeeding; historical 22-variable specification remains reproducible
+PASS: selection and region-loss accounting
+PASS: published source consistency and reviewed DRC boundary versions
+PASS: UNICEF exact-year matching, observed-value preservation, reported zeros and duplicate rejection
+PASS: reduced primary overlay uses 18 predictors, retains urban proportion, excludes dropped fields and verifies all regional-mean substitutions
