@@ -15,6 +15,7 @@ The primary analysis uses seven separate age-band models, MAP prevalence, cr PfP
 | Diagnostics | [Numerical checks](../results/cbh/primary_map_gamma2_v1/fit_diagnostics.csv) and [fitted outcomes](../results/cbh/primary_map_gamma2_v1/fitted_outcome_checks.csv) |
 | Mortality, 2005/2015/2024 | [Country figure](../results/cbh/primary_map_gamma2_v1/burden/country_deaths_all_years.png) and [country totals](../results/cbh/primary_map_gamma2_v1/burden/country_totals.csv) |
 | Figure 4: comparison with IHME | [Scatter plots](../results/cbh/primary_map_gamma2_v1/burden/country_vs_ihme.png) |
+| Figure 5: annual mortality, 2004–2024 | [Figure](../results/cbh/primary_map_gamma2_v1/annual_comparison/fig5_annual_malaria_mortality.png) and [totals and input audit](../results/cbh/primary_map_gamma2_v1/annual_comparison/README.md) |
 | Age contributions | [Figure](../results/cbh/primary_map_gamma2_v1/burden/deaths_by_age.png) and [country-age estimates](../results/cbh/primary_map_gamma2_v1/burden/country_age_estimates.csv) |
 | DRC synthetic-cohort survival | [Figure](../results/cbh/primary_map_gamma2_v1/burden/drc_survival.png) |
 

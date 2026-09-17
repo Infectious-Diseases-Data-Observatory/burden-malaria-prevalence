@@ -5,11 +5,13 @@ source("R_cbh/primary/settings.R")
 root <- cbh_primary_settings()$out
 out <- file.path(root,"paper_figures")
 dir.create(out,recursive=TRUE,showWarnings=FALSE)
-figures <- data.frame(figure=1:4,
+figures <- data.frame(figure=1:5,
   filename=c("survey_map_and_timing.png","fig2_pfpr_mortality_by_age.png",
-    "fig3_malaria_attributable_fraction_by_age.png","fig4_country_estimates_vs_ihme.png"),
+    "fig3_malaria_attributable_fraction_by_age.png","fig4_country_estimates_vs_ihme.png",
+    "fig5_annual_malaria_mortality.png"),
   source=file.path(root,c("survey_map/survey_map_and_timing.png","pfpr_splines.png",
-    "attributable_fraction_by_age.png","burden/country_vs_ihme.png")))
+    "attributable_fraction_by_age.png","burden/country_vs_ihme.png",
+    "annual_comparison/fig5_annual_malaria_mortality.png")))
 stopifnot(all(file.exists(figures$source)))
 figures$md5 <- vapply(figures$source,cbh_file_hash,"")
 cbh_atomic_csv(figures,file.path(out,"manifest.csv"))
@@ -27,4 +29,7 @@ writeLines(c("# Main-paper figures and draft captions","",
   "## Figure 4 — country mortality estimates versus IHME","",
   "File: `fig4_country_estimates_vs_ihme.png`.","",
   "Primary-model malaria-attributable deaths before age 5 versus IHME cause-specific malaria deaths, by country in 2005, 2015 and 2024. Both axes use a base-10 logarithmic scale with identical limits starting at 1,000 deaths; each point represents a country and the dashed line denotes equality. The underlying estimates include all 42 estimable countries per year, with no pseudocount; points below 1,000 deaths on either axis are outside the displayed range. The three countries without model estimates remain in the source tables. Model-attributable deaths equal national IHME all-cause deaths multiplied by 1 − exp[f_g(0) − f_g(P_country)], summed over age bands. National MAP prevalence is population weighted using the saved 2020 population weights. Ages 2–4 share the IHME mortality rate and divide deaths/person-time equally. Country totals are point estimates; cross-age covariance and source/design/imputation uncertainty are not propagated. Model-attributable all-cause reductions and IHME cause-specific mortality are different estimands.","",
-  "[Source paths and hashes](manifest.csv). Copy these four images into the manuscript's `figures/` folder. The former fig3_country_estimates_vs_ihme.png is superseded by the Figure 4 filename; retain a legacy copy if existing TeX references still need it. No TeX edits are needed to prepare or copy the images; TeX references/captions are managed separately."),file.path(out,"CAPTIONS.md"))
+  "## Figure 5 — annual under-five malaria mortality","",
+  "File: `fig5_annual_malaria_mortality.png`.","",
+  readLines(file.path(root,"annual_comparison/CAPTION.md"))[-c(1,2)],"",
+  "[Source paths and hashes](manifest.csv). Copy these five images into the manuscript's `figures/` folder. The former fig3_country_estimates_vs_ihme.png is superseded by the Figure 4 filename; retain a legacy copy if existing TeX references still need it. No TeX edits are needed to prepare or copy the images; TeX references/captions are managed separately."),file.path(out,"CAPTIONS.md"))
