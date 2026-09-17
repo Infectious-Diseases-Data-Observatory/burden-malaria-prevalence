@@ -3,6 +3,12 @@
 Updated 10 September 2026. The [current primary specification](ANALYSIS_PLAN.md) uses seven separate age-band MAP models with **gamma=2**, cr bases (PfPR k=5; time k=6), and one fixed posterior-median **child HIV-incidence imputation**. Snow comparisons are supplementary; the [joint model document](PFPR_AGE_BAND_MODEL.md) records a historical sensitivity specification. These issues remain open; fitting the model does not resolve them. The [incidence model documentation](../R_cbh/hiv/README.md) describes validation, censoring and uncertainty propagation.
 
 
+## UNICEF national vaccination fallback — 17 September 2026
+
+The [current pipeline](../R_cbh/covariates/README.md) now uses actual country/survey-year UNICEF WUENIC estimates for missing regional DTP3/measles values, preserving observed regional values and storing substitution flags. The three newer vaccines already use national band-entry-year values. With fallback, the candidate sample is **1,784,353 records, 598,386 children, 17,822 deaths and 419 survey-regions in 41 surveys/24 countries**. This recovers 927 records and one region relative to the pre-substitution audit. [Updated audit](../results/cbh/regional_adjustment_unicef_v2/README.md).
+
+Unverified pre-series and no-series vaccine zeros still require introduction-history evidence; substituting from the same national dataset cannot resolve them. The other questionnaire and source issues below remain open. National substitution assumes the country estimate is a suitable proxy for an unobserved regional value; assess this through a no-substitution sensitivity and retain the source flags. Mortality models and manuscript figures have not been refitted.
+
 ## Expanded regional adjustment — 17 September 2026
 
 The latest [analysis plan](ANALYSIS_PLAN.md#24-covariates-hiv-imputation-and-missing-data) supersedes the adjustment choices in the historical trial notes below: all confounders are regional summaries; all five vaccine measures, facility delivery, exclusive breastfeeding, short birth interval, WASH and electricity are selected. The [new extraction and audit](../R_cbh/covariates/README.md) leaves existing fitted models untouched.

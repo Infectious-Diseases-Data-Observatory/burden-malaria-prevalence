@@ -3,11 +3,22 @@
 source("R_cbh/load_pipeline.R")
 source("R_cbh/analysis/model.R")
 source("R_cbh/covariates/regional.R")
+source("R_cbh/covariates/settings.R")
+source("R_cbh/covariates/unicef.R")
 library(data.table)
-private <- "data/derived_cbh/regional_adjustment"
-out <- "results/cbh/regional_adjustment_v1"
+args <- commandArgs(TRUE)
+stopifnot(all(args %in% "--complete-case-only"))
+settings <- cbh_covariate_settings("--complete-case-only" %in% args)
+private <- settings$base
+stage_private <- settings$private
+out <- settings$out
 dir.create(out,recursive=TRUE,showWarnings=FALSE)
+dir.create(stage_private,recursive=TRUE,showWarnings=FALSE)
 cfg <- cbh_config(); spec <- cbh_regional_spec()
+spec$id <- settings$id
+unicef <- if(settings$unicef_fallback)cbh_read_csv(settings$panel) else NULL
+cbh_atomic_rds(list(complete=FALSE,settings=settings,started=as.character(Sys.time())),
+  file.path(stage_private,"manifest.rds"))
 reg <- cbh_read_csv(cfg$registry)
 bounds <- unique(cbh_read_csv(cfg$boundary_regions)[c("svkey","region","regkey")])
 crosswalk <- cbh_read_csv("data/derived_cbh/region_crosswalk.csv")
@@ -129,16 +140,24 @@ invalid <- regional[is.finite(value) & grepl("_pct$",variable) & (value< -1e-10 
 if(nrow(invalid)) {print(invalid);stop("Invalid regional percentage")}
 regional[is.finite(value) & grepl("_pct$",variable),value:=pmin(100,pmax(0,value))]
 cbh_unique(as.data.frame(regional),c("survey","regkey","variable"),"Regional covariates")
-cbh_atomic_csv(regional,file.path(private,"regional_covariates.csv"))
+cbh_atomic_csv(regional,file.path(stage_private,"regional_covariates.csv"))
 cbh_atomic_csv(regional,file.path(out,"regional_covariates.csv"))
 wide <- dcast(regional,survey+regkey~variable,value.var="value")
 for(v in setdiff(spec$regional,names(wide))) wide[,(v):=NA_real_]
-cbh_atomic_csv(wide,file.path(private,"regional_covariates_wide.csv"))
+if(settings$unicef_fallback) {
+  wide <- as.data.frame(wide)
+  wide$country <- reg$iso3[match(wide$survey,reg$svkey)]
+  wide$survey_year <- reg$year[match(wide$survey,reg$svkey)]
+  wide <- cbh_unicef_fill(wide,unicef,c("dtp3_pct","measles_pct"))
+  cbh_atomic_csv(wide[c("survey","country","survey_year","regkey",
+    grep("^(dtp3_pct|measles_pct)",names(wide),value=TRUE))],file.path(out,"regional_vaccine_imputation.csv"))
+}
+cbh_atomic_csv(wide,file.path(stage_private,"regional_covariates_wide.csv"))
 meta <- readRDS(file.path(cfg$output_dir,"manifest.rds")); stopifnot(meta$complete)
 m <- meta$manifest[meta$manifest$status %in% c("built","cached"),]
 hiv <- cbh_read_csv(cbh_trial_spec()$incidence_panel)
 old_required <- c("death","age_band","pfpr_pct","calendar_year","band_years","survey","country","region",cbh_trial_spec()$covariates)
-miss <- selections <- ages <- vaccines <- list()
+miss <- selections <- ages <- vaccines <- imputations <- list()
 for(i in seq_len(nrow(m))) {
   object <- readRDS(file.path(cfg$output_dir,m$file[i]))
   stopifnot(identical(object$signature,m$signature[i]))
@@ -147,6 +166,19 @@ for(i in seq_len(nrow(m))) {
   for(v in old_required) if(is.numeric(d[[v]])) old <- old & is.finite(d[[v]])
   j <- match(paste(d$survey,d$regkey),paste(wide$survey,wide$regkey))
   for(v in spec$regional) d[[v]] <- wide[[v]][j]
+  if(settings$unicef_fallback) {
+    for(v in grep("_(before_imputation|imputed|source_year|imputation_source)$",names(wide),value=TRUE)) d[[v]]<-wide[[v]][j]
+    d <- cbh_unicef_fill(d,unicef,c("hib3_pct","pcv3_pct","rotavirus_pct"))
+    for(b in c("previous_primary","eligible_MAP")) for(v in names(cbh_unicef_indicators())) {
+      mask <- if(b=="previous_primary")old else d$model_ready
+      if(!any(mask))next
+      z <- data.table(survey=d$survey[mask],country=d$country[mask],variable=v,baseline=b,
+        source=d[[paste0(v,"_imputation_source")]][mask],imputed=d[[paste0(v,"_imputed")]][mask],
+        missing=!is.finite(d[[v]][mask]))
+      imputations[[length(imputations)+1L]]<-z[,.(records=.N,imputed_records=sum(imputed),missing_records=sum(missing)),
+        by=.(baseline,survey,country,variable,source)]
+    }
+  }
   observed <- vapply(spec$covariates,function(v)is.finite(d[[v]]),logical(nrow(d)))
   full <- d$model_ready & rowSums(!observed)==0L
   regional_old <- spec$regional[1:7]
@@ -209,9 +241,16 @@ cbh_atomic_csv(loss,file.path(out,"selection_by_survey_region.csv"))
 cbh_atomic_csv(country,file.path(out,"selection_by_country.csv"))
 cbh_atomic_csv(rbindlist(ages),file.path(out,"selection_by_survey_age.csv"))
 cbh_atomic_csv(rbindlist(vaccines),file.path(out,"vaccine_source_status.csv"))
-paths <- c(file.path(private,c("regional_covariates_wide.csv","published_indicators.csv","recode_regional.csv")),
+if(settings$unicef_fallback)cbh_atomic_csv(rbindlist(imputations),file.path(out,"imputation_by_survey.csv"))
+paths <- c(file.path(stage_private,"regional_covariates_wide.csv"),
+  file.path(private,c("published_indicators.csv","recode_regional.csv")),
+  if(settings$unicef_fallback)settings$panel,
   "data/derived_cbh/manifest.rds",cbh_trial_spec()$incidence_panel,
   list.files("R_cbh/covariates",full.names=TRUE))
 cbh_atomic_csv(data.frame(file=paths,md5=vapply(paths,cbh_file_hash,"")),file.path(out,"audit_input_manifest.csv"))
 writeLines(paste(deparse(cbh_regional_formula()),collapse=" "),file.path(out,"planned_formula.txt"))
+cbh_atomic_rds(list(complete=TRUE,specification=spec,settings=settings,
+  regional_overlay=file.path(stage_private,"regional_covariates_wide.csv"),
+  input_manifest=meta$manifest,source_hashes=data.frame(file=paths,md5=vapply(paths,cbh_file_hash,""))),
+  file.path(stage_private,"manifest.rds"))
 print(summary)

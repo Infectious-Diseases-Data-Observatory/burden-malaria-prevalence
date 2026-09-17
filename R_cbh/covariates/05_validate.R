@@ -2,6 +2,8 @@
 # Focused extraction/selection checks; no model fits or respondent exports.
 source("R_cbh/load_pipeline.R")
 source("R_cbh/covariates/regional.R")
+source("R_cbh/covariates/settings.R")
+source("R_cbh/covariates/unicef.R")
 library(data.table)
 br <- data.frame(caseid=c("a","a","b","c"),v008=rep(1500,4),b3=c(1497,1476,1492,1420),
   v005=c(1,1,3,1)*1e6,b4=c(1,2,2,1),v025=c(1,1,2,2),v190=c(1,1,5,3),
@@ -29,7 +31,10 @@ stopifnot(y$value[y$variable=="mean_wealth_quintile"]==1,
 spec <- cbh_regional_spec(); vars <- all.vars(cbh_regional_formula())
 stopifnot(length(spec$covariates)==22L,all(paste0("z_",spec$covariates) %in% vars),
   !any(c("sex","multiple_birth","birth_order","maternal_age_birth","wealth_quintile","urban") %in% vars))
-out <- "results/cbh/regional_adjustment_v1"
+args <- commandArgs(TRUE)
+stopifnot(all(args %in% "--complete-case-only"))
+settings <- cbh_covariate_settings("--complete-case-only" %in% args)
+out <- settings$out
 loss <- fread(file.path(out,"selection_by_survey_region.csv"))
 stopifnot(all(loss$complete_case_records<=loss$records),
   all(loss$complete_case_children<=loss$children),
@@ -47,3 +52,28 @@ writeLines(c("PASS: birth-weighted and distinct-mother-weighted summaries",
   "PASS: selection and region-loss accounting",
   "PASS: published source consistency and reviewed DRC boundary versions"),file.path(out,"validation.txt"))
 cat("Regional adjustment validation passed.\n")
+if(settings$unicef_fallback) {
+  panel <- data.frame(country=c("TST","TST","TST"),year=c(2020,2021,2020),
+    variable=c("dtp3_pct","dtp3_pct","hib3_pct"),value=c(70,90,0),source="UNICEF_WUENIC_country_year")
+  input <- data.frame(country=c("TST","TST","TST"),survey_year=c(2020,2021,2019),
+    entry_year=c(2020,2020,2019),dtp3_pct=c(NA,55,NA),hib3_pct=c(NA,30,NA))
+  y <- cbh_unicef_fill(input,panel,c("dtp3_pct","hib3_pct"))
+  stopifnot(identical(y$dtp3_pct,c(70,55,NA_real_)),identical(y$hib3_pct,c(0,30,NA_real_)),
+    identical(y$dtp3_pct_imputed,c(TRUE,FALSE,FALSE)),
+    identical(y$hib3_pct_imputed,c(TRUE,FALSE,FALSE)))
+  bad <- try(cbh_unicef_fill(input,rbind(panel,panel[1,]),"dtp3_pct"),silent=TRUE)
+  stopifnot(inherits(bad,"try-error"))
+  w <- cbh_read_csv(file.path(settings$private,"regional_covariates_wide.csv"))
+  p <- cbh_read_csv(settings$panel)
+  for(v in c("dtp3_pct","measles_pct")) {
+    fill <- w[[paste0(v,"_imputed")]]
+    original <- w[[paste0(v,"_before_imputation")]]
+    stopifnot(all(!fill | !is.finite(original)),identical(w[[v]][!fill],original[!fill]))
+    z <- p[p$variable==v,]
+    j <- match(paste(w$country,w$survey_year),paste(z$country,z$year))
+    stopifnot(all(w[[v]][fill]==z$value[j[fill]]))
+  }
+  write("PASS: UNICEF exact-year matching, observed-value preservation, reported zeros and duplicate rejection",
+    file.path(out,"validation.txt"),append=TRUE)
+  cat("UNICEF substitution validation passed.\n")
+}

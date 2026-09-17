@@ -1,7 +1,11 @@
 #!/usr/bin/env Rscript
 source("R_cbh/load_pipeline.R")
+source("R_cbh/covariates/settings.R")
 library(data.table)
-out <- "results/cbh/regional_adjustment_v1"
+args <- commandArgs(TRUE)
+stopifnot(all(args %in% "--complete-case-only"))
+settings <- cbh_covariate_settings("--complete-case-only" %in% args)
+out <- settings$out
 m <- fread(file.path(out,"missingness_summary.csv"))[baseline=="previous_primary"]
 s <- fread(file.path(out,"complete_case_summary.csv"))
 f <- fread(file.path(out,"breastfeeding_validation.csv"))
@@ -55,3 +59,17 @@ lines <- c("# Regional adjustment availability audit — 17 September 2026","",
   "- The audit reproduces all old sample totals exactly and checks unique joins, equal denominators for interval components, valid percentages and non-overlapping complete-case counts. No mortality fits, existing figures or TeX files were changed.","",
   "Sources: [DHS API](https://api.dhsprogram.com/), the [DHS reference feeding code](https://github.com/DHSProgram/DHS-Indicators-R/blob/main/Chap11_NT/NT_IYCF.R), and [DHS youngest-child selection](https://github.com/DHSProgram/DHS-Indicators-R/blob/main/Chap11_NT/!NTmain.R). Public source URLs and hashes are retained in the data snapshot's `source_manifest.csv`; local inputs are fingerprinted in `audit_input_manifest.csv`.")
 writeLines(lines,file.path(out,"README.md"))
+if(settings$unicef_fallback) {
+  imp <- fread(file.path(out,"imputation_by_survey.csv"))[baseline=="previous_primary",
+    .(imputed_records=sum(imputed_records),remaining_missing=sum(missing_records)),by=variable]
+  cbh_atomic_csv(imp,file.path(out,"imputation_summary.csv"))
+  intro <- c("**Primary policy: national UNICEF vaccination fallback.** Preserve observed regional DTP3/measles values; substitute the exact country/survey-year WUENIC estimate only when the regional value is missing. The three existing national vaccines use band-entry year. Pre-series/no-series assumptions remain missing unless independently verified; no interpolation, nearest-year carry or automatic zero filling is applied.","",
+    "| Vaccine | Previously included records imputed | Records still missing |",
+    "|---|---:|---:|",sprintf("| %s | %s | %s |",labels[imp$variable],comma(imp$imputed_records),comma(imp$remaining_missing)),"",
+    "This is deterministic national substitution, not a statistical multiple-imputation model. Regional heterogeneity and uncertainty in the substituted estimates are not propagated. Preserve the [pre-imputation audit](../regional_adjustment_v1/README.md) as the comparison. The regional covariate long table describes source estimates before fallback; `regional_vaccine_imputation.csv` and the versioned wide overlay contain the final vaccination values and flags.","")
+  lines <- append(lines,intro,after=2L)
+  lines <- sub("## Missingness relative to the previous fitted sample",
+    "## Remaining missingness after UNICEF substitution",lines,fixed=TRUE)
+  lines <- sub("requires complete cases","requires complete cases after substitution",lines,fixed=TRUE)
+  writeLines(lines,file.path(out,"README.md"))
+}
