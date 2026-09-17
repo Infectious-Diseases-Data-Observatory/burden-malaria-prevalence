@@ -25,6 +25,8 @@ Rscript R_cbh/covariates/04_report.R
 Rscript R_cbh/covariates/05_validate.R
 # Before/after missingness by band-entry year on the fixed previous sample:
 Rscript R_cbh/covariates/08_missingness_time_after_imputation.R
+# Descriptive introduction history from the cached public WHO snapshot:
+python3 R_cbh/covariates/09_vaccine_introduction_history.py
 ```
 
 No packages are installed. The data retrieval sends only public survey/indicator IDs. It retains original API records, indicator definitions, denominators, recall windows, geographic labels, URLs and hashes under `data/derived_cbh/regional_adjustment/`. The DHS API's `DataId` is not globally unique; semantic/source keys are checked instead. Published estimates can be repeated at nested geographic levels; equal values with equal denominators can be deduplicated, conflicting values remain missing unless a reviewed source-version rule resolves them.
@@ -49,6 +51,8 @@ The wide overlay has one row per `(survey, regkey)`. Join it to **all eligible b
 ## Audit outputs and limits
 
 `08_missingness_time_after_imputation.R` writes `missingness_by_entry_year.csv` and `missingness_by_period.csv` in the current results directory. It compares all 22 covariates and joint missingness before/after UNICEF substitution on the same previous-primary sample, reconciling totals with both availability audits. Percentages count child–age-band records, not distinct children or regions; national vaccine exposure years are band-entry years, while DTP3/measles substitution uses survey year. Years without eligible records are absent, not assigned zero missingness. Country composition changes over time.
+
+`09_vaccine_introduction_history.py` summarises WHO's separate introduction-status history for 48 sub-Saharan African countries, distinguishing first partial and first nationwide reporting. It documents the Nigeria PCV discrepancy between the December 2014 launch and 2015 first annual partial-introduction record. This descriptive audit does not substitute zeros or alter any mortality input. See [introduction history](../../results/cbh/regional_adjustment_unicef_v2/VACCINE_INTRODUCTION_HISTORY.md).
 
 [Current results](../../results/cbh/regional_adjustment_unicef_v2/README.md) ([pre-substitution audit](../../results/cbh/regional_adjustment_v1/README.md)) include three distinct denominators: the previous primary sample, all MAP-eligible records, and the regional version of the previous adjustment set before the added covariates. “Lost region” means **zero** surviving child-band rows, while a partially reduced region retains at least one. Region identifiers are survey-specific, not unique areas across time. Multiple missing covariates overlap; do not sum their loss counts.
 

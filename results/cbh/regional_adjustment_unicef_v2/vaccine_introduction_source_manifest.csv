@@ -1,0 +1,2 @@
+source,sha256,retrieved,endpoint,source_rows,summary_countries,study_countries
+data/derived_cbh/regional_adjustment/who_introduction/africa_history_2026-09-17.json,96ba86904f4ba78258616b3b4842c278e1afa467d358f0c9906fa2745200bc84,2026-09-17,https://xmart-api-public.who.int/WIISE/MT_AD_INTRO_LONG,4247,48,36
