@@ -51,7 +51,7 @@ p <- ggplot(d, aes(age_band, attributable_fraction, colour = prevalence, group =
   scale_y_continuous(breaks = seq(0,1,.2), labels = scales::label_percent(accuracy = 1),
                      expand = expansion(mult = 0)) +
   coord_cartesian(ylim = c(0,1)) +
-  labs(x = "Age (completed months)", y = "Malaria-attributable share\nof all-cause deaths",
+  labs(x = "Age (months)", y = "Malaria-attributable share\nof all-cause deaths",
        colour = "PfPR[2–10]") +
   theme_minimal(base_size = 20) +
   theme(axis.text = element_text(size = 16), axis.title = element_text(size = 20),
