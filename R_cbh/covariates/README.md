@@ -23,6 +23,8 @@ Rscript R_cbh/covariates/07_prepare_unicef.R
 Rscript R_cbh/covariates/03_audit_missingness.R
 Rscript R_cbh/covariates/04_report.R
 Rscript R_cbh/covariates/05_validate.R
+# Before/after missingness by band-entry year on the fixed previous sample:
+Rscript R_cbh/covariates/08_missingness_time_after_imputation.R
 ```
 
 No packages are installed. The data retrieval sends only public survey/indicator IDs. It retains original API records, indicator definitions, denominators, recall windows, geographic labels, URLs and hashes under `data/derived_cbh/regional_adjustment/`. The DHS API's `DataId` is not globally unique; semantic/source keys are checked instead. Published estimates can be repeated at nested geographic levels; equal values with equal denominators can be deduplicated, conflicting values remain missing unless a reviewed source-version rule resolves them.
@@ -45,6 +47,8 @@ The current wide overlay is `data/derived_cbh/regional_adjustment/unicef_v2/regi
 The wide overlay has one row per `(survey, regkey)`. Join it to **all eligible base shards**, then attach child HIV incidence and apply complete-case selection on `cbh_regional_spec()$covariates`. Do not start by restricting to the previous complete-case sample: regional means can recover records with missing individual answers. All 22 predictors are then centered/scaled using newly saved preprocessing. No child-level confounder terms belong in the new formula.
 
 ## Audit outputs and limits
+
+`08_missingness_time_after_imputation.R` writes `missingness_by_entry_year.csv` and `missingness_by_period.csv` in the current results directory. It compares all 22 covariates and joint missingness before/after UNICEF substitution on the same previous-primary sample, reconciling totals with both availability audits. Percentages count child–age-band records, not distinct children or regions; national vaccine exposure years are band-entry years, while DTP3/measles substitution uses survey year. Years without eligible records are absent, not assigned zero missingness. Country composition changes over time.
 
 [Current results](../../results/cbh/regional_adjustment_unicef_v2/README.md) ([pre-substitution audit](../../results/cbh/regional_adjustment_v1/README.md)) include three distinct denominators: the previous primary sample, all MAP-eligible records, and the regional version of the previous adjustment set before the added covariates. “Lost region” means **zero** surviving child-band rows, while a partially reduced region retains at least one. Region identifiers are survey-specific, not unique areas across time. Multiple missing covariates overlap; do not sum their loss counts.
 
