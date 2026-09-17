@@ -15,3 +15,5 @@ The checks also reconcile the current primary sample summary and survey coverage
 The supplementary manuscript image is `Supplementary Figures/sfig_study_flow.png` in the Overleaf project. Copying it is a separate action, never a TeX edit; the separate caption is saved alongside it as `sfig_study_flow_caption.md`.
 
 `Rscript R_cbh/reporting/02_results_index.R` (also available through `R_dhs/33_key_results.R`) indexes authoritative MAP gamma=2 outputs and separates historical/supplementary figures. It does not copy older figures over current results.
+
+Manuscript model naming: source `R_cbh/reporting/labels.R` and use `cbh_paper_model_label()` (currently “PfPR-ACM model”) for every legend, axis or caption that names the proposed method. This applies to main and supplementary figures; see the naming rule in `docs/ANALYSIS_PLAN.md`. Keep outcome-only labels and omit figure titles/subtitles.

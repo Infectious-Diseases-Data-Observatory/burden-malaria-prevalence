@@ -3,8 +3,10 @@
 source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 source("R_cbh/reporting/age_band_table.R")
+source("R_cbh/reporting/labels.R")
 library(ggplot2)
 settings <- cbh_primary_settings();out <- settings$out
+model_label <- cbh_paper_model_label()
 writeLines(trimws(readLines(file.path(out,"model_formula.txt")),which="right"),file.path(out,"model_formula.txt"))
 ages <- cbh_config()$age_bands$age_band
 age_factor <- function(x) factor(x,levels=ages,labels=ifelse(ages=="<1","<1 month",paste(ages,"months")))
@@ -47,14 +49,14 @@ p <- ggplot(hr,aes(hazard_ratio_40_to_20,age_label))+
 save_plot(p,"pfpr_40_to_20.png",9,6)
 # Country totals are signed point estimates, with missing countries retained in CSVs.
 z <- totals[is.finite(totals$attributable_under5_deaths),]
-long <- rbind(data.frame(z[c("iso3","country","year")],deaths=z$attributable_under5_deaths,source="Primary MAP model"),
+long <- rbind(data.frame(z[c("iso3","country","year")],deaths=z$attributable_under5_deaths,source=model_label),
   data.frame(z[c("iso3","country","year")],deaths=z$ihme_malaria_deaths,source="IHME malaria"))
 long$country <- factor(long$country,levels=rev(sort(unique(long$country))))
 p <- ggplot(long,aes(deaths,country,colour=source,shape=source))+
   geom_point(position=position_dodge(width=.55),size=2.2)+facet_wrap(~year,nrow=1)+
   scale_x_continuous(trans=scales::pseudo_log_trans(sigma=100),breaks=c(0,1000,10000,100000),
     labels=scales::label_number(scale_cut=scales::cut_short_scale()))+
-  scale_colour_manual(values=c("Primary MAP model"="#215E91","IHME malaria"="#A15132"))+
+  scale_colour_manual(values=setNames(c("#215E91","#A15132"),c(model_label,"IHME malaria")))+
   labs(title="Malaria-attributable deaths by country",subtitle="Primary MAP gamma = 2 versus IHME cause-specific malaria deaths",
     x="Deaths before age 5 (pseudo-log scale)",y=NULL,colour=NULL,shape=NULL,
     caption="42 countries with national MAP exposure. Model estimates are all-cause reductions under zero PfPR; IHME is a cause-specific comparator.")+base+
@@ -81,7 +83,7 @@ p <- ggplot(plot_rows,aes(ihme_malaria_deaths,attributable_under5_deaths))+
   facet_wrap(~year,nrow=1)+coord_equal(xlim=log_limits,ylim=log_limits,expand=FALSE)+
   scale_x_log10(breaks=log_breaks,labels=log_labels)+
   scale_y_log10(breaks=log_breaks,labels=log_labels)+
-  labs(x="IHME malaria deaths before age 5",y="Model-attributable deaths\nbefore age 5")+paper+
+  labs(x="IHME malaria deaths before age 5",y=paste0(model_label," deaths\nbefore age 5"))+paper+
   theme(panel.spacing.x=grid::unit(40,"pt"),plot.margin=margin(10,26,10,10))
 # Both axes have exactly the same base-10 transform and range; no pseudocount.
 stopifnot(identical(p$scales$get_scales("x")$trans$name,"log-10"),
@@ -151,6 +153,6 @@ writeLines(md,file.path(out,"REPORT.md"))
 files <- c("pfpr_curves.csv","pfpr_40_to_20_contrasts.csv","pfpr_20_to_zero_contrasts.csv","tables/age_band_results.csv","fit_diagnostics.csv","primary_sample.csv","pfpr_edf.csv",
   "burden/year_summary.csv","burden/country_totals.csv","burden/country_age_estimates.csv","burden/drc_life_table.csv",
   "burden/comparison_with_previous_primary.csv","comparison_with_previous_curves.csv","grouped_outcome_checks.csv","fitted_outcome_checks.csv")
-paths <- c(file.path(out,files),"R_cbh/primary/03_report.R","R_cbh/primary/settings.R","R_cbh/reporting/age_band_table.R")
+paths <- c(file.path(out,files),"R_cbh/primary/03_report.R","R_cbh/primary/settings.R","R_cbh/reporting/age_band_table.R","R_cbh/reporting/labels.R")
 cbh_atomic_csv(data.frame(file=paths,md5=vapply(paths,cbh_file_hash,"")),file.path(out,"report_provenance.csv"))
 message("Primary MAP figures and report complete")
