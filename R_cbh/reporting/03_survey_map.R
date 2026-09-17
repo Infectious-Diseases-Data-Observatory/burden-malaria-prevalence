@@ -6,7 +6,7 @@ source("R_cbh/primary/settings.R")
 library(sf)
 library(ggplot2)
 library(patchwork)
-root <- cbh_primary_settings()$out
+root <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional"))$out
 out <- file.path(root,"survey_map")
 dir.create(out,recursive=TRUE,showWarnings=FALSE)
 paths <- c(coverage=file.path(root,"survey_coverage.csv"),
@@ -14,7 +14,9 @@ paths <- c(coverage=file.path(root,"survey_coverage.csv"),
 x <- cbh_read_csv(paths[["coverage"]]);r <- cbh_read_csv(paths[["registry"]]);sel <- cbh_read_csv(paths[["selection"]])
 cbh_unique(x,"survey","Primary survey coverage")
 cbh_unique(r,"svkey","Survey registry")
-stopifnot(nrow(x)==105,length(unique(x$country))==34,setequal(x$survey,sel$survey[sel$complete_case_rows>0]))
+sample <- cbh_read_csv(file.path(root,"primary_sample.csv"))
+stopifnot(nrow(x)==sample$surveys,length(unique(x$country))==sample$countries,
+  setequal(x$survey,sel$survey[sel$complete_case_rows>0]))
 j <- match(x$survey,r$svkey)
 stopifnot(!anyNA(j),all(x$country==r$iso3[j]))
 x$year <- r$year[j];x$type <- r$SurveyType[j]
@@ -61,14 +63,15 @@ timeline <- ggplot(x,aes(year,country_label))+
   theme(panel.grid.minor=element_blank(),legend.position="bottom",axis.text=element_text(size=16),
     axis.title=element_text(size=20),legend.title=element_text(size=18),legend.text=element_text(size=16),
     legend.box="vertical",legend.spacing.y=grid::unit(0,"pt"),plot.margin=margin(8,26,8,8))
+if(length(unique(x$type))==1L) timeline <- timeline+guides(shape="none")
 p <- map+timeline+plot_layout(widths=c(1,1.15))
 ggsave(file.path(out,"survey_map_and_timing.png"),p,width=13,height=10,dpi=300,device=ragg::agg_png,bg="white")
 x$country_label <- NULL
 cbh_atomic_csv(x,file.path(out,"survey_coverage.csv"))
 cbh_atomic_csv(summary,file.path(out,"country_summary.csv"))
-inputs <- unique(c(unname(paths),shape_paths,"R_cbh/reporting/03_survey_map.R","R_cbh/primary/settings.R"))
+inputs <- unique(c(unname(paths),file.path(root,"primary_sample.csv"),shape_paths,"R_cbh/reporting/03_survey_map.R","R_cbh/primary/settings.R"))
 cbh_atomic_csv(data.frame(file=inputs,md5=vapply(inputs,cbh_file_hash,"")),file.path(out,"provenance.csv"))
 writeLines(c("# Figure 1 caption","",
-  sprintf("Geographic coverage and timing of the %s surveys in %s countries contributing to the primary MAP analysis. Country shading indicates the number of included surveys. Timeline point area indicates the number of regions contributing analysis records in each survey; symbols distinguish DHS and MIS. Region counts are the union across the seven fitted age-band samples. The figure contains %s survey–region pairs; these are not counts of geographically distinct regions across survey years.",nrow(x),nrow(summary),sum(x$regions)),"",
-  "Country outlines are dissolved from the most recent available DHS boundary files among the included surveys. Survey year describes fieldwork, not the calendar year assigned to each child's band entry. The historical figure showed 120 surveys/36 countries; this version shows the 105-survey/34-country primary complete-case sample."),file.path(out,"CAPTION.md"))
+  sprintf("Geographic coverage and timing of the %s surveys in %s countries contributing to the primary MAP analysis. Country shading indicates the number of included surveys. Timeline point area indicates the number of regions contributing analysis records in each survey; survey types are read from the registry. Region counts are the union across the seven fitted age-band samples. The figure contains %s survey–region pairs; these are not counts of geographically distinct regions across survey years.",nrow(x),nrow(summary),sum(x$regions)),"",
+  "All surveys in the current selected sample are DHS surveys. Country outlines are dissolved from the most recent available DHS boundary files among the included surveys. Survey year describes fieldwork, not the calendar year assigned to each child's band entry. The included surveys and region counts follow the current primary complete-case sample after the declared covariate substitutions."),file.path(out,"CAPTION.md"))
 message("Generated current primary survey map: ",nrow(x)," surveys, ",nrow(summary)," countries")

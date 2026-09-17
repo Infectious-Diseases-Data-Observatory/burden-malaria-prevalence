@@ -5,7 +5,7 @@ source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 library(mgcv)
 library(ggplot2)
-st <- cbh_primary_settings(); out <- st$out
+st <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional")); out <- st$out
 component_path <- file.path(st$private, "pfpr_components.rds")
 components <- readRDS(component_path)
 manifest <- cbh_read_csv(file.path(out, "fit_manifest.csv"))

@@ -33,20 +33,24 @@ Stages:
 3. `02_effects.R` calculates supported contrasts, zero-PfPR contrasts and
    2005/2015/2024 country estimates using unchanged national MAP/IHME inputs.
 4. `04_diagnostics.R` verifies stored fitted inputs and aggregate outcomes.
-5. `05_compare_regional.R` produces aggregate CSVs, PNGs and a Markdown report.
+5. `05_compare_regional.R` produces the previous-iteration comparison. `03_report.R` owns the current primary curve/diagnostic/burden plots and age-band table.
+6. The `reporting/` stages produce the inclusion flow, survey map, Figures 3–6, national/annual/state tables and paper manifest; `burden/04_annual_comparison.R` and `05_nigeria_state_burden.R` recalculate the associated burden from the saved fits.
 
 The new runner sets `CBH_PRIMARY_VERSION=regional` for its subprocesses.
-Shared-stage scripts retain the legacy default for compatibility with the
-older paper-reporting workflow. Use the new runner for the current primary
+The shared fitting stage retains its legacy default for compatibility;
+reporting and the current annual/state burden entry points default to regional.
+The legacy runner explicitly sets its environment to legacy. Use the new runner for the current primary
 analysis. Direct execution of shared stages requires the same environment
 variable. `00_prepare_regional.R` and `05_compare_regional.R` explicitly select
 the regional version.
 
-No raw-source extraction, HIV refitting, supplementary fitting or TeX output
-is part of this runner. Existing Overleaf figures, annual comparison, Nigerian
-state analysis and sensitivity fits remain from the previous iteration until
-regenerated separately. The older runner `run.R` reproduces those historical
-outputs and includes a TeX table writer; it is not invoked by the current runner.
+No DHS extraction, HIV refitting, supplementary fitting or `.tex` file writes
+are part of this runner. Annual national MAP extraction uses existing local
+rasters. Primary figures and tables, including annual comparison and Nigerian
+state analysis, now follow the revised fits. Sensitivity fits remain historical.
+LaTeX table source is provided as `.latex.txt` for author insertion. Copying
+verified paper figures to Overleaf is a separate export step. The older runner
+`run.R` explicitly selects the preserved legacy version.
 
 Model objects and the prepared dataset remain under ignored
 `data/derived_cbh/models/primary_map_regional18_gamma2_v2/`. Only aggregate
@@ -58,3 +62,5 @@ It does not identify which individual covariate or aggregation change caused
 an effect difference. Both iterations use the same fixed HIV imputation and
 conditional spline uncertainty; uncertainty in exposure, filled covariates and
 smoothing parameters is not propagated into the reported intervals.
+
+Paper export (after validation): `python3 R_cbh/reporting/export_paper.py --destination PATH` writes a local review manifest. Add `--copy` to copy only the listed primary figures, captions and table-source files. The exporter backs up replaced assets and checks that all TeX hashes remain unchanged.

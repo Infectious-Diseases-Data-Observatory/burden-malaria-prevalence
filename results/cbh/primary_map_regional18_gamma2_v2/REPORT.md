@@ -73,6 +73,6 @@ Country and age-specific changes are in burden/comparison_country_totals.csv and
 
 Run `Rscript R_cbh/primary/run_regional.R` for fresh fits, `--resume` to reuse only verified fit caches, or `--report-only` to recalculate effects, diagnostics and comparisons from the saved fits. No raw-source extraction, HIV refitting, supplementary fitting, manuscript editing or TeX generation is performed.
 
-The older fits are preserved in primary_map_gamma2_v1. Existing manuscript figures, annual 2004–2024 comparisons, Nigerian state estimates and subgroup sensitivities still use those older fits until explicitly regenerated; the current version here contains the new primary fits and 2005/2015/2024 national estimates.
+The older fits are preserved in primary_map_gamma2_v1. Current primary reporting, including annual 2004–2024 comparisons and Nigerian state estimates, is indexed in RESULTS.md and paper_figures/CAPTIONS.md. Subgroup and exposure sensitivity fits remain historical until separately refitted; they are outside this reporting refresh.
 
 Numerical checks and provenance: fit_diagnostics.csv, fit_manifest.csv, fit_input_provenance.csv, fitted_outcome_checks.csv, comparison_edf.csv, and comparison_provenance.csv. In-sample outcome checks are not external validation or survey influence analyses.

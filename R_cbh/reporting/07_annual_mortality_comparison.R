@@ -4,7 +4,7 @@ source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 source("R_cbh/reporting/labels.R")
 library(ggplot2)
-root <- cbh_primary_settings()$out
+root <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional"))$out
 out <- file.path(root, "annual_comparison")
 x <- cbh_read_csv(file.path(out, "annual_totals_2004_2024.csv"))
 stopifnot(identical(x$year, 2004:2024), all(x$countries == 42))

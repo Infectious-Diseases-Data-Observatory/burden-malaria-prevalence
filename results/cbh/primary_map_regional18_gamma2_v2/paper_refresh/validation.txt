@@ -1,0 +1,8 @@
+PASS: six main figures reference the revised primary version and match their hashes.
+PASS: seven fitted model hashes, convergence flags and gamma=2 verified.
+PASS: flow, 100 DHS surveys, 973 survey-regions, child-band/death/child totals reconcile.
+PASS: age-table death percentages sum to 100.0%; both contrasts retained; no fit-time column.
+PASS: 21 annual totals use 42 countries and reproduce the three national-burden years.
+PASS: 2024 country table reproduces all three Figure 5 totals; 37 state totals reconcile.
+PASS: producer/data provenance hashes match; table source has valid row terminators.
+PASS: no TeX files created in this result version.

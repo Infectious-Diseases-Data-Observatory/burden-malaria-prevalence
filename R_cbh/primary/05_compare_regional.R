@@ -47,14 +47,6 @@ p <- ggplot(central,aes(pfpr_pct,log_hazard_ratio,colour=iteration,fill=iteratio
   scale_x_continuous(limits=c(0,80),breaks=c(0,20,40,60,80))+
   labs(x="PfPR[2–10] (%)",y="Log hazard ratio\nrelative to PfPR = 20%")+paper
 save_plot(p,"comparison_pfpr_splines.png")
-p <- ggplot(central[central$iteration==labels[2],],aes(pfpr_pct,log_hazard_ratio))+
-  geom_hline(yintercept=0,colour="grey65",linewidth=.4)+
-  geom_vline(xintercept=20,colour="grey80",linewidth=.4)+
-  geom_ribbon(aes(ymin=lower_95,ymax=upper_95),alpha=.16,fill=colours[2])+
-  geom_line(linewidth=1,colour=colours[2])+facet_wrap(~age_label,ncol=4)+
-  scale_x_continuous(limits=c(0,80),breaks=c(0,20,40,60,80))+
-  labs(x="PfPR[2–10] (%)",y="Log hazard ratio\nrelative to PfPR = 20%")+paper
-save_plot(p,"pfpr_splines.png")
 
 contrasts <- do.call(rbind,lapply(c(TRUE,FALSE),function(old) {
   a <- read("pfpr_40_to_20_contrasts.csv",old)
@@ -189,7 +181,7 @@ report <- c("# Primary PfPR-ACM model: revised regional adjustment", "",
   "Country and age-specific changes are in burden/comparison_country_totals.csv and burden/comparison_deaths_by_age.csv. Identical national PfPR and IHME baselines were verified. The existing equal-person-time assumption for the IHME 2–4-year group is retained.","",
   "## Reproduction and output scope","",
   "Run `Rscript R_cbh/primary/run_regional.R` for fresh fits, `--resume` to reuse only verified fit caches, or `--report-only` to recalculate effects, diagnostics and comparisons from the saved fits. No raw-source extraction, HIV refitting, supplementary fitting, manuscript editing or TeX generation is performed.","",
-  "The older fits are preserved in primary_map_gamma2_v1. Existing manuscript figures, annual 2004–2024 comparisons, Nigerian state estimates and subgroup sensitivities still use those older fits until explicitly regenerated; the current version here contains the new primary fits and 2005/2015/2024 national estimates.","",
+  "The older fits are preserved in primary_map_gamma2_v1. Current primary reporting, including annual 2004–2024 comparisons and Nigerian state estimates, is indexed in RESULTS.md and paper_figures/CAPTIONS.md. Subgroup and exposure sensitivity fits remain historical until separately refitted; they are outside this reporting refresh.","",
   "Numerical checks and provenance: fit_diagnostics.csv, fit_manifest.csv, fit_input_provenance.csv, fitted_outcome_checks.csv, comparison_edf.csv, and comparison_provenance.csv. In-sample outcome checks are not external validation or survey influence analyses.")
 writeLines(report,file.path(out,"REPORT.md"))
 inputs <- unique(c(inputs,formula_path,"R_cbh/primary/05_compare_regional.R","R_cbh/primary/settings.R",

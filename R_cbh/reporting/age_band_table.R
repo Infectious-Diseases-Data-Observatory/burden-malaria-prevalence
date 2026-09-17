@@ -40,7 +40,7 @@ cbh_primary_age_table <- function(root, ages) {
     " under-five deaths as the denominator. Displayed percentages use largest-remainder rounding to one decimal place and sum to 100.0%. ",
     "Records are child–age-band observations, so a child can contribute multiple records. EDF: effective degrees of freedom of the PfPR spline. ",
     "Both contrast columns are adjusted mortality hazard ratios for reducing PfPR from the first value to the second. ",
-    "Intervals are conditional on fitted smoothing parameters, exposure and the fixed HIV imputation; zero PfPR is below observed exposure support in every band.")
+    "Intervals are conditional on fitted smoothing parameters, exposure, the fixed HIV imputation and filled regional covariates; zero PfPR is below observed exposure support in every band.")
   md <- c("| Completed months | Records | Deaths (% of U5 deaths) | PfPR EDF | HR: 40% to 20% (95% interval) | HR: 20% to 0% (95% interval) |",
     "|---|---:|---:|---:|---:|---:|",
     vapply(seq_along(ages),function(i) sprintf("| %s | %s | %s (%.1f%%) | %.2f | %s | %s |",ages[i],fmt(d$rows[i]),
@@ -81,10 +81,10 @@ cbh_primary_age_table <- function(root, ages) {
     "Records are child--age-band observations; a child can contribute multiple records.",
     "EDF: effective degrees of freedom of the PfPR spline. HR: adjusted mortality hazard ratio for reducing PfPR from the first value to the second.",
     "Models were fitted separately by age band using MAP prevalence and $\\gamma=2$.",
-    "Intervals condition on fitted smoothing parameters, exposure and the fixed HIV imputation; zero PfPR is below observed exposure support in every band.",
+    "Intervals condition on fitted smoothing parameters, exposure, the fixed HIV imputation and filled regional covariates; zero PfPR is below observed exposure support in every band.",
     "\\end{minipage}",
     "\\end{table}")
-  writeLines(trimws(tex,which="right"),file.path(out,"age_band_results.tex"))
+  writeLines(trimws(tex,which="right"),file.path(out,"age_band_results.latex.txt"))
   inputs <- c(paths,"R_cbh/reporting/age_band_table.R")
   cbh_atomic_csv(data.frame(file=inputs,md5=vapply(inputs,cbh_file_hash,"")),file.path(out,"provenance.csv"))
   invisible(md)

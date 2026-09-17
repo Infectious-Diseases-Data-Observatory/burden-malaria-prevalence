@@ -1,0 +1,24 @@
+{
+  "purpose": "Inputs for the secondary subnational (Nigerian state) burden calculation for 2024 (R_cbh/burden/05_nigeria_state_burden.R).",
+  "source_label": "IHME GBD Data Explorer / Results Tool exports for the 37 Nigerian states (36 states and FCT)",
+  "portal": "https://vizhub.healthdata.org/gbd-results/",
+  "data_suite": "Exports identify the data suite as GBD (1990-2024); the exact release/version is not stated in the files and remains unverified, as for the national IHME inputs.",
+  "retrieved": "Exported by the analyst on 2026-09-16 (all causes) and 2026-09-16 or earlier (malaria); copied here from the Small Area Estimation project on 2026-09-17.",
+  "age_groups_all_cause": ["Under 5", "0 to 6 days (early neonatal)", "7 to 27 days (late neonatal)", "1 to 5 months", "6-11 months", "1 to 4", "2 to 4"],
+  "files": [
+    {
+      "file": "Data Explorer - export_trigger_table - All causes - Deaths - Rate (per 100,000), Number in Abia, Adamawa,...  2026-09-16 13-53-49.csv",
+      "description": "All-cause under-5 deaths by GBD age group and state, both sexes, Number and Rate per 100,000, 2000-2025. Population per age group is recovered as Number / Rate x 100,000.",
+      "sha256": "0df3054dd7b309a9e887f1eda529607c0dee74d8e2527e1b01b0715ee28b6c10",
+      "bytes": 4047067,
+      "file_modified_utc": "2026-09-17 21:26:34 UTC"
+    },
+    {
+      "file": "GBD NG Malaria mortality incidence prevalence rates 2011-2024.csv",
+      "description": "Under-5 malaria deaths, incidence and prevalence rates per 100,000 by state, both sexes, 2011-2024; the 2024 death rate is the cause-specific comparator.",
+      "sha256": "aa23afd9949125f41cb7fbf9aec646a0c6c79777a66c514212d9fa1d9315b9d2",
+      "bytes": 189422,
+      "file_modified_utc": "2026-09-17 21:26:34 UTC"
+    }
+  ]
+}

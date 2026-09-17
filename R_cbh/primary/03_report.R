@@ -5,7 +5,7 @@ source("R_cbh/primary/settings.R")
 source("R_cbh/reporting/age_band_table.R")
 source("R_cbh/reporting/labels.R")
 library(ggplot2)
-settings <- cbh_primary_settings();out <- settings$out
+settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional"));out <- settings$out
 model_label <- cbh_paper_model_label()
 writeLines(trimws(readLines(file.path(out,"model_formula.txt")),which="right"),file.path(out,"model_formula.txt"))
 ages <- cbh_config()$age_bands$age_band
@@ -130,7 +130,7 @@ md <- c("# Primary MAP analysis rerun","",
   "The unweighted binomial complementary-log-log model uses a fixed log band-width offset; separate cr PfPR (k=5) and calendar-year (k=6) splines, the saved scaled confounders, and survey/country/region random intercepts in each age band. Reference knot locations, sample selection and posterior-median child HIV incidence are unchanged. See [formula](model_formula.txt), [knots](../../../R_cbh/primary/reference_knots.csv) and [analysis plan](../../../docs/ANALYSIS_PLAN.md).","",
   "![PfPR curves](pfpr_splines.png)","",
   age_table,"",
-  "[LaTeX table fragment](tables/age_band_results.tex) · [Table data](tables/age_band_results.csv)","",
+  "[LaTeX table fragment](tables/age_band_results.latex.txt) · [Table data](tables/age_band_results.csv)","",
   "[40% to 20% figure](pfpr_40_to_20.png) · [All curve estimates](pfpr_curves.csv) · [Attributable-fraction anchors](pfpr_attributable_fraction_anchors.csv)","",
   "## National mortality","",
   "For each age band, HR = exp[f_g(0) − f_g(P_country)]. The IHME all-cause rate/count is multiplied by HR for the counterfactual and by (1 − HR) for the attributable contribution. National MAP prevalence and IHME inputs are held at the existing values for each year. Ages 2–4 share the IHME rate and split deaths/person-time equally; early/late neonatal inputs share the <1-month model effect.","",
@@ -149,7 +149,20 @@ md <- c("# Primary MAP analysis rerun","",
   "[Residual figure](outcome_residuals_by_pfpr.png) · [Fitted outcome checks](fitted_outcome_checks.csv) · [Grouped checks](grouped_outcome_checks.csv) · [Fit diagnostics](fit_diagnostics.csv) · [Fit manifest](fit_manifest.csv) · [Fit inputs/provenance](fit_input_provenance.csv) · [Burden provenance](burden/provenance.csv) · [Software versions](session_info.txt)","",
   "Reproduce the primary analysis, without data setup: `Rscript run_all.R --primary`. This forces fresh fitting. To regenerate aggregates/figures from verified current fits, use `Rscript R_cbh/primary/run.R --report-only`."
 )
-writeLines(md,file.path(out,"REPORT.md"))
+if(settings$regional) md <- c("# Current primary figures and tables", "",
+  sprintf("The revised 18-variable PfPR-ACM model uses %s children, %s child-band records and %s deaths in %s surveys and %s countries.",
+    fmt(sample$distinct_children),fmt(sample$records),fmt(sample$deaths),fmt(sample$surveys),fmt(sample$countries)), "",
+  "Seven separate MAP gamma=2 age-band fits, including survey-region urban percentage, with fixed PfPR/time knots and the declared HIV, UNICEF and available-region substitutions. The raw-source data and HIV imputation were not refitted. All seven models passed the fitted-input and numerical checks.", "",
+  "![PfPR curves](pfpr_splines.png)", "", age_table, "",
+  "[Table CSV](tables/age_band_results.csv) · [LaTeX source as plain text](tables/age_band_results.latex.txt)", "",
+  "[40% to 20% contrast figure](pfpr_40_to_20.png) · [Full contrasts and comparison with the previous adjustment](REPORT.md)", "",
+  "![Country estimates](burden/country_vs_ihme.png)", "",
+  "Country/IHME axes use identical base-10 scales starting at 1,000 deaths. All country estimates, signed age contributions and missing/support flags remain in the CSVs. Age intervals are conditional on smoothing parameters, exposure and filled covariates; marginal intervals are not summed into total intervals.", "",
+  "[Country totals](burden/country_totals.csv) · [Country-age estimates](burden/country_age_estimates.csv) · [Annual comparison](annual_comparison/README.md) · [Nigeria states](nigeria_states/README.md)", "",
+  "[Age contributions](burden/deaths_by_age.png) · [DRC synthetic-cohort survival](burden/drc_survival.png) · [Aggregate outcome check](outcome_residuals_by_pfpr.png)", "",
+  "[Paper figure manifest/captions](paper_figures/CAPTIONS.md) · [Study flow](study_flow/CAPTION.md) · [Fit diagnostics](fit_diagnostics.csv)", "",
+  "These are primary results. Snow, Sahel, geographic, period and other sensitivity analyses are separate; they are not refitted by reporting. No TeX files are written. Reproduce with `Rscript R_cbh/primary/run_regional.R --report-only`.")
+writeLines(md,file.path(out,if(settings$regional) "RESULTS.md" else "REPORT.md"))
 files <- c("pfpr_curves.csv","pfpr_40_to_20_contrasts.csv","pfpr_20_to_zero_contrasts.csv","tables/age_band_results.csv","fit_diagnostics.csv","primary_sample.csv","pfpr_edf.csv",
   "burden/year_summary.csv","burden/country_totals.csv","burden/country_age_estimates.csv","burden/drc_life_table.csv",
   "burden/comparison_with_previous_primary.csv","comparison_with_previous_curves.csv","grouped_outcome_checks.csv","fitted_outcome_checks.csv")
