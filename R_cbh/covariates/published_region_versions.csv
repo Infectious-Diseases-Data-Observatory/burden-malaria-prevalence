@@ -1,0 +1,23 @@
+survey,regkey,source_label,reason
+CD61FL,equateur,Equateur,Matches the 11-province source geography
+CD61FL,kasaioriental,Kasaï Oriental,Matches the 11-province source geography
+CD81FL,equateur,..Equateur (>= 2015),Matches the 26-province source geography
+CD81FL,kasaioriental,..Kasai-Oriental (>= 2015),Matches the 26-province source geography
+GH8CFL,western,..Western (post 2022),Matches 16-region geography including Western North
+GH8CFL,volta,..Volta (post 2022),Matches 16-region geography including Oti
+GH8CFL,northern,....Northern(post 2022),Matches 16-region geography including North East and Savannah
+SL61FL,northern,Northern (before 2017),Matches four-region geography before North Western split
+SL7AFL,northern,Northern,Matches five-region geography including North Western
+SN61FL,kaolack,....Kaolack (2010),Matches 14-region geography including Kaffrine
+SN61FL,kolda,....Kolda (2010),Matches 14-region geography including Sedhiou
+SN61FL,tambacounda,....Tambacounda (2010),Matches 14-region geography including Kedougou
+SN7ZFL,kaolack,....Kaolack (2010),Matches 14-region geography including Kaffrine
+SN7ZFL,kolda,....Kolda (2010),Matches 14-region geography including Sedhiou
+SN7ZFL,tambacounda,....Tambacounda (2010),Matches 14-region geography including Kedougou
+SN8SFL,kaolack,....Kaolack (2010),Matches 14-region geography including Kaffrine
+SN8SFL,kolda,....Kolda (2010),Matches 14-region geography including Sedhiou
+SN8SFL,tambacounda,....Tambacounda (2010),Matches 14-region geography including Kedougou
+UG52FL,eastern,..Eastern,Matches nine-region geography with separate East Central
+UG52FL,western,..Western,Matches nine-region geography with separate Southwest
+UG61FL,eastern,..Eastern,Matches ten-region geography with separate East Central
+UG61FL,western,..Western,Matches ten-region geography with separate Southwest

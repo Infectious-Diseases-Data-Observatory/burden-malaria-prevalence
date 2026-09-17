@@ -1,12 +1,12 @@
 # Analysis plan: malaria prevalence and child mortality
 
-Updated 17 September 2026 (annual comparison and consistent manuscript naming; primary specification unchanged). This is a working analysis plan revised after inspection of exploratory results, not a prospective preregistration. The [previous plan](ANALYSIS_PLAN_BEFORE_MAP_GAMMA2.md) preserves the original audit, superseded specifications and decision history; the [code audit](CODE_AUDIT.md) compares each component with the current implementation and records the archival changes.
+Updated 17 September 2026 (expanded primary adjustment set; all confounders are regional summaries). This is a working analysis plan revised after inspection of exploratory results, not a prospective preregistration. The [previous plan](ANALYSIS_PLAN_BEFORE_MAP_GAMMA2.md) preserves the original audit, superseded specifications and decision history; the [code audit](CODE_AUDIT.md) compares each component with the current implementation and records the archival changes.
 
-**Current primary analysis:** seven separate child–age-band mortality models using **annual MAP PfPR₂–₁₀ at band entry**, fitted with **`mgcv::bam`, `gamma = 2`, PfPR `bs = "cr", k = 5`, and calendar-year `bs = "cr", k = 6`**. Use the full eligible MAP sample, including eligible observations after 2015. Each age band has its own time spline, confounder coefficients and survey/country/region random effects and variance parameters. Section 3.1 gives the complete specification.
+**Current primary analysis:** seven separate child–age-band mortality models using **annual MAP PfPR₂–₁₀ at band entry**, fitted with **`mgcv::bam`, `gamma = 2`, PfPR `bs = "cr", k = 5`, and calendar-year `bs = "cr", k = 6`**. Use the full eligible MAP sample, including eligible observations after 2015. Each age band has its own time spline, confounder coefficients and survey/country/region random effects and variance parameters. Section 3.1 gives the complete specification. **The 17 September revision replaces individual confounders with survey-region averages and adds five vaccine measures, facility delivery, exclusive breastfeeding, short birth interval, WASH and electricity. This revised specification has not yet been fitted.**
 
 **Supplementary results:** comparisons with the annual Snow prevalence estimates, including matched MAP–Snow fits at gamma=2, all Snow penalisation analyses and Snow-based national mortality scenarios. The Snow availability cutoff at 2015 applies only to those analyses and their matched MAP comparators. Snow is not the primary exposure. The [supplementary results index](<../Supplementary results/README.md>) links to the saved figures and tables.
 
-**Primary output selection:** use the [primary-only gamma=2 manifest](../results/cbh/primary_map_gamma2_v1/fit_manifest.csv) and associated result tables in `results/cbh/primary_map_gamma2_v1/`. All seven entries are `map_full`. The preceding mixed MAP–Snow outputs remain unchanged as historical/supplementary comparisons. Run `Rscript run_all.R --primary` for the primary analysis from the saved prepared sample, without data setup. See [pipeline instructions](../R_cbh/primary/README.md).
+**Previously fitted benchmark (superseded adjustment set):** the [primary-only gamma=2 manifest](../results/cbh/primary_map_gamma2_v1/fit_manifest.csv) and associated result tables in `results/cbh/primary_map_gamma2_v1/`. All seven entries are `map_full`, but these fits, their sample counts, sensitivity results, burden estimates and paper figures still use the previous eleven-variable individual/country adjustment set. Preserve them as a benchmark. **Do not present them as results of the revised regional adjustment model.** `Rscript run_all.R --primary` currently reproduces that benchmark; a new prepared dataset and versioned fitting/reporting configuration are required before promoting revised results. See [pipeline instructions](../R_cbh/primary/README.md) and the [regional covariate audit](../R_cbh/covariates/README.md).
 
 ## 1. Scientific questions and reporting choices
 
@@ -53,15 +53,37 @@ Validate synthetic birth histories, age boundaries, five-year eligibility, compl
 
 ### 2.4 Covariates, HIV imputation and missing data
 
-The primary adjustment set is **sex, multiple birth, birth order, maternal age at birth, maternal education, household wealth quintile, urban residence, log child HIV incidence, log GDP per capita, log health expenditure per capita and political stability**. Wealth is categorical; continuous confounders enter linearly after the saved centering/scaling. Retain the existing scaling for the current fitted comparisons. Do not select covariates by significance or introduce a generic missingness threshold to redefine this set.
+**Decision, 17 September 2026:** all confounding predictors are **survey-region summaries**, with no individual child, mother or household predictor in the primary model. Retain the previous concepts and add vaccination, facility delivery, breastfeeding, birth interval, WASH and electricity. The outcome remains a child–age-band observation. Regional averaging changes the adjustment estimand and does not substitute for individual-level confounding control.
 
-Annual national covariates are assigned at band-entry year. Wealth, urban residence, education and other survey measurements describe interview-time conditions; do not relabel them as reconstructed historical measurements. Vaccines, maternal death fraction, hypothetical children, wasting, WASH and intervention coverage are not part of the current primary adjustment set. Optional candidate fields can remain in the base dataset without triggering complete-case exclusion.
+| Confounder | Regional definition and extraction denominator |
+|---|---|
+| Sex; multiple birth | Weighted percentages male and from multiple births among live births in the 60 months before interview; each birth counted once, irrespective of survival or eventual model inclusion |
+| Birth order; maternal age at birth | Weighted mean birth order and maternal age at birth among those recent births |
+| Maternal education; wealth; urban residence | Weighted mean education years, mean wealth-quintile score (1–5), and percentage urban among distinct interviewed mothers with a birth in those 60 months; each mother counted once. These are summaries of mothers represented in the birth history, not all households or all women |
+| DTP3; measles vaccination | Published DHS survey-region vaccination coverage, using the source's reported age window (normally 12–23 months); retain source metadata and do not use an individual vaccination response as a mortality predictor |
+| Hib3; PCV; rotavirus vaccination | All three national annual WUENIC coverage measures assigned to every survey region in that country at band-entry year |
+| Facility delivery | Published regional percentage delivered in a health facility; prefer the five-year recall window, otherwise retain the reported three-/two-year window with its flag |
+| Breastfeeding | Regional percentage exclusively breastfed among youngest children aged 0–5 months living with their mother. Prefer a published regional estimate; otherwise use weighted recodes with an explicit feeding-module denominator and validation against the national published estimate |
+| Birth interval | Regional percentage of non-first births in the previous five years with a preceding interval <24 months: sum published 7–17- and 18–23-month categories. First births are outside this coverage denominator; they are **not excluded from mortality analysis** |
+| WASH | Two separate published regional percentages: households with an improved drinking-water source and households with an improved sanitation facility |
+| Electricity | Published regional percentage of households with electricity |
+| HIV incidence, GDP, health expenditure, political stability | Existing national annual measures assigned to each survey-region at band-entry year; log-transform the first three as previously specified |
+
+For recode-derived means use DHS women's sampling weights (`v005/1e6`) and the denominator above, calculated **before exposure/outcome complete-case selection**. Never average child-band rows, which would weight surviving children repeatedly. Published household indicators use their source's household denominator and weighting; do not approximate these using women’s weights on deduplicated birth histories. Preserve the region key's survey/boundary version. National annual variables remain constant across regions within a country-year because no regional source is available; assigning them to a region does not create regional variation.
+
+All 22 scalar confounders enter linearly after centering/scaling on the revised complete-case modelling sample. Mean wealth-quintile score is a numerical regional summary, not the former five-level individual factor. Save new scaling in a new analysis version; do not reuse the old individual-covariate scaling. Within each separately fitted age band, regional covariates have their own coefficients. PfPR and fractional calendar time remain band-entry exposure/time variables rather than being averaged over children.
+
+Survey-region DHS coverage, wealth, urban residence and education describe survey-time conditions or the indicator's stated retrospective window. Do not relabel them as reconstructed historical values at band entry. The five vaccine measures are all required in the revised primary complete-case set. Preserve source-missing, non-introduction and no-series flags; an assumed pre-series/no-series zero is not an observed coverage estimate. Maternal death fraction, hypothetical children and wasting remain outside the adjustment set.
+
+The [regional pipeline](../R_cbh/covariates/README.md) separately retrieves public indicator snapshots, extracts weighted recode summaries, resolves published regional joins and audits availability. Unresolved geography is not filled using a national value. The [missingness audit](../results/cbh/regional_adjustment_v1/README.md) distinguishes missing records, entirely lost survey-regions and partially reduced survey-regions. A regional mean can be observed when some individual responses are missing; respondent-level missingness and small denominators are reported separately. Do not drop a mortality record solely because that child's own confounder response is missing.
 
 Use **child HIV incidence at ages 0–14 per 1,000 uninfected population**, not HIV prevalence or infection counts. The [HIV imputation model](../R_cbh/hiv/README.md) uses child and adolescent incidence jointly, calendar-year trends, geographic/country effects and within-country temporal correlation. Preserve reported child rates, handle censored values as censored, and predict missing child series. Adolescent incidence informs imputation; it is not a separate predictor in the mortality model.
 
-The current primary fits use **one fixed posterior-median child-incidence imputation** and complete cases for the other selected model variables. Keep censoring, imputation and missing-source flags; unsupported country-year values remain missing. The historical HIV prevalence field in base shards is provenance only. There is no country/overall-median imputation for the other primary covariates.
+The revised primary model retains **one fixed posterior-median child-incidence imputation** and requires complete cases for all other selected **regional/annual** model variables. The currently saved fits implement the earlier adjustment set. Keep censoring, imputation and missing-source flags; unsupported country-year values remain missing. The historical HIV prevalence field in base shards is provenance only. There is no country/overall-median imputation for the other primary covariates.
 
 Report missingness and exclusions by country, survey, year, age and exposure. Missing HIV/source data, unresolved geography and complete-case selection remain substantive issues. Retain posterior HIV trajectories for future uncertainty propagation through all seven primary models. For validation with held-out surveys/countries, estimate preprocessing and imputation within training folds where appropriate.
+
+**Availability audit, 17 September:** relative to the previous 1,015 survey-regions, requiring all 22 revised covariates retains **418** and loses **597 (58.8%)**; 216 retained regions also lose some previously included records. Starting from all MAP-eligible records, the complete-case candidate sample contains **1,783,426 child-band records, 598,112 children and 17,815 deaths across 41 surveys in 24 countries**. These counts treat unresolved feeding/source estimates as unavailable and retain the existing rule rejecting unverified pre-series vaccine zeros. They describe data availability, not a completed fit. See the [full audit](../results/cbh/regional_adjustment_v1/README.md) for denominators, per-covariate percentages, country losses and remaining extraction issues.
 
 ### 2.5 Analysis-ready outputs
 
@@ -69,30 +91,37 @@ Report missingness and exclusions by country, survey, year, age and exposure. Mi
 |---|---|
 | `data/derived_cbh/manifest.rds` and `child_bands/<survey>.rds` | Authoritative build manifest and eligible child-band shards with audits |
 | `data/derived_cbh/hiv_incidence/child_incidence_country_year.csv` | Incidence estimates and source/imputation flags |
-| `data/derived_cbh/models/age_band_hiv_incidence_shared_time_v3/complete_case_dataset.rds` | Saved incidence-adjusted primary modelling sample and preprocessing |
-| `results/cbh/primary_map_gamma2_v1/fit_manifest.csv` | Seven freshly fitted primary MAP gamma=2 objects; all entries are `map_full` |
+| `data/derived_cbh/regional_adjustment/regional_covariates_wide.csv` | New survey-region covariate overlay; exact survey/regkey join to eligible shards before complete-case selection |
+| `results/cbh/regional_adjustment_v1/complete_case_summary.csv` | Revised adjustment availability audit, including losses relative to the previous fitted sample |
+| `data/derived_cbh/models/age_band_hiv_incidence_shared_time_v3/complete_case_dataset.rds` | Previous individual-adjustment modelling sample and preprocessing; benchmark only |
+| `results/cbh/primary_map_gamma2_v1/fit_manifest.csv` | Seven previous-adjustment MAP gamma=2 objects; all entries are `map_full` |
 | Aggregate selection, missingness, geography and model diagnostics | Inspectable accounting without microdata |
 
-The primary fitting sample contains **1,817,912 distinct children contributing 5,885,022 child-band records and 82,415 deaths from 105 surveys in 34 countries**. The [15 September verification](../results/cbh/code_audit_2026_09_15/primary_fit_checks.csv) compared every primary fitted outcome, predictor and offset with the saved prepared sample and verified the selected model hashes and knots. Keep raw/derived microdata and fitted objects under ignored `data/`; export only approved aggregates to results. Validate unique child-band keys and input hashes. The primary-only fitter now reads this prepared dataset directly and checks every outcome, predictor and offset. Its reference MAP knots are preserved in a committed snapshot. A future consolidated data stage must still operate independently of existing outcome models and results tables.
+The **previously fitted** sample contains **1,817,912 distinct children contributing 5,885,022 child-band records and 82,415 deaths from 105 surveys in 34 countries**. The [15 September verification](../results/cbh/code_audit_2026_09_15/primary_fit_checks.csv) compared every primary fitted outcome, predictor and offset with the saved prepared sample and verified the selected model hashes and knots. Keep raw/derived microdata and fitted objects under ignored `data/`; export only approved aggregates to results. Validate unique child-band keys and input hashes. The primary-only fitter now reads this prepared dataset directly and checks every outcome, predictor and offset. Its reference MAP knots are preserved in a committed snapshot. A future consolidated data stage must still operate independently of existing outcome models and results tables.
 
 ## 3. Stage 2 — primary and sensitivity analyses
 
 ### 3.1 Primary working model
 
-**Selected on 10 September 2026: separate age-band MAP models with gamma=2.** For each of the seven bands, fit:
+**Separate age-band MAP models with gamma=2, with the regional adjustment revision of 17 September 2026.** For each of the seven bands, fit:
 
 ```r
 form <- death ~
   s(pfpr_pct, bs = "cr", k = 5) +
   s(calendar_year, bs = "cr", k = 6) +
-  sex + multiple_birth + z_birth_order + z_maternal_age_birth +
-  z_maternal_education_years + wealth_quintile + urban +
+  z_male_pct + z_multiple_birth_pct + z_mean_birth_order +
+  z_mean_maternal_age_birth + z_mean_maternal_education_years +
+  z_mean_wealth_quintile + z_urban_pct +
+  z_dtp3_pct + z_measles_pct + z_hib3_pct + z_pcv3_pct + z_rotavirus_pct +
+  z_facility_delivery_pct + z_exclusive_breastfeeding_pct +
+  z_short_birth_interval_pct + z_improved_water_pct +
+  z_improved_sanitation_pct + z_electricity_pct +
   z_log_hiv_incidence + z_log_gdp_pc +
   z_log_health_expenditure_pc + z_political_stability +
   s(survey, bs = "re") + s(country, bs = "re") +
   s(region, bs = "re") + offset(log(band_years))
 
-# d_g: the full eligible MAP sample for this one age band.
+# d_g: revised regional-adjustment complete cases for this one age band.
 # knots_g: saved PfPR and calendar-year knots from the MAP reference fit.
 fit_g <- mgcv::bam(
   form, data = d_g, knots = knots_g,
@@ -112,11 +141,11 @@ q_{ig}=1-\exp(-\Delta_g\lambda_{ig}),
 
 \[
 \log\lambda_{ig}=\alpha_g+f_g(P_{r(i),y_{ig}})+h_g(t_{ig})+
-\mathbf X_{ig}^{\mathsf T}\boldsymbol\beta_g+
+\mathbf X_{r(i),s(i),y_{ig}}^{\mathsf T}\boldsymbol\beta_g+
 u_{s(i),g}+v_{c(i),g}+b_{r(i),g}.
 \]
 
-Here P is regional annual MAP PfPR₂–₁₀, y is band-entry year, and t is fractional calendar year at entry. The exposure surface has no age-band-specific definition; the function f and the entry year depend on the band. Equivalently, `cloglog(q_ig) = log(Δg) + log(λ_ig)`.
+Here X contains survey-region summaries from Section 2.4 and national annual covariates assigned to those regions; it contains no individual confounding predictor. P is regional annual MAP PfPR₂–₁₀, y is band-entry year, and t is fractional calendar year at entry. The exposure surface has no age-band-specific definition; the function f and the entry year depend on the band. Equivalently, `cloglog(q_ig) = log(Δg) + log(λ_ig)`.
 
 Each fit estimates its own intercept, PfPR and time curves, confounder coefficients and survey/country/region random intercepts. Within each model, the random effects are independent zero-mean Gaussians, with a separate estimated variance for each grouping type. No time spline, random intercept or variance parameter is shared across age bands. Separate fitting does not imply independent sampling errors across ages because children and surveys contribute to multiple bands.
 
@@ -124,7 +153,7 @@ Each fit estimates its own intercept, PfPR and time curves, confounder coefficie
 
 The unweighted likelihood, fixed HIV imputation and conditional model covariance are current working choices. Address survey design, residual dependence and imputation/exposure uncertainty before claiming comprehensive uncertainty. The primary decision follows review of results and user instruction; it does not establish superior causal identification or formal model-selection evidence.
 
-**Authoritative implementation:** [primary/01_fit.R](../R_cbh/primary/01_fit.R), configured in [settings.R](../R_cbh/primary/settings.R), with `map_full_age_1` through `map_full_age_7` in the [primary manifest](../results/cbh/primary_map_gamma2_v1/fit_manifest.csv). Fitted objects are in `data/derived_cbh/models/primary_map_gamma2_v1/`. The fitting sample is read from the existing prepared dataset, with saved scaling and [reference knots](../R_cbh/primary/reference_knots.csv). The older combined MAP–Snow workflow remains for supplementary reproduction; its `map_full` results are the numerical comparison for this rerun. The older `sensitivity_single_imputation/age_*.rds` fits used gamma=1.
+**Revised formula/data specification:** [covariates/regional.R](../R_cbh/covariates/regional.R) defines `cbh_regional_spec()` and `cbh_regional_formula()`. Refit and reporting integration are pending. **Previous benchmark implementation:** [primary/01_fit.R](../R_cbh/primary/01_fit.R), configured in [settings.R](../R_cbh/primary/settings.R), with `map_full_age_1` through `map_full_age_7` in the [primary manifest](../results/cbh/primary_map_gamma2_v1/fit_manifest.csv). Fitted objects are in `data/derived_cbh/models/primary_map_gamma2_v1/`. The fitting sample is read from the existing prepared dataset, with saved scaling and [reference knots](../R_cbh/primary/reference_knots.csv). The older combined MAP–Snow workflow remains for supplementary reproduction; its `map_full` results are the numerical comparison for this rerun. The older `sensitivity_single_imputation/age_*.rds` fits used gamma=1.
 
 ### 3.2 Effect summaries
 
@@ -160,7 +189,7 @@ Each sensitivity needs a declared change, sample, exposure source, gamma, formul
 | Supplementary: smoothing | Primary MAP gamma=2 versus MAP gamma=1; Snow gamma=1, 1.4, 2 and cs | Existing fits/results retained. Snow cs used gamma=1 and changed PfPR only; it is not the primary specification. |
 | Required: eligibility and timing | Shorter lookback; entry-year lag; complete-band versus appropriate partial-follow-up alternatives | Adapt to current child-band records; no silent annual borrowing or return to the superseded window-count likelihood. |
 | Required: age coding | Recorded days, month/year heaping, B6/B7 disagreement and alternative age boundaries | Primary has seven DHS completed-month bands; the historical 3-versus-4-month split is not the primary definition. |
-| Required: missingness and adjustment | Selection patterns, HIV censoring/absent series, imputation uncertainty and reduced adjustment blocks | Other covariates remain complete-case in primary. Adding vaccines, wasting, WASH or intervention measures requires a separate causal rationale. |
+| Required: missingness and adjustment | Selection patterns, HIV censoring/absent series, imputation uncertainty and reduced adjustment blocks | The expanded regional adjustment set in Section 2.4 is primary. Compare its selection and effects with reduced adjustment blocks and the previous individual-adjustment benchmark; wasting remains an optional separate extension. |
 | Required: design and dependence | Survey weights; common cluster/stratum bootstrap; residual regional and within-child dependence | Retain unweighted primary point fit as reference; do not substitute rounded effective counts without a separate model definition. |
 | Required: dose response / reference | Basis dimensions, linear comparison, 0% versus 1%, exposure restrictions | Match samples; report all supported contrasts and low-PfPR sensitivity. |
 | Secondary: heterogeneity | Country omission, calendar interaction, within/between exposure and covariate timing | Separate, declared extensions of the primary structure. |
@@ -171,7 +200,7 @@ Each sensitivity needs a declared change, sample, exposure source, gamma, formul
 
 <a id="key-pfpr-spline-sensitivity-analysis-current-seven-band-cbh-model"></a>
 
-Use the seven full-sample MAP gamma=2 fits as the primary reference. Hold the median child HIV imputation, covariate selection/scaling and entry-year exposure timing fixed. Re-estimate smoothing parameters in each new fit at **gamma=2**, retaining the basis types and dimensions; record subgroup-specific knots and support.
+Once refitted, use the seven revised regional-adjustment MAP gamma=2 fits as the primary reference. Existing subgroup and source comparisons below describe the earlier adjustment set and require matching refits. Hold the median child HIV imputation, covariate selection/scaling and entry-year exposure timing fixed. Re-estimate smoothing parameters in each new fit at **gamma=2**, retaining the basis types and dimensions; record subgroup-specific knots and support.
 
 - **Joint versus separate:** compare with a joint model having age-specific PfPR curves and confounder coefficients but one shared calendar-year spline and the historical joint random-effect structure. The completed joint/separate comparison used gamma=1; a matched gamma=2 joint fit remains to be run. Do not relabel the old comparison as gamma=2.
 - **Geography:** fit each age separately in UN M49 Western Africa and Eastern plus Middle (Central) Africa. Exclude Southern Africa only for this comparison: Namibia, Eswatini and South Africa. The current groups contain 13 and 18 countries. Each subgroup-age fit has its own time curve and random-effect variances. Separate-age gamma=2 subgroup fits remain planned.
@@ -212,6 +241,8 @@ Retain signed contributions, zero/current-prevalence support flags and condition
 
 ## 4. Stage 3 — plot saved results and separate primary from supplementary reporting
 
+**Revision status:** all existing figures and numerical burden results below use the previous adjustment set. Regenerate them from the new version after the regional-adjustment fits are completed; retain the figure definitions and naming conventions.
+
 | Reporting location | Content | Authoritative selection |
 |---|---|---|
 | Main results | Study flow, survey/sample coverage and seven age-band descriptive summaries | Full MAP sample and its exclusion ledger |
@@ -232,17 +263,17 @@ Plotting-only stages must read saved aggregate estimates and must not refit, cha
 
 ## 5. Implementation status and next steps
 
-**Primary-only rerun:** [R_cbh/primary/](../R_cbh/primary/README.md) now separates fresh fitting, effect/burden calculation, aggregate diagnostic checks and MAP-only plotting. It regenerates the study inclusion flow and key-results index. The prepared dataset, HIV imputation, national exposure inputs and IHME inputs remain fixed; supplementary fits are not run. New outputs are saved separately from the preceding comparison workflow, with numerical differences documented in the [rerun report](../results/cbh/primary_map_gamma2_v1/REPORT.md).
+**Previous-adjustment primary-only rerun:** [R_cbh/primary/](../R_cbh/primary/README.md) now separates fresh fitting, effect/burden calculation, aggregate diagnostic checks and MAP-only plotting. It regenerates the study inclusion flow and key-results index. The prepared dataset, HIV imputation, national exposure inputs and IHME inputs remain fixed; supplementary fits are not run. New outputs are saved separately from the preceding comparison workflow, with numerical differences documented in the [rerun report](../results/cbh/primary_map_gamma2_v1/REPORT.md).
 
-**15 September audit and cleanup:** the [component-by-component audit](CODE_AUDIT.md) verifies that the saved primary specification and data match this plan, while distinguishing unimplemented sensitivities and unresolved upstream issues. Sixty-eight superseded scripts were moved to [the archive](../archive/2026-09-15-code-audit/), along with preserved copies of three replaced entry points. Existing data, fitted objects and numerical results were not changed.
+**15 September audit and cleanup:** the [component-by-component audit](CODE_AUDIT.md) verified that the saved primary specification and data matched the plan at that date, before the 17 September regional-adjustment revision, while distinguishing unimplemented sensitivities and unresolved upstream issues. Sixty-eight superseded scripts were moved to [the archive](../archive/2026-09-15-code-audit/), along with preserved copies of three replaced entry points. Existing data, fitted objects and numerical results were not changed.
 
-`Rscript run_all.R --primary` forces fresh primary fitting and regenerates all implemented primary outputs without data setup. `Rscript R_cbh/primary/run.R --resume` reuses only valid completed fit caches; `--report-only` uses saved fits for effects, diagnostics and plotting. `Rscript run_all.R --audit` retains verification of the preserved pre-rerun primary snapshot; `--check-inputs` checks local dataset prerequisites. The [results index](<../Key results/README.md>) links the new authoritative results.
+`Rscript run_all.R --primary` currently forces fresh fitting of the previous adjustment specification and regenerates its outputs without data setup; it does not yet implement the regional revision. `Rscript R_cbh/primary/run.R --resume` reuses only valid completed fit caches; `--report-only` uses saved fits for effects, diagnostics and plotting. `Rscript run_all.R --audit` retains verification of the preserved pre-rerun primary snapshot; `--check-inputs` checks local dataset prerequisites. The [results index](<../Key results/README.md>) links the new authoritative results.
 
 **Remaining command-routing limitation:** older [sensitivity fitting](../R_cbh/sensitivity/01_fit.R) and [burden defaults](../R_cbh/burden/settings.R) still refer to gamma=1-era fits. `analysis/01_fit_complete_case.R` should be used with `--prepare-only` for dataset preparation; its default fit is historical. These scripts remain because they provide reference frames/knots or input tables used by the selected workflow. Do not use those defaults as a gamma=2 primary run. The new primary-only pipeline bypasses these defaults. National burden still reads explicit baseline columns from the earlier saved national input tables; consolidating their upstream producers remains a data-stage task.
 
 Retain the three-stage workflow: **make datasets → fit declared models and calculate effects → plot saved results**. Priorities are:
 
-1. Preserve the current primary/supplementary separation and input provenance. Primary-only routing and plotting are now implemented; in-sample fitted-outcome checks supplement the numerical diagnostics, but are not cross-validation or influence analysis.
+1. Resolve flagged regional-covariate extraction issues, prepare the expanded complete-case dataset and refit all seven models under a new version; regenerate sensitivities, burden, sample flow and paper results before promoting them. Preserve the primary/supplementary separation and input provenance. Primary-only routing and plotting are now implemented; in-sample fitted-outcome checks supplement the numerical diagnostics, but are not cross-validation or influence analysis.
 2. Complete primary-compatible gamma=2 joint, geographic and period sensitivity fits; preserve historical comparisons with their actual settings.
 3. Resolve the [open data and inference issues](OPEN_ANALYSIS_ISSUES.md), especially regional exposure coverage, missing-data selection, calendar/age coding, imputation uncertainty and survey/within-child dependence.
 4. Consolidate the independent data build and prediction interfaces. Rebuild from a declared input snapshot and verify cache hashes. Fresh primary fitting now uses prepared data and committed reference knots; baseline national input tables still need an independent producer interface.

@@ -2,6 +2,23 @@
 
 Updated 10 September 2026. The [current primary specification](ANALYSIS_PLAN.md) uses seven separate age-band MAP models with **gamma=2**, cr bases (PfPR k=5; time k=6), and one fixed posterior-median **child HIV-incidence imputation**. Snow comparisons are supplementary; the [joint model document](PFPR_AGE_BAND_MODEL.md) records a historical sensitivity specification. These issues remain open; fitting the model does not resolve them. The [incidence model documentation](../R_cbh/hiv/README.md) describes validation, censoring and uncertainty propagation.
 
+
+## Expanded regional adjustment — 17 September 2026
+
+The latest [analysis plan](ANALYSIS_PLAN.md#24-covariates-hiv-imputation-and-missing-data) supersedes the adjustment choices in the historical trial notes below: all confounders are regional summaries; all five vaccine measures, facility delivery, exclusive breastfeeding, short birth interval, WASH and electricity are selected. The [new extraction and audit](../R_cbh/covariates/README.md) leaves existing fitted models untouched.
+
+The candidate complete-case sample has **1,783,426 records, 598,112 children, 17,815 deaths, 418 survey-regions, 41 surveys and 24 countries**. Relative to the previous fitted sample, **597/1,015 regions (58.8%) are lost**. [Detailed results](../results/cbh/regional_adjustment_v1/README.md) distinguish record missingness, partially reduced regions and whole-region loss.
+
+Remaining work:
+
+- **Historical vaccine coverage:** PCV and rotavirus are unavailable for 55.94% and 68.52% of previously fitted records. Most gaps are unverified pre-series/non-introduction placeholders. Verify introduction histories and true zero coverage separately from missing reporting; the current audit does not change these to zero. Complete-case restriction removes ten previously represented countries entirely.
+- **Breastfeeding extraction:** generic feeding code can misread questionnaire skips and subsampling. Prefer published regional values; retain respondent/module flags and the national validation comparison. The audit leaves 71 previously included regions unavailable because of unresolved recode disagreements, in addition to 159 with no usable recode estimate. Ten survey-level checks require review, some already covered by usable published regional estimates. Two retained regions have fewer than 25 breastfeeding observations; 59 have fewer than 50. These remain available for the audit, but their uncertainty and a small-denominator sensitivity need assessment.
+- **Published geography and timing:** checked aliases/version selectors resolve overlapping old/new region presentations, including DRC/Ghana/Senegal. Remaining absent regional values need distinguishing from source suppression and unavailable modules. Retain inclusion/exclusion clauses, birth/delivery recall windows and source age definitions. Do not fill a region from its country mean.
+- **Regional estimand:** maternal education, wealth and urban residence are weighted means among distinct mothers with a recent birth; child characteristics use recent births once each. These are not general household/population averages. Regional summaries may leave individual confounding and have sampling error. Review transportability and timing before causal interpretation.
+- **Refitting:** the expanded formula/overlay are implemented, but the prepared fitting dataset, seven model fits, sensitivities, burden estimates, flow chart and paper figures have not been updated. Use a new analysis version; do not relabel the old eleven-variable fits. `run_all.R --primary` still reproduces that prior benchmark.
+
+The remaining sections preserve earlier evidence and trial decisions; vaccine exclusion and individual predictors stated there describe the **superseded** adjustment set.
+
 ## Country burden update: 9 September 2026
 
 The [2024 national burden stage](../R_cbh/burden/README.md) uses the new finer-age IHME export. The remaining 2-4-year block is split using the user-authorized equal-rate/equal-person-time assumption. Its uncertainty is not included in the model intervals. The 0-27-day source group uses the <1-completed-month fitted PfPR effect; this boundary approximation remains explicit.
@@ -10,7 +27,7 @@ Population-weighted national PfPR now includes grid-cell area in the GPW 2020 de
 
 The PfPR-to-zero calculation retains negative attributable effects and flags zero-exposure extrapolation. Causal interpretation and transfer of the common fitted curves to countries outside the fitting sample remain assumptions. Current primary age-band intervals use model covariance conditional on a fixed median HIV imputation; they omit HIV-imputation, IHME/MAP source, survey-design, age-allocation and smoothing-parameter uncertainty. Earlier joint multiple-imputation outputs used a different uncertainty calculation. Country total deaths currently have point estimates only.
 
-## Decisions for the current primary analysis
+## Historical decisions before the regional-adjustment revision
 
 - Seven completed-month bands: <1, 1–5, 6–11, 12–23, 24–35, 36–47 and 48–59.
 - Entry during the 60 months before interview, with the full potential band ending by interview for both deaths and survivors.

@@ -1,5 +1,7 @@
 # Primary MAP pipeline
 
+**17 September specification change:** the commands below reproduce the saved **previous adjustment set**. The revised analysis plan requires regional summaries and the expanded covariates in [../covariates/README.md](../covariates/README.md). Its extraction/availability audit is implemented; fitting and paper results have not yet been updated. Keep these historical outputs separate until a new prepared sample and versioned fitter are promoted.
+
 Run from the project root:
 
 ```sh
