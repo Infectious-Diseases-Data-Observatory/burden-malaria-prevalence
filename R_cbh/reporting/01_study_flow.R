@@ -11,6 +11,8 @@ input_paths <- c(
   child_checks="data/derived_cbh/child_checks.csv",
   eligibility="data/derived_cbh/eligibility_flow.csv",
   selection="results/cbh/age_band_hiv_incidence_shared_time_v3/selection.csv",
+  sample=file.path(root,"primary_sample.csv"),
+  survey_coverage=file.path(root,"survey_coverage.csv"),
   diagnostics=file.path(root,"fit_diagnostics.csv"),
   fits=file.path(root,"fit_manifest.csv"))
 m <- cbh_read_csv(input_paths[["survey_manifest"]])
@@ -19,12 +21,21 @@ e <- cbh_read_csv(input_paths[["eligibility"]])
 s <- cbh_read_csv(input_paths[["selection"]])
 d <- cbh_read_csv(input_paths[["diagnostics"]]);d <- d[d$series=="map_full",]
 f <- cbh_read_csv(input_paths[["fits"]]);f <- f[f$series=="map_full",]
+sample <- cbh_read_csv(input_paths[["sample"]])
+coverage <- cbh_read_csv(input_paths[["survey_coverage"]])
 ages <- cbh_config()$age_bands$age_band
 cbh_unique(m,"survey","Survey manifest")
 cbh_unique(e,c("survey","age_band"),"Eligibility ledger")
 cbh_unique(s,"survey","Model selection")
 stopifnot(nrow(d)==7,nrow(f)==7,setequal(d$age_band,ages),all(d$gamma==2),
   all(d$converged),all(d$input_verified),!any(m$status=="failed"))
+# Confirm that these are still the selected primary prepared inputs. Hashing does
+# not inspect individual records; all displayed counts come from aggregate ledgers.
+prepared_path <- cbh_primary_settings()$data
+stopifnot(all(f$prepared_data_md5==cbh_file_hash(prepared_path)),nrow(sample)==1L,
+  sample$records==sum(d$rows),sample$deaths==sum(d$deaths),
+  sample$surveys==nrow(coverage),sample$countries==length(unique(coverage$country)),
+  setequal(coverage$survey,s$survey[s$complete_case_rows>0]))
 built <- m[m$status %in% c("built","cached"),]
 omitted <- m[!m$status %in% c("built","cached"),]
 stopifnot(all(omitted$status=="missing_map_geography"),setequal(built$survey,s$survey),
@@ -54,6 +65,7 @@ n$excluded_missing <- n$missing_map+n$missing_covariates
 n$recorded_births <- sum(c$children)
 n$valid_births <- sum(c$children[c$status=="valid"])
 n$recent_valid_births <- sum(e$entered_in_lookback[e$age_band=="<1"])
+n$primary_distinct_children <- sample$distinct_children
 stopifnot(n$entered-n$excluded_eligibility==n$eligible,n$eligible-n$excluded_missing==n$primary)
 fmt <- function(x) format(x,big.mark=",",scientific=FALSE,trim=TRUE)
 counts <- data.frame(item=names(n),count=unlist(n),row.names=NULL)
@@ -105,10 +117,11 @@ caption <- c("# Figure caption — primary sample inclusion","",
   sprintf("**Figure. Sample inclusion for the primary MAP analysis.** The survey registry contains %s surveys in %s countries. %s surveys lack MAP geography, leaving %s processed surveys in %s countries. Counts below the registry refer to child–age-band records, not unique children, and begin after birth-history validity checks and confirmation that the child reached the band alive.",fmt(n$registry),fmt(n$registry_countries),fmt(n$omitted),fmt(n$built),fmt(n$built_countries)),"",
   sprintf("The processed surveys contain %s recorded births across their complete birth histories; %s pass history-validity checks, including %s births within 60 months before interview. These birth totals exclude the surveys skipped for missing MAP geography. Children born earlier can still contribute later age-band entries within the five-year window.",fmt(n$recorded_births),fmt(n$valid_births),fmt(n$recent_valid_births)),"",
   sprintf("Among %s band entries within the 60 months before interview, %s have an incomplete potential band and %s have entry years outside 2000–2024. Requiring the full potential band to end by interview for deaths and survivors alike leaves %s eligible records. A further %s lack usable regional MAP/geography, and %s lack at least one required covariate after joining child HIV incidence. Covariate exclusions count records once, even if several values are missing. The final sample contains %s records and %s deaths from %s surveys in %s countries.",fmt(n$entered),fmt(n$incomplete),fmt(n$outside_year),fmt(n$eligible),fmt(n$missing_map),fmt(n$missing_covariates),fmt(n$primary),fmt(n$deaths),fmt(n$surveys),fmt(n$countries)),"",
+  sprintf("These final records represent %s distinct children, including children born more than five years before interview whose later band entries meet the lookback rule. This figure describes the full primary sample, not the Sahel-only or Snow sensitivity subsets.",fmt(n$primary_distinct_children)),"",
   "Seven completed-month bands are analyzed separately: <1, 1–5, 6–11, 12–23, 24–35, 36–47 and 48–59. The outcome is death during the band. Annual regional MAP PfPR₂–₁₀ and national covariates are assigned at band-entry year; exposure is not averaged over time until death. There is no prevalence floor or requirement for a death in each region/band. Eligible MAP records after 2015 are retained.","",
   "Adjustment variables are sex, multiple birth, birth order, maternal age, maternal education, wealth quintile, urban residence, log child HIV incidence, log GDP per capita, log health expenditure per capita and political stability. Child HIV incidence uses the fixed posterior-median imputation informed by adolescent incidence; other model covariates require complete cases. Vaccines and maternal death fraction are excluded.","",
   "Counts are read from the saved build/eligibility/selection ledgers and reconciled with the seven selected full-sample MAP gamma=2 fits. See [counts](flow_counts.csv), [survey selection](survey_selection.csv), [provenance](provenance.csv) and the [analysis plan](../../../../docs/ANALYSIS_PLAN.md).")
 writeLines(caption,file.path(out,"CAPTION.md"))
-provenance <- c(unname(input_paths),"R_cbh/reporting/01_study_flow.R","R_cbh/00_config.R")
+provenance <- c(unname(input_paths),prepared_path,"R_cbh/reporting/01_study_flow.R","R_cbh/primary/settings.R","R_cbh/00_config.R")
 cbh_atomic_csv(data.frame(file=provenance,md5=vapply(provenance,cbh_file_hash,"")),file.path(out,"provenance.csv"))
 message("Saved current primary study flow and caption: ",out)
