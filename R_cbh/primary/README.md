@@ -1,11 +1,13 @@
 # Primary MAP pipeline
 
-**17 September specification change:** the commands below reproduce the saved **previous adjustment set**. The revised analysis plan requires regional summaries and the expanded covariates in [../covariates/README.md](../covariates/README.md). Its extraction/availability audit is implemented; fitting and paper results have not yet been updated. Keep these historical outputs separate until a new prepared sample and versioned fitter are promoted.
+**Current primary:** the revised 18-variable regional-adjustment fits and comparison with the previous iteration are implemented. Run `Rscript run_all.R --primary` or `Rscript R_cbh/primary/run_regional.R`. See [REGIONAL_REFIT.md](REGIONAL_REFIT.md) for the current pipeline, outputs and resume/report-only commands. It writes no TeX files.
 
-Run from the project root:
+The remainder of this page documents the preserved **previous eleven-variable benchmark** in `primary_map_gamma2_v1`, including its older paper-reporting workflow. Those figures are not results of the revised adjustment. The historical runner includes a TeX table writer and must not be executed while the standing no-TeX-edit instruction applies.
+
+Historical reproduction command (reference only):
 
 ```sh
-Rscript run_all.R --primary
+Rscript R_cbh/primary/run.R
 ```
 
 This forces seven fresh age-band fits, then recalculates contrasts, national mortality for 2005/2015/2024, aggregate diagnostics, primary-only figures, the inclusion flow and the key-results index. It does not rebuild the dataset, refit HIV imputation, extract rasters, or run Snow/sensitivity models.

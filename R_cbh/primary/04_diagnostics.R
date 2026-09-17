@@ -38,7 +38,8 @@ for(i in seq_len(nrow(manifest))) {
 }
 coverage <- unique(rbindlist(coverage))
 coverage <- coverage[,.(regions=uniqueN(region)),by=.(survey,country)]
-stopifnot(nrow(coverage)==105,uniqueN(coverage$country)==34)
+sample <- cbh_read_csv(file.path(out,"primary_sample.csv"))
+stopifnot(nrow(coverage)==sample$surveys,uniqueN(coverage$country)==sample$countries)
 cbh_atomic_csv(as.data.frame(coverage),file.path(out,"survey_coverage.csv"))
 cbh_atomic_csv(do.call(rbind,checks),file.path(out,"fitted_outcome_checks.csv"))
 cbh_atomic_csv(do.call(rbind,groups),file.path(out,"grouped_outcome_checks.csv"))

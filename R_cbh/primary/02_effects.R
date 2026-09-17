@@ -144,6 +144,11 @@ comparison$difference_deaths <- comparison$rerun_deaths-comparison$previous_deat
 cbh_atomic_csv(comparison,file.path(out,"comparison_with_previous_primary.csv"))
 old_curve_path <- file.path(settings$reference,"pfpr_curves.csv")
 old <- cbh_read_csv(old_curve_path);old <- old[old$series=="map_full",]
+if(settings$regional) {
+  # Sample-dependent quantile locations differ; compare the common fixed grid.
+  d <- d[d$pfpr_pct %in% seq(0,100,.5),]
+  stopifnot(nrow(d)==7L*201L)
+}
 j <- match(cbh_key(d,c("age_band","pfpr_pct")),cbh_key(old,c("age_band","pfpr_pct")))
 stopifnot(!anyNA(j))
 curve_comparison <- d[c("age_band","pfpr_pct")]

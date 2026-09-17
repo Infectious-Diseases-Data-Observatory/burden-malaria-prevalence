@@ -1,0 +1,10 @@
+"iso3","country","year","series","pfpr_pct","exposure_source","status","ihme_under5_deaths","attributable_under5_deaths","counterfactual_under5_deaths","attributable_fraction","ihme_malaria_deaths","map_population_coverage","any_current_pfpr_outside_observed_support","any_zero_below_observed_support","temporal_transport_from_pre2016_fit","previous_deaths","change_deaths","change_pct"
+"CPV","Cape Verde",2005,"map_full",,"MAP","missing_MAP_no_estimate",487.882790929842,,,,0.360636598851271,,,TRUE,FALSE,,,
+"LSO","Lesotho",2005,"map_full",,"MAP","missing_MAP_no_estimate",4720.58173459787,,,,,0,,TRUE,FALSE,,,
+"STP","Sao Tome and Principe",2005,"map_full",,"MAP","missing_MAP_no_estimate",413.742464346307,,,,39.3306059836189,,,TRUE,FALSE,,,
+"CPV","Cape Verde",2015,"map_full",,"MAP","missing_MAP_no_estimate",297.674343911655,,,,0.0236627273474872,,,TRUE,FALSE,,,
+"LSO","Lesotho",2015,"map_full",,"MAP","missing_MAP_no_estimate",3209.90050536875,,,,,0,,TRUE,FALSE,,,
+"STP","Sao Tome and Principe",2015,"map_full",,"MAP","missing_MAP_no_estimate",246.668713665251,,,,1.97586382035857,,,TRUE,FALSE,,,
+"CPV","Cape Verde",2024,"map_full",,"MAP","missing_MAP_no_estimate",171.633171400474,,,,3.47634329775336e-24,,,TRUE,FALSE,,,
+"LSO","Lesotho",2024,"map_full",,"MAP","missing_MAP_no_estimate",2500.22260683638,,,,,0,,TRUE,FALSE,,,
+"STP","Sao Tome and Principe",2024,"map_full",,"MAP","missing_MAP_no_estimate",150.390666476629,,,,2.34744035019355,,,TRUE,FALSE,,,
