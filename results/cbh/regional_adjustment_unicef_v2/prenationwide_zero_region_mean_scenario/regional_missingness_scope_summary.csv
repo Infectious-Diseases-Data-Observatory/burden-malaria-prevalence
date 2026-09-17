@@ -1,0 +1,16 @@
+"variable","missing_records","recoverable_records","no_donor_records","missing_regions","recoverable_regions","regions_without_donors","surveys_with_recoverable_regions","surveys_without_donors"
+"male_pct",0,0,0,0,0,0,0,0
+"multiple_birth_pct",0,0,0,0,0,0,0,0
+"mean_birth_order",0,0,0,0,0,0,0,0
+"mean_maternal_age_birth",0,0,0,0,0,0,0,0
+"mean_maternal_education_years",0,0,0,0,0,0,0,0
+"mean_wealth_quintile",35865,0,35865,62,0,62,0,9
+"urban_pct",0,0,0,0,0,0,0,0
+"dtp3_pct",0,0,0,0,0,0,0,0
+"measles_pct",0,0,0,0,0,0,0,0
+"facility_delivery_pct",237785,30518,207267,43,7,36,6,5
+"exclusive_breastfeeding_pct",1136030,67039,1068991,293,32,261,1,33
+"short_birth_interval_pct",47904,47904,0,10,10,0,8,0
+"improved_water_pct",47904,47904,0,10,10,0,8,0
+"improved_sanitation_pct",47904,47904,0,10,10,0,8,0
+"electricity_pct",136738,47904,88834,22,10,12,8,1

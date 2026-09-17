@@ -29,6 +29,16 @@ y <- cbh_regional_recode(br,s,NULL,geo)$values
 stopifnot(y$value[y$variable=="mean_wealth_quintile"]==1,
   y$missing_n[y$variable=="mean_wealth_quintile"]==1L)
 spec <- cbh_regional_spec(); vars <- all.vars(cbh_regional_formula())
+# Missing regions do not contaminate a survey mean, nor borrow across surveys.
+w <- data.frame(survey=c("A","A","A","B","B","C","C"),regkey=c("a","b","c","a","b","a","b"),
+  example=c(20,NA,60,NA,NA,30,NA))
+y <- cbh_regional_mean_fill(w,"example")
+stopifnot(identical(cbh_regional_mean_fill(as.data.table(w),"example"),y))
+stopifnot(identical(y$example,c(20,40,60,NA_real_,NA_real_,30,30)),
+  identical(y$example_regional_mean_imputed,c(FALSE,TRUE,FALSE,FALSE,FALSE,FALSE,TRUE)),
+  identical(y$example_donor_regions,c(2L,2L,2L,0L,0L,1L,1L)))
+bad <- try(cbh_regional_mean_fill(rbind(w,w[1,]),"example"),silent=TRUE)
+stopifnot(inherits(bad,"try-error"))
 stopifnot(length(spec$covariates)==22L,all(paste0("z_",spec$covariates) %in% vars),
   !any(c("sex","multiple_birth","birth_order","maternal_age_birth","wealth_quintile","urban") %in% vars))
 args <- commandArgs(TRUE)
@@ -48,6 +58,7 @@ stopifnot(choices[survey=="CD61FL" & regkey=="equateur",all(source_labels=="Equa
 writeLines(c("PASS: birth-weighted and distinct-mother-weighted summaries",
   "PASS: youngest eligible infant denominator and unknown feeding responses",
   "PASS: regional means retain records with missing individual values",
+  "PASS: available-region means exclude NAs, preserve values, leave all-missing surveys unresolved and reject duplicate regions",
   "PASS: 22 regional/annual confounders; no individual confounding terms",
   "PASS: selection and region-loss accounting",
   "PASS: published source consistency and reviewed DRC boundary versions"),file.path(out,"validation.txt"))

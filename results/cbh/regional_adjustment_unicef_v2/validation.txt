@@ -1,6 +1,7 @@
 PASS: birth-weighted and distinct-mother-weighted summaries
 PASS: youngest eligible infant denominator and unknown feeding responses
 PASS: regional means retain records with missing individual values
+PASS: available-region means exclude NAs, preserve values, leave all-missing surveys unresolved and reject duplicate regions
 PASS: 22 regional/annual confounders; no individual confounding terms
 PASS: selection and region-loss accounting
 PASS: published source consistency and reviewed DRC boundary versions

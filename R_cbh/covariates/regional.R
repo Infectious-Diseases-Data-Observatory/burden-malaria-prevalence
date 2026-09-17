@@ -107,3 +107,31 @@ cbh_regional_formula <- function() {
     paste(paste0("z_",cbh_regional_spec()$covariates),collapse=" + "),
     "+ s(survey,bs='re') + s(country,bs='re') + s(region,bs='re') + offset(log(band_years))"))
 }
+
+# One row per survey-region, before repeating covariates over child-band rows.
+# Each variable uses its own observed donor regions from the same survey.
+cbh_regional_mean_fill <- function(wide,variables=cbh_regional_spec()$regional) {
+  wide <- as.data.frame(wide)
+  cbh_require(wide,c("survey","regkey",variables),"Regional mean substitution")
+  cbh_unique(wide,c("survey","regkey"),"Regional mean substitution")
+  for(v in variables) {
+    original <- wide[[v]]
+    missing <- !is.finite(original)
+    donor_n <- integer(nrow(wide)); donor_mean <- rep(NA_real_,nrow(wide))
+    for(s in unique(wide$survey)) {
+      ix <- which(wide$survey==s)
+      donors <- ix[is.finite(original[ix])]
+      donor_n[ix] <- length(donors)
+      if(length(donors))donor_mean[ix] <- mean(original[donors])
+    }
+    fill <- missing & is.finite(donor_mean)
+    wide[[v]][fill] <- donor_mean[fill]
+    wide[[paste0(v,"_before_regional_mean")]] <- original
+    wide[[paste0(v,"_regional_mean_imputed")]] <- fill
+    wide[[paste0(v,"_donor_regions")]] <- donor_n
+    wide[[paste0(v,"_regional_mean_source")]] <- ifelse(fill,"mean_available_regions_same_survey",
+      ifelse(missing,"no_available_region_same_survey","retained_input_estimate"))
+    stopifnot(identical(wide[[v]][!missing],original[!missing]),all(!fill | donor_n>0L))
+  }
+  wide
+}
