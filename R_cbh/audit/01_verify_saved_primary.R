@@ -8,6 +8,7 @@ library(mgcv)
 library(data.table)
 out <- "results/cbh/code_audit_2026_09_15"
 dir.create(out, recursive = TRUE, showWarnings = FALSE)
+# Historical directory name: its map_full rows are the original primary fits.
 root <- "results/cbh/map_snow_gamma2_v1"
 manifest <- cbh_read_csv(file.path(root, "fit_manifest.csv"))
 manifest <- manifest[manifest$series == "map_full", ]

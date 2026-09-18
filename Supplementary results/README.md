@@ -1,27 +1,10 @@
 # Supplementary results
 
-Reporting designation updated 10 September 2026. The primary analysis uses **full-sample MAP prevalence, seven separate age-band models and gamma=2**; see the [analysis plan](../docs/ANALYSIS_PLAN.md). The Snow prevalence analyses below are supplementary. These links retain the original files and provenance; no fits or results have been moved or recomputed.
+Reporting designation updated 18 September 2026. The primary analysis uses **full-sample MAP prevalence, seven separate age-band models and gamma=2**; see the [analysis plan](../docs/ANALYSIS_PLAN.md). The analyses below are supplementary sensitivity checks of that primary model.
 
-## Snow versus MAP at gamma=2
+## Removed analyses
 
-The principal supplementary comparison uses identical pre-2016 records. Its matched MAP fit is a supplementary comparator, not the full-sample primary MAP model.
-
-- [Matched age-band spline figure](../results/cbh/map_snow_gamma2_v1/matched_pfpr_splines.png)
-- [Full-sample comparison figure](../results/cbh/map_snow_gamma2_v1/full_sample_pfpr_splines.png) — changes fitting period/sample as well as exposure source
-- [Model comparison report, EDF, contrasts and diagnostics](../results/cbh/map_snow_gamma2_v1/REPORT.md)
-- [Country mortality comparison report](../results/cbh/map_snow_gamma2_v1/burden/REPORT.md)
-- [All-country mortality figure](../results/cbh/map_snow_gamma2_v1/burden/country_deaths_all_years.png)
-- [Country comparison table](../results/cbh/map_snow_gamma2_v1/burden/country_comparisons.csv)
-
-The country comparison evaluates both sets of curves at the **same national MAP exposure** in 2005, 2015 and 2024. Snow has no 2024 prevalence estimate; its 2024 mortality result transports the pre-2016 fitted relationship to MAP exposure. Preserve that label and the source/transport limitations. Primary MAP rows appearing as references in these supplementary comparisons remain identifiable as `map_full` (or `map_full_gamma2` in year totals).
-
-## Snow exposure audit and smoothing analyses
-
-- [Annual Snow extraction, joins and original comparison](../results/cbh/age_band_snow_2000_2015_v1/REPORT.md)
-- [Separate gamma=1.4 and PfPR cs sensitivities](../results/cbh/age_band_snow_2000_2015_v1/penalty_sensitivity/REPORT.md)
-- [Snow gamma=1, 1.4 and 2 comparison](../results/cbh/age_band_snow_2000_2015_v1/penalty_sensitivity/gamma2/comparison/REPORT.md)
-
-The Snow cs fit used gamma=1; it changed only the PfPR basis. All Snow analyses retain their actual settings. MAP/gamma=2/cr is the primary specification.
+The comparison of MAP with the annual Snow prevalence estimates (matched MAP–Snow fits, Snow penalisation trials and Snow-based national mortality scenarios) was removed from the analysis plan on 18 September 2026 and is not part of the manuscript. Its code is in [`archive/2026-09-18-snow-comparison/`](../archive/2026-09-18-snow-comparison/README.md). The saved outputs in `results/cbh/map_snow_gamma2_v1/` and `results/cbh/age_band_snow_2000_2015_v1/` are retained unchanged as historical records; `results/cbh/map_snow_gamma2_v1/` also holds the original primary `map_full` fits and is still read by the saved-primary audit.
 
 ## Sahelian child mortality by calendar month
 

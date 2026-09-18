@@ -2,6 +2,8 @@
 
 15 September 2026 · Plan: [ANALYSIS_PLAN.md](ANALYSIS_PLAN.md) · Source baseline: `f44fa326b58735f6266315398be154233da09138`.
 
+> **Note, 18 September 2026:** the Snow prevalence comparison (former plan §3.4.2) was removed from the plan and its code (`R_cbh/snow/`, `R_dhs/51_snow_polygon_prevalence.R`) moved to [`archive/2026-09-18-snow-comparison/`](../archive/2026-09-18-snow-comparison/README.md). Rows below that cite those scripts describe the audit as of 15 September and are retained unchanged. `results/cbh/map_snow_gamma2_v1/` still holds the original primary `map_full` fits.
+
 The **saved primary MAP gamma=2 models agree with the declared model and prepared data**. The pipeline as a whole does **not yet implement every component of the plan**. At the audit baseline, the largest gaps were the inherited regional MAP extraction, primary-compatible sensitivity fits, survey/design and imputation uncertainty, and a standalone primary fitting/reporting workflow. The follow-up below records the new primary-only rerun.
 
 This review checks code behaviour against the plan; agreement with the plan is not evidence that the adjustment set identifies a causal effect. No DHS model or HIV imputation model was refitted, no source was downloaded, and no existing scientific estimates or data were changed. Synthetic model tests did fit small simulated models. The saved primary dataset and model frames were read locally for verification; only aggregates were exported.
