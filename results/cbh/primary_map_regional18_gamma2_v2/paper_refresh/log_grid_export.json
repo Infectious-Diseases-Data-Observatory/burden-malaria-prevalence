@@ -1,19 +1,19 @@
 {
-  "grid_spacing_log10": 0.1,
+  "minor_grid": "Linear multiples 2 through 9 of each power of ten",
   "figures": [
     {
       "figure": 4,
       "source": "results/cbh/primary_map_regional18_gamma2_v2/burden/country_vs_ihme.png",
       "destination": "/Users/jameswatson/Library/CloudStorage/Dropbox/Apps/Overleaf/malaria-burden-reassessment/figures/fig4_country_estimates_vs_ihme.png",
-      "sha256": "e8424f25256bf118547db18bea1353215a9ff910d513ed51f66274224eb03bd8",
-      "previous_sha256": "6e26e4373028be233fba43d51da663a8a48bba23a9cfa9aceb47ae238a252845"
+      "sha256": "fc5f78dc2774b58e30a67d8027a4b16fd17c3af6a0846aa0782c940aa253138e",
+      "previous_sha256": "e8424f25256bf118547db18bea1353215a9ff910d513ed51f66274224eb03bd8"
     },
     {
       "figure": 6,
       "source": "results/cbh/primary_map_regional18_gamma2_v2/nigeria_states/fig6_nigeria_states_vs_ihme.png",
       "destination": "/Users/jameswatson/Library/CloudStorage/Dropbox/Apps/Overleaf/malaria-burden-reassessment/figures/fig6_nigeria_states_vs_ihme.png",
-      "sha256": "4ccdbb30d96d5918b927a30c9df1988fa676dd45b621bc362bd47bc712eeb9f3",
-      "previous_sha256": "7c840cdde03216ac064d8e0fd9e3778c945e6c376b578d62cb28d35e375a5aab"
+      "sha256": "3d6dd8768bf8e0c01ac4f252408bfb4c8e9e7ff052e30c7edd5c6df95ff55ec8",
+      "previous_sha256": "4ccdbb30d96d5918b927a30c9df1988fa676dd45b621bc362bd47bc712eeb9f3"
     }
   ],
   "tex_unchanged": true,
@@ -21,6 +21,6 @@
     "/Users/jameswatson/Library/CloudStorage/Dropbox/Apps/Overleaf/malaria-burden-reassessment/main.tex": "33363d2e76a93327c1e77ccf519904393ab3b1be832050db4c0e9f76942c9b5e",
     "/Users/jameswatson/Library/CloudStorage/Dropbox/Apps/Overleaf/malaria-burden-reassessment/SText1_model_specification.tex": "6784d66eed08b9fbb20a435e6cae78733ddf8c41991b0f5322db0271a1552f85"
   },
-  "backup": "results/cbh/primary_map_regional18_gamma2_v2/paper_refresh/previous_overleaf/20260918T081654Z",
-  "completed_at": "20260918T081654Z"
+  "backup": "results/cbh/primary_map_regional18_gamma2_v2/paper_refresh/previous_overleaf/20260918T082000Z",
+  "completed_at": "20260918T082000Z"
 }
