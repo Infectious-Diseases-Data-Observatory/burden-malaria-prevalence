@@ -4,6 +4,7 @@
 source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 source("R_cbh/reporting/labels.R")
+source("R_cbh/reporting/log_axes.R")
 library(ggplot2)
 settings <- cbh_primary_settings("regional");out <- settings$out
 formula_path <- file.path(out,"model_formula.txt")
@@ -69,8 +70,8 @@ p <- ggplot(contrasts,aes(age_label,hazard_ratio,colour=iteration))+
   geom_hline(yintercept=1,colour="grey60",linetype=2)+
   geom_errorbar(aes(ymin=lower_95,ymax=upper_95),position=position_dodge(width=.5),width=.15)+
   geom_point(position=position_dodge(width=.5),size=2.5)+coord_flip()+
-  facet_wrap(~contrast,nrow=1)+scale_y_log10()+scale_colour_manual(values=colours)+
-  labs(x="Age (months)",y="Mortality hazard ratio (95% interval)")+paper
+  facet_wrap(~contrast,nrow=1)+scale_y_log10(minor_breaks=cbh_log10_minor_breaks)+scale_colour_manual(values=colours)+
+  labs(x="Age (months)",y="Mortality hazard ratio (95% interval)")+paper+cbh_log10_grid_theme()
 save_plot(p,"comparison_contrasts.png",12,7)
 
 sample <- read("prepared_sample.csv");old_sample <- read("primary_sample.csv",TRUE)
@@ -135,9 +136,9 @@ p <- ggplot(plot_rows,aes(previous_deaths,attributable_under5_deaths))+
   geom_point(colour=colours[2],size=2.5,alpha=.8)+
   ggrepel::geom_text_repel(data=plot_rows[plot_rows$iso3 %in% c("COD","NGA","AGO","TZA","UGA"),],
     aes(label=iso3),size=4.5,seed=20260917,max.overlaps=Inf)+
-  facet_wrap(~year,nrow=1)+scale_x_log10(labels=log_labels)+scale_y_log10(labels=log_labels)+
+  facet_wrap(~year,nrow=1)+scale_x_log10(labels=log_labels,minor_breaks=cbh_log10_minor_breaks)+scale_y_log10(labels=log_labels,minor_breaks=cbh_log10_minor_breaks)+
   coord_equal(xlim=limits,ylim=limits)+labs(x=paste0(cbh_paper_model_label(),": previous adjustment\nDeaths before age 5"),
-    y=paste0(cbh_paper_model_label(),": revised adjustment\nDeaths before age 5"))+paper
+    y=paste0(cbh_paper_model_label(),": revised adjustment\nDeaths before age 5"))+paper+cbh_log10_grid_theme()
 save_plot(p,"burden/comparison_country_deaths.png",15,6)
 
 fmt <- function(x)format(round(x),big.mark=",",scientific=FALSE,trim=TRUE)
@@ -185,6 +186,6 @@ report <- c("# Primary PfPR-ACM model: revised regional adjustment", "",
   "Numerical checks and provenance: fit_diagnostics.csv, fit_manifest.csv, fit_input_provenance.csv, fitted_outcome_checks.csv, comparison_edf.csv, and comparison_provenance.csv. In-sample outcome checks are not external validation or survey influence analyses.")
 writeLines(report,file.path(out,"REPORT.md"))
 inputs <- unique(c(inputs,formula_path,"R_cbh/primary/05_compare_regional.R","R_cbh/primary/settings.R",
-  "R_cbh/reporting/labels.R"))
+  "R_cbh/reporting/labels.R","R_cbh/reporting/log_axes.R"))
 write(data.frame(file=inputs,md5=vapply(inputs,cbh_file_hash,"")),"comparison_provenance.csv")
 message("Revised primary comparison complete: ",out,"/REPORT.md")

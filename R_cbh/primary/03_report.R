@@ -4,6 +4,7 @@ source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 source("R_cbh/reporting/age_band_table.R")
 source("R_cbh/reporting/labels.R")
+source("R_cbh/reporting/log_axes.R")
 library(ggplot2)
 settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional"));out <- settings$out
 model_label <- cbh_paper_model_label()
@@ -42,10 +43,10 @@ hr$age_label <- factor(hr$age_band,levels=rev(ages))
 p <- ggplot(hr,aes(hazard_ratio_40_to_20,age_label))+
   geom_vline(xintercept=1,colour="grey60",linetype=2)+
   geom_segment(aes(x=lower_95,xend=upper_95,yend=age_label),colour="#215E91",linewidth=.8)+
-  geom_point(colour="#215E91",size=3)+scale_x_log10()+
+  geom_point(colour="#215E91",size=3)+scale_x_log10(minor_breaks=cbh_log10_minor_breaks)+
   labs(title="Mortality change if PfPR falls from 40% to 20%",
     subtitle="Primary MAP analysis · gamma = 2",x="Mortality hazard ratio (95% interval)",y="Age (completed months)",
-    caption="Intervals condition on fitted smoothing parameters, fixed HIV imputation and exposure.")+base
+    caption="Intervals condition on fitted smoothing parameters, fixed HIV imputation and exposure.")+base+cbh_log10_grid_theme()
 save_plot(p,"pfpr_40_to_20.png",9,6)
 # Country totals are signed point estimates, with missing countries retained in CSVs.
 z <- totals[is.finite(totals$attributable_under5_deaths),]
@@ -81,9 +82,9 @@ p <- ggplot(plot_rows,aes(ihme_malaria_deaths,attributable_under5_deaths))+
   ggrepel::geom_text_repel(data=plot_rows[plot_rows$iso3 %in% c("COD","NGA","AGO","UGA","TZA"),],
     aes(label=iso3),size=5,seed=20260915,max.overlaps=Inf,min.segment.length=0)+
   facet_wrap(~year,nrow=1)+coord_equal(xlim=log_limits,ylim=log_limits,expand=FALSE)+
-  scale_x_log10(breaks=log_breaks,labels=log_labels)+
-  scale_y_log10(breaks=log_breaks,labels=log_labels)+
-  labs(x="IHME malaria deaths before age 5",y=paste0(model_label," deaths\nbefore age 5"))+paper+
+  scale_x_log10(breaks=log_breaks,labels=log_labels,minor_breaks=cbh_log10_minor_breaks)+
+  scale_y_log10(breaks=log_breaks,labels=log_labels,minor_breaks=cbh_log10_minor_breaks)+
+  labs(x="IHME malaria deaths before age 5",y=paste0(model_label," deaths\nbefore age 5"))+paper+cbh_log10_grid_theme()+
   theme(panel.spacing.x=grid::unit(40,"pt"),plot.margin=margin(10,26,10,10))
 # Both axes have exactly the same base-10 transform and range; no pseudocount.
 stopifnot(identical(p$scales$get_scales("x")$trans$name,"log-10"),
@@ -166,6 +167,6 @@ writeLines(md,file.path(out,if(settings$regional) "RESULTS.md" else "REPORT.md")
 files <- c("pfpr_curves.csv","pfpr_40_to_20_contrasts.csv","pfpr_20_to_zero_contrasts.csv","tables/age_band_results.csv","fit_diagnostics.csv","primary_sample.csv","pfpr_edf.csv",
   "burden/year_summary.csv","burden/country_totals.csv","burden/country_age_estimates.csv","burden/drc_life_table.csv",
   "burden/comparison_with_previous_primary.csv","comparison_with_previous_curves.csv","grouped_outcome_checks.csv","fitted_outcome_checks.csv")
-paths <- c(file.path(out,files),"R_cbh/primary/03_report.R","R_cbh/primary/settings.R","R_cbh/reporting/age_band_table.R","R_cbh/reporting/labels.R")
+paths <- c(file.path(out,files),"R_cbh/primary/03_report.R","R_cbh/primary/settings.R","R_cbh/reporting/age_band_table.R","R_cbh/reporting/labels.R","R_cbh/reporting/log_axes.R")
 cbh_atomic_csv(data.frame(file=paths,md5=vapply(paths,cbh_file_hash,"")),file.path(out,"report_provenance.csv"))
 message("Primary MAP figures and report complete")
