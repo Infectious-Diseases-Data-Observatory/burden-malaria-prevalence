@@ -34,6 +34,10 @@ for row in figures:
 assets.extend([
     (root / "paper_figures/CAPTIONS.md", Path("figures/primary_figure_captions.md")),
     (root / "burden_comparison/CAPTION.md", Path("figures/fig4_burden_comparison_caption.md")),
+    (root / "burden_comparison/sfig_burden_comparison_counts.png", Path("Supplementary Figures/sfig_burden_comparison_counts.png")),
+    (root / "burden_comparison/CAPTION_counts.md", Path("Supplementary Figures/sfig_burden_comparison_counts_caption.md")),
+    (Path("results/cbh/subgroups_map_gamma2_v1/sfig_pfpr_splines_by_subgroup.png"), Path("Supplementary Figures/sfig_pfpr_splines_by_subgroup.png")),
+    (Path("results/cbh/subgroups_map_gamma2_v1/CAPTION.md"), Path("Supplementary Figures/sfig_pfpr_splines_by_subgroup_caption.md")),
     (root / "study_flow/study_flow_diagram.png", Path("Supplementary Figures/sfig_study_flow.png")),
     (root / "study_flow/CAPTION.md", Path("Supplementary Figures/sfig_study_flow_caption.md")),
 ])
@@ -55,8 +59,9 @@ fmt = lambda x: f"{float(x):,.0f}"
 handoff.write_text(f"""# Updated primary results
 
 Figures 1–4 (Figure 4 combines the 2024 country comparison, the Nigerian state
-comparison and the 2004–2024 annual trend as panels A–C) and the supplementary
-inclusion flow use the {n_covariates}-variable
+comparison and the 2004–2024 annual trend as panels A–C, all as deaths per 1,000
+under-five child-years; its death-count version is a supplementary figure) and the
+supplementary inclusion flow use the {n_covariates}-variable
 regional-adjustment MAP gamma=2 models in `{root.name}`. The analysis contains
 {fmt(sample['children'])} children, {fmt(sample['records'])} child-band records and
 {fmt(sample['deaths'])} deaths in {fmt(sample['regions'])} survey-regions,

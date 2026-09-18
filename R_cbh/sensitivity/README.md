@@ -1,6 +1,6 @@
-# Single-imputation PfPR sensitivity fits
+# PfPR sensitivity fits
 
-> The commands below reproduce historical gamma=1 comparisons. Geographic and period subsets are joint models. The planned separate-age gamma=2 subgroup fits have not yet been implemented; see [the audit](../../docs/CODE_AUDIT.md).
+> **Current subgroup sensitivity (18 September 2026):** [`subgroups/`](subgroups/01_fit.R) refits the seven primary 17-variable MAP gamma=2 age-band models separately in four subsets of the fitted sample: Sahel survey regions (centroid ≥12°N, <36°E, outside the Horn), UN M49 Eastern Africa, and surveys up to / after the median survey year. `Rscript R_cbh/sensitivity/subgroups/01_fit.R` then `02_report.R`; outputs in `results/cbh/subgroups_map_gamma2_v1/`, including the supplementary overlay figure `sfig_pfpr_splines_by_subgroup.png`. The older [`sahel/`](sahel/README.md) refit used the 11-variable fit and is superseded. The commands below reproduce historical gamma=1 joint-model comparisons.
 
 Run from the project root after the current shared-time mortality model has been fitted:
 

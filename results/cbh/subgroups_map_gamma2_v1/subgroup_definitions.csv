@@ -1,0 +1,5 @@
+median_survey_year,2013
+early_definition,survey_year <= 2013
+late_definition,survey_year > 2013
+sahel_definition,centroid latitude >= 12 and longitude < 36 and country not in ETH/ERI/SOM/DJI
+east_africa_definition,UN M49 Eastern Africa: BDI COM DJI ERI ETH KEN MDG MOZ MWI RWA SOM SSD TZA UGA ZMB ZWE
