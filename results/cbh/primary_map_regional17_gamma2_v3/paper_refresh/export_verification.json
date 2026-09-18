@@ -1,0 +1,12 @@
+{
+  "destination": "/Users/jameswatson/Library/CloudStorage/Dropbox/Apps/Overleaf/malaria-burden-reassessment",
+  "exported_assets": 17,
+  "all_copy_hashes_match": true,
+  "tex_unchanged_during_export": true,
+  "tex_hashes": {
+    "/Users/jameswatson/Library/CloudStorage/Dropbox/Apps/Overleaf/malaria-burden-reassessment/main.tex": "a19e10af5bf34af58ee62f8daae402fab487a22da13647b23ee4daac25fbf2cc",
+    "/Users/jameswatson/Library/CloudStorage/Dropbox/Apps/Overleaf/malaria-burden-reassessment/SText1_model_specification.tex": "6784d66eed08b9fbb20a435e6cae78733ddf8c41991b0f5322db0271a1552f85"
+  },
+  "previous_asset_backup": "results/cbh/primary_map_regional17_gamma2_v3/paper_refresh/previous_overleaf/20260918T152400Z",
+  "completed_at": "2026-09-18T15:24:00.190305+00:00"
+}

@@ -19,7 +19,7 @@ read <- function(name,previous=FALSE) {
 save_plot <- function(p,name,width=14,height=8) ggsave(file.path(out,name),p,
   width=width,height=height,dpi=220,device=ragg::agg_png,bg="white")
 write <- function(d,name) cbh_atomic_csv(d,file.path(out,name))
-labels <- c("Previous adjustment","Revised regional adjustment")
+labels <- c("Previous 18-variable adjustment","Revised 17-variable adjustment")
 colours <- setNames(c("#B36B39","#215E91"),labels)
 paper <- theme_minimal(base_size=18)+theme(panel.grid.minor=element_blank(),
   axis.text=element_text(size=15),strip.text=element_text(size=18,face="bold"),
@@ -163,13 +163,13 @@ interpretation <- c(sprintf("For PfPR 40%% to 20%%, the largest absolute change 
     paste(sprintf("%.1f%%",old0$reduction_pct[older]),collapse=", ")," to ",
     paste(sprintf("%.1f%%",new0$reduction_pct[older]),collapse=", "),", respectively."),"")
 report <- c("# Primary PfPR-ACM model: revised regional adjustment", "",
-  "Seven separate MAP age-band models, gamma=2, fitted with the revised 18-variable specification. All seven converged, have finite covariance and full rank, and pass the positive smoothing-Hessian and exact fitted-input checks. The saved PfPR components reproduce full model prediction contrasts and variances.","",
+  "Seven separate MAP age-band models, gamma=2, fitted with the revised 17-variable specification. All seven converged, have finite covariance and full rank, and pass the positive smoothing-Hessian and exact fitted-input checks. The saved PfPR components reproduce full model prediction contrasts and variances.","",
   "## What changed", "",
-  "The previous fitted benchmark used 11 individual/country-level covariates. The new model uses 14 survey-region summaries and four national annual covariates. Urban percentage, DTP3/measles coverage, facility delivery, short birth interval, water, sanitation and electricity are included. Hib3, PCV, rotavirus and exclusive breastfeeding are excluded. Regional gaps use the declared UNICEF and within-survey available-region fallback; whole-survey gaps remain excluded.","",
+  "The previous fitted benchmark used 18 regional/annual covariates. The new model uses 13 survey-region summaries and four national annual covariates: sex, multiple births and birth order are removed; maternal age at each birth is replaced with age at first birth; wasting and stunting are added. Urban percentage, DTP3/measles coverage, facility delivery, short birth interval, water, sanitation and electricity are included. Hib3, PCV, rotavirus and exclusive breastfeeding are excluded. Regional gaps use the declared UNICEF and within-survey available-region fallback; whole-survey gaps remain excluded.","",
   "MAP band-entry exposure, fixed median child HIV incidence imputation, age bands, full-band offset, unweighted binomial/cloglog likelihood, reference spline knots, cr basis dimensions and gamma=2 are held fixed. Confounders are scaled on the new selected sample. Each age has its own time spline, covariate coefficients and random effects.","",
   "| Sample | Previous | Revised | Change |","|---|---:|---:|---:|",
   paste0("| ",sample_comparison$measure," | ",fmt(sample_comparison$previous)," | ",fmt(sample_comparison$revised)," | ",fmt(sample_comparison$change)," |"),"",
-  "The samples share 5,617,520 child-band records. The revision loses 267,502 previous records and recovers 62,597 records that were excluded under individual-level requirements. Differences therefore combine changes in adjustment definitions, added covariates, imputation and sample selection. They do not isolate any one of these changes; that would require additional fits on a common sample.","",
+  "The availability audit confirms that the samples share 5,465,305 child-band records. The revision loses 214,812 previous records and recovers none. Differences therefore combine changes in adjustment definitions, added covariates, imputation and sample selection. They do not isolate any one of these changes; that would require additional fits on a common sample.","",
   "## PfPR effects","","![PfPR spline comparison](comparison_pfpr_splines.png)","",
   "Curves are log hazard ratios relative to PfPR=20%; each is displayed over its own central 95% exposure range. Shading is a conditional 95% interval. The full 0–100% curves and support flags remain in comparison_pfpr_curves.csv. Intervals condition on smoothing parameters, exposure, one HIV imputation and other filled covariates. Overlapping-sample estimates are dependent; no formal test or interval for the difference between iterations is implied.","",
   interpretation,contrast_rows,
@@ -182,7 +182,7 @@ report <- c("# Primary PfPR-ACM model: revised regional adjustment", "",
   "Country and age-specific changes are in burden/comparison_country_totals.csv and burden/comparison_deaths_by_age.csv. Identical national PfPR and IHME baselines were verified. The existing equal-person-time assumption for the IHME 2–4-year group is retained.","",
   "## Reproduction and output scope","",
   "Run `Rscript R_cbh/primary/run_regional.R` for fresh fits, `--resume` to reuse only verified fit caches, or `--report-only` to recalculate effects, diagnostics and comparisons from the saved fits. No raw-source extraction, HIV refitting, supplementary fitting, manuscript editing or TeX generation is performed.","",
-  "The older fits are preserved in primary_map_gamma2_v1. Current primary reporting, including annual 2004–2024 comparisons and Nigerian state estimates, is indexed in RESULTS.md and paper_figures/CAPTIONS.md. Subgroup and exposure sensitivity fits remain historical until separately refitted; they are outside this reporting refresh.","",
+  "The previous 18-variable fits are preserved in primary_map_regional18_gamma2_v2. Current primary reporting, including annual 2004–2024 comparisons and Nigerian state estimates, is indexed in RESULTS.md and paper_figures/CAPTIONS.md. Subgroup and exposure sensitivity fits remain historical until separately refitted; they are outside this reporting refresh.","",
   "Numerical checks and provenance: fit_diagnostics.csv, fit_manifest.csv, fit_input_provenance.csv, fitted_outcome_checks.csv, comparison_edf.csv, and comparison_provenance.csv. In-sample outcome checks are not external validation or survey influence analyses.")
 writeLines(report,file.path(out,"REPORT.md"))
 inputs <- unique(c(inputs,formula_path,"R_cbh/primary/05_compare_regional.R","R_cbh/primary/settings.R",

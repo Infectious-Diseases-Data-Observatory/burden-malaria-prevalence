@@ -1,8 +1,8 @@
 # Primary MAP pipeline
 
-**Current primary:** the revised 18-variable regional-adjustment fits and comparison with the previous iteration are implemented. Run `Rscript run_all.R --primary` or `Rscript R_cbh/primary/run_regional.R`. See [REGIONAL_REFIT.md](REGIONAL_REFIT.md) for the current pipeline, outputs and resume/report-only commands. It writes no TeX files.
+**Current primary:** the revised 17-variable regional-adjustment fits and comparison with the previous iteration are implemented. Run `Rscript run_all.R --primary` or `Rscript R_cbh/primary/run_regional.R`. See [REGIONAL_REFIT.md](REGIONAL_REFIT.md) for the current pipeline, outputs and resume/report-only commands. It writes no TeX files.
 
-The remainder of this page documents the preserved **previous eleven-variable benchmark** in `primary_map_gamma2_v1`, including its older paper-reporting workflow. Those figures are not results of the revised adjustment. The historical runner includes a TeX table writer and must not be executed while the standing no-TeX-edit instruction applies.
+The remainder of this page documents the preserved **previous eleven-variable benchmark** in `primary_map_gamma2_v1`, including its older paper-reporting workflow. Those figures are not results of the revised adjustment. The historical runner explicitly selects the legacy version and is not used for current primary results. Table source is now written as `.latex.txt`, without changing any TeX file.
 
 Historical reproduction command (reference only):
 
@@ -10,7 +10,7 @@ Historical reproduction command (reference only):
 Rscript R_cbh/primary/run.R
 ```
 
-This forces seven fresh age-band fits, then recalculates contrasts, national mortality for 2005/2015/2024, aggregate diagnostics, primary-only figures, the inclusion flow and the key-results index. It does not rebuild the dataset, refit HIV imputation, extract rasters, or run Snow/sensitivity models.
+This forces seven fresh age-band fits, then recalculates contrasts, national mortality for 2005/2015/2024, aggregate diagnostics, primary-only figures, the inclusion flow and the key-results index. It does not rebuild the dataset, refit HIV imputation, extract rasters, or run sensitivity models.
 
 - `01_fit.R`: unweighted binomial cloglog `bam`, `gamma=2`, `cr` PfPR (`k=5`) and calendar year (`k=6`), fixed full-band-width offset, saved confounder scaling, separate survey/country/region random effects in each band. Prepared data are the fitting input; the committed knot snapshot preserves the promoted primary basis. Fit caches are validated by data/code/knots/software hashes. Tight-tolerance restarts are allowed only for numerical failures, under the same specification.
 - `02_effects.R`: validated compact PfPR contrasts, conditional intervals, country-age and country totals, and a DRC synthetic-cohort life table. Reuses the existing national MAP and IHME input columns, with file hashes; no data setup. It does not reuse old attributable estimates when calculating new estimates. The old primary estimates are read only for comparison.
@@ -18,7 +18,7 @@ This forces seven fresh age-band fits, then recalculates contrasts, national mor
 - `03_report.R`: reads only aggregate results to make figures and a report.
 - Existing `reporting/` scripts regenerate the inclusion-only flow and link the current primary outputs in `Key results/README.md`.
 
-The prepared sample is `data/derived_cbh/models/age_band_hiv_incidence_shared_time_v3/complete_case_dataset.rds`. New fitted objects stay under ignored `data/derived_cbh/models/primary_map_gamma2_v1/`; shareable aggregate outputs are in `results/cbh/primary_map_gamma2_v1/`. Older `map_snow_gamma2_v1` outputs remain unchanged.
+The prepared sample is `data/derived_cbh/models/age_band_hiv_incidence_shared_time_v3/complete_case_dataset.rds`. New fitted objects stay under ignored `data/derived_cbh/models/primary_map_gamma2_v1/`; shareable aggregate outputs are in `results/cbh/primary_map_gamma2_v1/`. The older `results/cbh/map_snow_gamma2_v1/` directory remains unchanged: its `map_full` rows are the original primary MAP gamma=2 fits that this rerun is compared against (the name is historical; the Snow workflow that produced it is archived).
 
 ```sh
 # Continue a failed run, retaining only valid completed fit caches:
@@ -40,6 +40,8 @@ The fixed HIV imputation, unweighted likelihood, conditional covariance, inherit
 Manuscript typography: 20 pt axis titles, 16 pt ticks and legend text, and 18 pt age/year facet labels. Map labels use 4.5 mm text and Figure 4 country labels use 5 mm text. Figure 1 is 13 × 10 inches to accommodate the larger timeline labels and stacked legends.
 
 `Rscript R_cbh/reporting/06_attributable_fraction_by_age.R` generates Figure 3 (11 × 7 inches) and its 28 estimates from the saved primary PfPR components: age bands on x, attributable share of all-cause deaths within each band on y (0–100%), and four lines for 10%, 20%, 30% and 40% PfPR. The fraction is `1 - exp(f_g(0) - f_g(P))`, checked against the saved primary curves. It is not the share of all under-five deaths occurring in each band. Zero prevalence requires extrapolation. Conditional intervals are saved in the CSV; the figure shows points and connecting lines without titles or subtitles. This stage precedes the paper manifest in the runner. Country versus IHME is now Figure 4; TeX figure order remains managed by the author.
+
+`Rscript R_cbh/burden/05_nigeria_state_burden.R` then `Rscript R_cbh/reporting/08_nigeria_state_comparison.R` generate Figure 6 (11 × 11 inches): the 2024 state-level analogue of Figure 4 for Nigeria's 36 states and FCT. The burden stage applies the saved primary age-band effects to IHME all-cause deaths by GBD age group and state (`data/external/nigeria_states/`, with `source.json`), at population-weighted state MAP PfPR[2–10] from `data/pfpr_admin1_ng_cd_2024.csv`, using the same neonatal and 2–4-year allocation conventions as the national calculation. It checks that the constructed state bands reproduce each state's under-5 total and, summed over states, the national 2024 age-band inputs. Outputs, the national reconciliation and the state table are in `results/cbh/primary_map_gamma2_v1/nigeria_states/`. Both stages precede the paper manifest in the runner and use local files only.
 
 ## Age-band results table
 

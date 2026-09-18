@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript
 # Run from the project root. Data setup and supplementary fits are excluded.
 source("R_cbh/primary/settings.R")
+Sys.setenv(CBH_PRIMARY_VERSION="legacy")
 args <- commandArgs(trailingOnly=TRUE)
 if(length(args)>1L || (length(args) && !args %in% c("--report-only","--resume")))
   stop("Use no arguments (fresh fit), --resume (valid fit caches), or --report-only (saved fits).")
@@ -11,6 +12,8 @@ stages <- c(fit="R_cbh/primary/01_fit.R",effects="R_cbh/primary/02_effects.R",
   age_fractions="R_cbh/reporting/06_attributable_fraction_by_age.R",
   annual_burden="R_cbh/burden/04_annual_comparison.R",
   annual_comparison="R_cbh/reporting/07_annual_mortality_comparison.R",
+  nigeria_states="R_cbh/burden/05_nigeria_state_burden.R",
+  nigeria_comparison="R_cbh/reporting/08_nigeria_state_comparison.R",
   paper_figures="R_cbh/reporting/04_paper_figures.R",index="R_cbh/reporting/02_results_index.R")
 if("--report-only" %in% args) stages <- stages[names(stages)!="fit"]
 dir.create(settings$out,recursive=TRUE,showWarnings=FALSE)

@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-# Current 18-variable primary fit and comparison; no TeX or source extraction.
+# Current 17-variable primary fit and comparison; no TeX or source extraction.
 source("R_cbh/primary/settings.R")
 args <- commandArgs(trailingOnly=TRUE)
 if(length(args)>1L || (length(args) && !args %in% c("--resume","--report-only")))
@@ -13,6 +13,7 @@ stages <- c(prepare="R_cbh/primary/00_prepare_regional.R",fit="R_cbh/primary/01_
   survey_map="R_cbh/reporting/03_survey_map.R",age_fractions="R_cbh/reporting/06_attributable_fraction_by_age.R",
   annual_burden="R_cbh/burden/04_annual_comparison.R",annual_plot="R_cbh/reporting/07_annual_mortality_comparison.R",
   nigeria_burden="R_cbh/burden/05_nigeria_state_burden.R",nigeria_plot="R_cbh/reporting/08_nigeria_state_comparison.R",
+  burden_figure="R_cbh/reporting/11_burden_comparison_figure.R",
   burden_tables="R_cbh/reporting/09_burden_tables.R",
   paper_manifest="R_cbh/reporting/04_paper_figures.R",index="R_cbh/reporting/02_results_index.R",
   validation="R_cbh/reporting/10_validate_reporting.R")

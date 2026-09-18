@@ -1,6 +1,6 @@
 # Malaria prevalence and child mortality
 
-> **Current analysis (15 September 2026):** seven separate child–age-band models using MAP prevalence and `gamma=2`. Start with the [analysis plan](docs/ANALYSIS_PLAN.md), [code audit](docs/CODE_AUDIT.md) and [current result index](<Key results/README.md>). `Rscript run_all.R --help` lists explicit current commands. The survey-region description below is historical; superseded scripts are in [the archive](archive/2026-09-15-code-audit/).
+> **Current analysis (18 September 2026):** seven separate child–age-band MAP models with `gamma=2` and 17 regional/annual covariates. Primary Figures 1–6, the inclusion flow and age/national/annual/state tables use `primary_map_regional17_gamma2_v3`; [current outputs](results/cbh/primary_map_regional17_gamma2_v3/RESULTS.md). Reproduce reporting with `Rscript R_cbh/primary/run_regional.R --report-only`. Start with the [analysis plan](docs/ANALYSIS_PLAN.md), [code audit](docs/CODE_AUDIT.md) and [current result index](<Key results/README.md>). `Rscript run_all.R --help` lists explicit current commands. The survey-region description below is historical; superseded scripts are in [the archive](archive/2026-09-15-code-audit/).
 
 Relationship between *Plasmodium falciparum* parasite prevalence (MAP PfPR₂₋₁₀)
 and all-cause child mortality across sub-Saharan Africa, estimated at the
@@ -113,6 +113,7 @@ loo, posterior, ggplot2, rmarkdown` (and a working Stan toolchain for `brms`).
 | `45`–`47` | Data-and-curve figures for the six-band splits, covariate forest by band, the joint model with band-specific random effects and ridge blocks against the separate fits |
 | `48_person_time_burden_nga_cod.R`, `49_person_time_burden_ssa.R` | Malaria-attributable under-5 deaths 2005–2025 from admin-1 prevalence, the Stan attributable fractions by age band (script 43) and UN IGME or IHME all-cause deaths: Nigeria and DRC, then every sub-Saharan country against IHME by age block |
 | `50_age_specific_attributable.R` | Attributable fraction of all-cause mortality and attributable deaths per 1,000 child-years by age band as functions of PfPR₂₋₁₀, from the Stan posteriors of script 43 with the mgcv curves alongside in the table (figure 36) |
+| `51_snow_polygon_prevalence.R` | **Archived 18 September 2026** (`archive/2026-09-18-snow-comparison/`): Snow et al. (2017) polygon PfPR₂₋₁₀ population-weighted onto survey regions. The Snow comparison was removed from the analysis plan. |
 
 Two constants in `00_config.R` define the primary analysis: `CHMORT_PERIOD`
 (12 months) and `AF_REFERENCE` (the 1% counterfactual prevalence). Country

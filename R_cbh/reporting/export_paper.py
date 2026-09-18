@@ -11,8 +11,9 @@ from pathlib import Path
 parser = argparse.ArgumentParser()
 parser.add_argument("--destination", type=Path, required=True)
 parser.add_argument("--copy", action="store_true", help="Copy after validating; default is a local export manifest only")
+parser.add_argument("--root", type=Path, default=Path("results/cbh/primary_map_regional17_gamma2_v3"))
 args = parser.parse_args()
-root = Path("results/cbh/primary_map_regional18_gamma2_v2")
+root = args.root
 out = root / "paper_refresh"
 out.mkdir(parents=True, exist_ok=True)
 destination = args.destination.expanduser().resolve()
@@ -23,7 +24,7 @@ def digest(path):
 
 with (root / "paper_figures/manifest.csv").open() as f:
     figures = list(csv.DictReader(f))
-assert [int(x["figure"]) for x in figures] == list(range(1, 7))
+assert [int(x["figure"]) for x in figures] == list(range(1, 5))
 assets = []
 for row in figures:
     source = Path(row["source"])
@@ -32,8 +33,7 @@ for row in figures:
     assets.append((source, Path("figures") / row["filename"]))
 assets.extend([
     (root / "paper_figures/CAPTIONS.md", Path("figures/primary_figure_captions.md")),
-    (root / "annual_comparison/CAPTION.md", Path("figures/fig5_annual_malaria_mortality_caption.md")),
-    (root / "nigeria_states/CAPTION.md", Path("figures/fig6_nigeria_states_vs_ihme_caption.md")),
+    (root / "burden_comparison/CAPTION.md", Path("figures/fig4_burden_comparison_caption.md")),
     (root / "study_flow/study_flow_diagram.png", Path("Supplementary Figures/sfig_study_flow.png")),
     (root / "study_flow/CAPTION.md", Path("Supplementary Figures/sfig_study_flow_caption.md")),
 ])
@@ -45,39 +45,49 @@ assets.extend([
     (root / "nigeria_states/state_totals_2024.csv", Path("tables/nigeria_state_totals_2024.csv")),
 ])
 handoff = out / "OVERLEAF_UPDATE.md"
-handoff.write_text("""# Updated primary results
+with (root / "prepared_sample.csv").open() as f:
+    sample = next(csv.DictReader(f))
+with (root / "annual_comparison/annual_totals_2004_2024.csv").open() as f:
+    annual = next(row for row in csv.DictReader(f) if row["year"] == "2024")
+with (root / "covariate_scaling.csv").open() as f:
+    n_covariates = len(list(csv.DictReader(f)))
+fmt = lambda x: f"{float(x):,.0f}"
+handoff.write_text(f"""# Updated primary results
 
-Figures 1–6 and the supplementary inclusion flow use the revised 18-variable
-regional-adjustment MAP gamma=2 models. The analysis contains 1,755,838 children,
-5,680,117 child-band records and 78,634 deaths in 973 survey-regions, 100 surveys
-and 34 countries. All 100 selected surveys are DHS surveys.
+Figures 1–4 (Figure 4 combines the 2024 country comparison, the Nigerian state
+comparison and the 2004–2024 annual trend as panels A–C) and the supplementary
+inclusion flow use the {n_covariates}-variable
+regional-adjustment MAP gamma=2 models in `{root.name}`. The analysis contains
+{fmt(sample['children'])} children, {fmt(sample['records'])} child-band records and
+{fmt(sample['deaths'])} deaths in {fmt(sample['regions'])} survey-regions,
+{fmt(sample['surveys'])} surveys and {fmt(sample['countries'])} countries.
 
-No TeX file has been edited. The tables embedded in `main.tex`, figure captions
-and narrative numbers therefore still need the author's updates:
+The revised adjustment removes sex, multiple births and birth order; replaces
+maternal age at each birth with regional mean age at first birth; and adds
+regional wasting and stunting prevalence. All retained DHS predictors are regional
+summaries; the four existing national annual variables remain.
+
+No TeX file has been edited. Update manuscript text and captions manually using:
 
 - [Age-band table source](tables/age_band_results.latex.txt), with death
   percentages summing to 100.0% and both prevalence contrasts.
-- [Country table source](tables/country_comparison_2024.latex.txt), using UN IGME
-  rather than the previous WHO proxy. The total covers all 42 countries, even
-  though only the ten largest absolute model–IHME differences are shown.
+- [Country table source](tables/country_comparison_2024.latex.txt).
 - [Main figure captions](figures/primary_figure_captions.md).
 - [Inclusion-flow caption](<Supplementary Figures/sfig_study_flow_caption.md>).
 - [Annual totals](tables/annual_totals_2004_2024.csv) and
   [Nigerian state totals](tables/nigeria_state_totals_2024.csv).
 
-The 2024 totals are 501,065 PfPR-ACM deaths, 428,147 IHME deaths and 440,123
-UN IGME deaths across the same 42 countries. The corresponding rates are 282.4,
-241.3 and 248.0 deaths per 100,000 under-five child-years.
+The 2024 totals are {fmt(annual['model_deaths'])} PfPR-ACM deaths,
+{fmt(annual['ihme_malaria_deaths'])} IHME deaths and
+{fmt(annual['who_cacode_deaths'])} UN IGME deaths across the same 42 countries.
+These are conditional model-based estimates; source and imputation uncertainty
+are not fully propagated. Sensitivity fits remain historical and are not
+relabelled as this revised primary specification.
 
-Figure 6 is provided as specified in the plan; the author controls whether and
-where it is included in TeX. Existing sensitivity and historical covariate-forest
-figures have not been refitted or relabelled. They are outside this requested
-primary reporting refresh and should not be described as results from the
-revised primary adjustment. The conceptual causal-diagram assets are unchanged.
-
-The source outputs, provenance and previous-version backups are retained in
-the analysis project. `.latex.txt` files contain source for manual insertion;
-they do not automatically change the compiled manuscript.
+Previous figure versions are backed up in the analysis project. `.latex.txt`
+files contain source for manual insertion; they do not change the compiled
+manuscript automatically. Figure placement and TeX references remain under the
+author's control.
 """)
 assets.append((handoff, Path("RESULTS_UPDATE.md")))
 assert len({str(rel) for _, rel in assets}) == len(assets)

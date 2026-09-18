@@ -151,7 +151,7 @@ md <- c("# Primary MAP analysis rerun","",
   "Reproduce the primary analysis, without data setup: `Rscript run_all.R --primary`. This forces fresh fitting. To regenerate aggregates/figures from verified current fits, use `Rscript R_cbh/primary/run.R --report-only`."
 )
 if(settings$regional) md <- c("# Current primary figures and tables", "",
-  sprintf("The revised 18-variable PfPR-ACM model uses %s children, %s child-band records and %s deaths in %s surveys and %s countries.",
+  sprintf("The revised 17-variable PfPR-ACM model uses %s children, %s child-band records and %s deaths in %s surveys and %s countries.",
     fmt(sample$distinct_children),fmt(sample$records),fmt(sample$deaths),fmt(sample$surveys),fmt(sample$countries)), "",
   "Seven separate MAP gamma=2 age-band fits, including survey-region urban percentage, with fixed PfPR/time knots and the declared HIV, UNICEF and available-region substitutions. The raw-source data and HIV imputation were not refitted. All seven models passed the fitted-input and numerical checks.", "",
   "![PfPR curves](pfpr_splines.png)", "", age_table, "",
@@ -162,7 +162,7 @@ if(settings$regional) md <- c("# Current primary figures and tables", "",
   "[Country totals](burden/country_totals.csv) · [Country-age estimates](burden/country_age_estimates.csv) · [Annual comparison](annual_comparison/README.md) · [Nigeria states](nigeria_states/README.md)", "",
   "[Age contributions](burden/deaths_by_age.png) · [DRC synthetic-cohort survival](burden/drc_survival.png) · [Aggregate outcome check](outcome_residuals_by_pfpr.png)", "",
   "[Paper figure manifest/captions](paper_figures/CAPTIONS.md) · [Study flow](study_flow/CAPTION.md) · [Fit diagnostics](fit_diagnostics.csv)", "",
-  "These are primary results. Snow, Sahel, geographic, period and other sensitivity analyses are separate; they are not refitted by reporting. No TeX files are written. Reproduce with `Rscript R_cbh/primary/run_regional.R --report-only`.")
+  "These are primary results. Sahel, geographic, period and other sensitivity analyses are separate; they are not refitted by reporting. No TeX files are written. Reproduce with `Rscript R_cbh/primary/run_regional.R --report-only`.")
 writeLines(md,file.path(out,if(settings$regional) "RESULTS.md" else "REPORT.md"))
 files <- c("pfpr_curves.csv","pfpr_40_to_20_contrasts.csv","pfpr_20_to_zero_contrasts.csv","tables/age_band_results.csv","fit_diagnostics.csv","primary_sample.csv","pfpr_edf.csv",
   "burden/year_summary.csv","burden/country_totals.csv","burden/country_age_estimates.csv","burden/drc_life_table.csv",
