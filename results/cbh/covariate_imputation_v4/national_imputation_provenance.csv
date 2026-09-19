@@ -1,0 +1,6 @@
+"file","md5"
+"/Users/jameswatson/Documents/Claude Projects/MIS:DHS malaria prevalence/data/wb_polstab.csv","8ab1fdc4adc2b15be61ead35841750ab"
+"/Users/jameswatson/Documents/Claude Projects/MIS:DHS malaria prevalence/data/wb_hexp_pc.csv","7f57b10a6ae9a2b81a0705d1cd4b3b22"
+"/Users/jameswatson/Documents/Claude Projects/MIS:DHS malaria prevalence/data/wb_gdp_pc.csv","4ba397c140358ced7a46c64ef3767438"
+"data/derived_cbh/survey_manifest.csv","5e63cf0a8b422c4a51b833fbaae81536"
+"R_cbh/covariates/15_impute_national.R","a5c43503733e80405c309ef7529bbb1c"

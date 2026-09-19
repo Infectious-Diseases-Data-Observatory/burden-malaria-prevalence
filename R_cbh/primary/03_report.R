@@ -151,7 +151,8 @@ md <- c("# Primary MAP analysis rerun","",
   "Reproduce the primary analysis, without data setup: `Rscript run_all.R --primary`. This forces fresh fitting. To regenerate aggregates/figures from verified current fits, use `Rscript R_cbh/primary/run.R --report-only`."
 )
 if(settings$regional) md <- c("# Current primary figures and tables", "",
-  sprintf("The revised 17-variable PfPR-ACM model uses %s children, %s child-band records and %s deaths in %s surveys and %s countries.",
+  sprintf("The %s 17-variable PfPR-ACM model uses %s children, %s child-band records and %s deaths in %s surveys and %s countries.",
+    if(isTRUE(settings$imputed)) "imputed-covariate (sensitivity)" else "revised",
     fmt(sample$distinct_children),fmt(sample$records),fmt(sample$deaths),fmt(sample$surveys),fmt(sample$countries)), "",
   "Seven separate MAP gamma=2 age-band fits, including survey-region urban percentage, with fixed PfPR/time knots and the declared HIV, UNICEF and available-region substitutions. The raw-source data and HIV imputation were not refitted. All seven models passed the fitted-input and numerical checks.", "",
   "![PfPR curves](pfpr_splines.png)", "", age_table, "",

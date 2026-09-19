@@ -4,6 +4,10 @@
 
 This replaces the active mortality model's HIV prevalence adjustment with **child HIV incidence**, as requested on 8 September 2026. Units are new infections per 1,000 uninfected population, both sexes, ages 0–14. The adolescent predictor is the corresponding reported rate for ages 15–19. No population denominator is fetched or calculated.
 
+## Extended panel for the imputed-covariate sensitivity (18 September 2026)
+
+`Rscript R_cbh/hiv/01_fit_incidence.R --extended` adds countries with **no UNAIDS adolescent incidence series** (Liberia, Sao Tome and Principe) with 2000-2024 rows whose adolescent path is a latent AR(1) variable (`a_missing` in `incidence.stan`, `miss_a` index in `hiv_stan_data()`); their child series are then predicted through the same regional and temporal structure with prior-distribution country effects. Outputs are written separately as `child_incidence_country_year_extended.csv`, `child_incidence_draws_extended.rds` and `fit_extended.rds`, with status `imputed_no_adolescent_series`, so the base panel used by the current primary (`primary_map_regional17_gamma2_v3`) is untouched. The base panel is frozen: without `--extended`, the script refuses to refit it once the model code has changed unless `--force` is given. `--validate-latent` (with `--extended`) treats two observed West and Central Africa countries' adolescent series as latent and withholds their child series, reporting coverage in `latent_adolescent_validation.csv`; `extended_vs_base_panel.csv` compares shared country-years between the two panels.
+
 ## Run
 
 From the project root, using the existing installed R packages:

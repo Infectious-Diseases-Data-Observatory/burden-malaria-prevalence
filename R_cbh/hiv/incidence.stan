@@ -24,6 +24,10 @@ data {
   vector[N] log_a;
   int<lower=0> NA_cens;
   array[N] int<lower=0,upper=NA_cens> cens_a;
+  // Rows whose adolescent value is missing entirely: the adolescent path is a
+  // latent AR(1) draw so the country's child series can still be predicted.
+  int<lower=0> NA_miss;
+  array[N] int<lower=0,upper=NA_miss> miss_a;
   int<lower=0> M;
   array[M] int<lower=1,upper=N> child_row;
   array[M] int<lower=0,upper=M> prev_c;
@@ -53,6 +57,7 @@ parameters {
   real<lower=0,upper=1> rho_c;
   vector<lower=0,upper=1>[NA_cens] cens_a_uniform;
   vector<lower=0,upper=1>[NC_cens] cens_c_uniform;
+  vector[NA_miss] a_missing;
 }
 transformed parameters {
   vector[N] a = log_a;
@@ -75,7 +80,10 @@ transformed parameters {
       cm += p * (a[prev_a[i]]-mu_a[prev_a[i]]);
       cs *= sqrt(1-square(p));
     }
-    if (cens_a[i] > 0) {
+    if (miss_a[i] > 0) {
+      a[i] = a_missing[miss_a[i]];
+      lp_a[i] = normal_lpdf(a[i] | cm,cs);
+    } else if (cens_a[i] > 0) {
       lp_a[i] = normal_lcdf(log(0.01) | cm,cs);
       a[i] = cm + cs * quantile_log_probability(log(cens_a_uniform[cens_a[i]])+lp_a[i]);
     } else lp_a[i] = normal_lpdf(a[i] | cm,cs);

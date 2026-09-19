@@ -38,8 +38,10 @@ clipped <- data.frame(panel=rep("A",length(clipped_a)),unit=clipped_a)
 pA <- ggplot(cty,aes(ihme_malaria_deaths,attributable_under5_deaths))+
   geom_abline(slope=1,intercept=0,colour="grey65",linetype=2)+
   geom_point(colour="#215E91",size=2.6,alpha=.85)+
-  ggrepel::geom_text_repel(data=cty[cty$iso3 %in% c("COD","NGA","AGO","UGA","TZA"),],
-    aes(label=iso3),size=4.5,seed=20260915,max.overlaps=Inf,min.segment.length=0)+
+  ggrepel::geom_text_repel(data=cty[cty$iso3 %in% c("COD","NGA","AGO","UGA","TZA") |
+      abs(log(cty$attributable_under5_deaths/cty$ihme_malaria_deaths))>=.5 |
+      abs(cty$attributable_under5_deaths-cty$ihme_malaria_deaths)>=5000,],
+    aes(label=iso3),size=3.8,seed=20260915,max.overlaps=Inf,min.segment.length=0,segment.colour="grey60")+
   coord_equal(xlim=country_limits,ylim=country_limits,expand=FALSE)+
   scale_x_log10(breaks=c(1e2,1e3,1e4,1e5),labels=comma,minor_breaks=cbh_log10_minor_breaks)+
   scale_y_log10(breaks=c(1e2,1e3,1e4,1e5),labels=comma,minor_breaks=cbh_log10_minor_breaks)+
@@ -117,8 +119,12 @@ lim_a <- rate_limits(cr$model_rate,cr$ihme_rate); lim_b <- rate_limits(x$model_r
 rA <- ggplot(cr,aes(ihme_rate,model_rate))+
   geom_abline(slope=1,intercept=0,colour="grey65",linetype=2)+
   geom_point(colour="#215E91",size=2.6,alpha=.85)+
-  ggrepel::geom_text_repel(data=cr[cr$iso3 %in% c("COD","NGA","AGO","UGA","TZA"),],
-    aes(label=iso3),size=4.5,seed=20260915,max.overlaps=Inf,min.segment.length=0)+
+  # Label the large-burden countries and every country whose two rates differ by
+  # at least a factor of 1.65 or by at least 1 death per 1,000 child-years.
+  ggrepel::geom_text_repel(data=cr[cr$iso3 %in% c("COD","NGA","AGO","UGA","TZA") |
+      abs(log(cr$model_rate/cr$ihme_rate))>=.5 | abs(cr$model_rate-cr$ihme_rate)>=1,],
+    aes(label=iso3),size=3.8,seed=20260915,max.overlaps=Inf,min.segment.length=0,segment.colour="grey60",
+    box.padding=.35)+
   coord_equal(xlim=lim_a,ylim=lim_a,expand=FALSE)+
   labs(x="IHME malaria deaths per 1,000 child-years\nbefore age 5, 2024",
     y=paste0(model_label," deaths per 1,000\nchild-years before age 5, 2024"))+paper

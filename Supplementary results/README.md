@@ -8,6 +8,15 @@ Reporting designation updated 18 September 2026. The primary analysis uses **ful
 - [Inclusion flow](../results/cbh/primary_map_regional17_gamma2_v3/study_flow/study_flow_diagram.png) and [caption](../results/cbh/primary_map_regional17_gamma2_v3/study_flow/CAPTION.md).
 - [PfPR splines by subgroup](../results/cbh/subgroups_map_gamma2_v1/sfig_pfpr_splines_by_subgroup.png) and [caption](../results/cbh/subgroups_map_gamma2_v1/CAPTION.md): the primary curves overlaid with refits in the Sahel, Eastern Africa and surveys before/after the median survey year (see below).
 
+## Imputed-covariate sensitivity version
+
+Added 18 September 2026. The 17-variable primary specification refitted after imputing every remaining covariate gap (whole-survey gaps in wasting, stunting, facility delivery, electricity and wealth by chained-equation multiple imputation; the 2001 WGI round by interpolation; health expenditure for Zimbabwe 2000–2009 and all countries' 2024 from a GAM; child HIV incidence for Liberia and São Tomé from the extended incidence model), so that all 6,357,802 MAP-eligible records from 120 surveys in 36 countries are retained. The complete-case fit remains the primary; this is `primary_map_regional17_imputed_gamma2_v4`. See plan sections 2.4 and 3.4.3.
+
+- [Comparison with the complete-case primary](../results/cbh/primary_map_regional17_imputed_gamma2_v4/REPORT.md)
+- [Multiple-imputation check: pooled curves and contrasts](../results/cbh/primary_map_regional17_imputed_gamma2_v4/multiple_imputation/REPORT.md)
+- [Imputation audits: regional](../results/cbh/covariate_imputation_v4/REGIONAL_IMPUTATION.md) and [national](../results/cbh/covariate_imputation_v4/NATIONAL_IMPUTATION.md)
+- [Extended HIV incidence panel](../results/cbh/hiv_incidence/imputed_no_adolescent_series.csv) and [latent-adolescent validation](../results/cbh/hiv_incidence/latent_adolescent_validation.csv)
+
 ## Subgroup refits of the primary model at gamma=2
 
 Added 18 September 2026. The seven 17-variable primary age-band models refitted separately in four subsets of the fitted sample: Sahel survey regions (centroid ≥12°N, west of 36°E, outside the Horn of Africa; 23 surveys in seven countries), UN M49 Eastern Africa (38 surveys in 12 countries), surveys up to the median survey year of 2013 (50 surveys) and surveys after it (45 surveys). Same covariates and scaling, fixed HIV imputation, gamma=2 and basis dimensions; knots at the subset's own predictor quantiles. Whole regions and whole surveys enter. The subsets overlap the full sample, so differences are descriptive.

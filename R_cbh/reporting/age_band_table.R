@@ -35,7 +35,7 @@ cbh_primary_age_table <- function(root, ages) {
     hr_20_to_zero=z$hazard_ratio_20_to_zero,hr_20_to_zero_lower_95=lo0,hr_20_to_zero_upper_95=hi0,
     zero_below_observed_support=z$zero_below_observed_support)
   fmt <- function(x) format(x,big.mark=",",scientific=FALSE,trim=TRUE)
-  hr <- function(x,lo,hi,dash="–") sprintf("%.3f (%.3f%s%.3f)",x,lo,dash,hi)
+  hr <- function(x,lo,hi,dash="–") sprintf("%.2f (%.2f%s%.2f)",x,lo,dash,hi)
   note <- paste0("Deaths are observed deaths in the primary analysis sample; percentages use all ",fmt(total),
     " under-five deaths as the denominator. Displayed percentages use largest-remainder rounding to one decimal place and sum to 100.0%. ",
     "Records are child–age-band observations, so a child can contribute multiple records. EDF: effective degrees of freedom of the PfPR spline. ",

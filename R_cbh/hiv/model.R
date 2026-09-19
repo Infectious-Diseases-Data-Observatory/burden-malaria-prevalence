@@ -1,7 +1,10 @@
 # Local country-level HIV incidence extraction, fitting and prediction.
-hiv_incidence_data <- function(path) {
-  x <- as.data.frame(suppressMessages(readxl::read_excel(path, sheet="Data", skip=1, guess_max=100000)))
-  x <- x[x$Type=="Country" & x$Sex=="Both" & x$Indicator==
+# extra_countries: named character vector iso3 -> UNICEF region for countries with
+# no adolescent incidence series. They receive 2000-2024 rows with a latent
+# adolescent path (adolescent_missing = TRUE) so their child series can be imputed.
+hiv_incidence_data <- function(path, extra_countries=NULL) {
+  raw <- as.data.frame(suppressMessages(readxl::read_excel(path, sheet="Data", skip=1, guess_max=100000)))
+  x <- raw[raw$Type=="Country" & raw$Sex=="Both" & raw$Indicator==
     "Estimated incidence rate (new HIV infection per 1,000 uninfected population)",]
   x$year <- as.integer(x$Year)
   x$value <- suppressWarnings(as.numeric(x$Value))
@@ -10,22 +13,41 @@ hiv_incidence_data <- function(path) {
   a <- x[x$Age=="Age 15-19" & (is.finite(x$value) | x$censored),]
   c <- x[x$Age=="Age 0-14",]
   d <- data.frame(iso3=a$ISO3, country_name=a$`Country/Region`, region=a$`UNICEF Region`,
-    year=a$year, adolescent_rate=a$value, adolescent_censored=a$censored,
+    year=a$year, adolescent_rate=a$value, adolescent_censored=a$censored, adolescent_missing=FALSE,
     adolescent_source_value=as.character(a$Value), adolescent_lower=as.character(a$Lower),
     adolescent_upper=as.character(a$Upper))
+  if (length(extra_countries)) {
+    stopifnot(!is.null(names(extra_countries)), !any(names(extra_countries) %in% d$iso3))
+    years <- sort(unique(d$year))
+    extra <- do.call(rbind, lapply(names(extra_countries), function(iso) {
+      rows <- raw[raw$ISO3==iso & raw$Type=="Country",]
+      region <- if (nrow(rows)) unique(rows$`UNICEF Region`) else extra_countries[[iso]]
+      stopifnot(length(region)==1L)
+      name <- if (nrow(rows)) unique(rows$`Country/Region`)[1] else iso
+      data.frame(iso3=iso, country_name=name, region=region, year=years,
+        adolescent_rate=NA_real_, adolescent_censored=FALSE, adolescent_missing=TRUE,
+        adolescent_source_value=NA_character_, adolescent_lower=NA_character_, adolescent_upper=NA_character_)
+    }))
+    d <- rbind(d, extra)
+  }
   j <- match(paste(d$iso3,d$year),paste(c$ISO3,c$year))
   d$child_rate <- c$value[j]; d$child_censored <- !is.na(j) & c$censored[j]
   d$child_source_value <- as.character(c$Value[j])
   d$child_lower <- as.character(c$Lower[j]); d$child_upper <- as.character(c$Upper[j])
   d <- d[order(d$iso3,d$year),]; rownames(d)<-NULL
-  stopifnot(!anyNA(d$region),all(d$adolescent_rate[!d$adolescent_censored]>0),
-            all(d$child_rate[is.finite(d$child_rate)]>0))
+  stopifnot(!anyNA(d$region),all(d$adolescent_rate[!d$adolescent_censored & !d$adolescent_missing]>0),
+            all(d$child_rate[is.finite(d$child_rate)]>0),
+            all(is.na(d$adolescent_rate[d$adolescent_missing])))
   d
 }
 
-hiv_stan_data <- function(d, held_out=character()) {
+# held_out: countries whose child series are withheld from the likelihood.
+# latent_adolescent: countries whose observed adolescent series are treated as
+# missing (latent), to validate imputation for countries without such a series.
+hiv_stan_data <- function(d, held_out=character(), latent_adolescent=character()) {
   countries <- unique(d$iso3); regions <- sort(unique(d$region))
   country <- match(d$iso3,countries)
+  missing_a <- d$adolescent_missing | d$iso3 %in% latent_adolescent
   obs <- which((is.finite(d$child_rate) | d$child_censored) & !d$iso3 %in% held_out)
   make_prev <- function(g,t) {
     prev <- c(0L,seq_len(length(g)-1L)); prev[c(TRUE,diff(g)!=0)]<-0L
@@ -33,15 +55,19 @@ hiv_stan_data <- function(d, held_out=character()) {
     list(prev=prev,gap=gap)
   }
   pa<-make_prev(country,d$year);pc<-make_prev(country[obs],d$year[obs])
-  ca<-integer(nrow(d)); ca[d$adolescent_censored]<-seq_len(sum(d$adolescent_censored))
+  ca<-integer(nrow(d)); cens_rows<-d$adolescent_censored & !missing_a
+  ca[cens_rows]<-seq_len(sum(cens_rows))
+  ma<-integer(nrow(d)); ma[missing_a]<-seq_len(sum(missing_a))
   cc<-integer(length(obs)); cc[d$child_censored[obs]]<-seq_len(sum(d$child_censored[obs]))
   # Fixed, modest natural cubic time basis, identical across validation folds.
   basis<-splines::ns((d$year-2012)/12, knots=c(-.5,0,.5),Boundary.knots=c(-1,1))
   basis<-sweep(basis,2,colMeans(basis))
+  log_a<-ifelse(d$adolescent_censored,log(.01),log(d$adolescent_rate))
+  log_a[missing_a]<-0  # placeholder; overwritten by the latent value in Stan
   list(N=nrow(d),C=length(countries),R=length(regions),K=ncol(basis),country=country,
     region=match(d$region[match(countries,d$iso3)],regions),prev_a=pa$prev,gap_a=pa$gap,
-    time_basis=unclass(basis),log_a=ifelse(d$adolescent_censored,log(.01),log(d$adolescent_rate)),
-    NA_cens=max(ca),cens_a=ca,M=length(obs),child_row=obs,prev_c=pc$prev,gap_c=pc$gap,
+    time_basis=unclass(basis),log_a=log_a,
+    NA_cens=max(ca),cens_a=ca,NA_miss=max(ma),miss_a=ma,M=length(obs),child_row=obs,prev_c=pc$prev,gap_c=pc$gap,
     log_c=ifelse(d$child_censored[obs],log(.01),log(d$child_rate[obs])),
     NC_cens=max(cc),cens_c=cc)
 }
@@ -57,8 +83,12 @@ hiv_fit_diagnostics <- function(fit) {
 }
 
 hiv_sample <- function(model,sd,seed,chains=4L,iter=2000L) {
-  init<-function() list(cens_a_uniform=rep(.5,sd$NA_cens),cens_c_uniform=rep(.5,sd$NC_cens),
-    rho_a=.9,rho_c=.9,sigma_a=.5,sigma_c=.5)
+  init<-function() {
+    z<-list(cens_a_uniform=rep(.5,sd$NA_cens),cens_c_uniform=rep(.5,sd$NC_cens),
+      rho_a=.9,rho_c=.9,sigma_a=.5,sigma_c=.5)
+    if(sd$NA_miss>0) z$a_missing<-rep(-2,sd$NA_miss)
+    z
+  }
   rstan::sampling(model,data=sd,chains=chains,iter=iter,warmup=iter%/%2,
     cores=min(chains,2L),seed=seed,init=init,refresh=100,
     pars=c("mu_a","lp_a","lp_c","country_n"),include=FALSE,

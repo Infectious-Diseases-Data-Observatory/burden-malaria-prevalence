@@ -1,0 +1,7 @@
+"file","md5"
+"data/derived_cbh/regional_adjustment/planned17_audit/regional_covariates_wide.csv","3b8b86a8a7cf6e608127a1fd90dfedae"
+"/Users/jameswatson/Documents/Claude Projects/MIS:DHS malaria prevalence/data/derived_dhs/survey_registry.csv","034691c9efb08455ffce1ea3c42581d3"
+"/Users/jameswatson/Documents/Claude Projects/MIS:DHS malaria prevalence/data/derived_dhs/map_pfpr_window_years.csv","b7c1c8769f4a75e43132fc2fac9c7d9e"
+"data/derived_cbh/regional_adjustment/imputed_v4/national_covariates_imputed.csv","ff71620890f432ce2978172b6d87df33"
+"R_cbh/covariates/16_impute_regional.R","243342ec79c1f4d0406c358a92b1ac85"
+"R_cbh/primary/specification.R","e5ba4dd07aebdd9cc9061e69591da017"

@@ -23,55 +23,88 @@ x$year <- r$year[j];x$type <- r$SurveyType[j]
 stopifnot(!anyNA(x),all(x$type %in% c("DHS","MIS")))
 summary <- do.call(rbind,lapply(split(x,x$country),function(d)
   data.frame(country=d$country[1],surveys=nrow(d),first_year=min(d$year),last_year=max(d$year),survey_regions=sum(d$regions))))
-# Most recent available boundary among contributing surveys in each country.
+
+# Every registry survey, with its fate in the primary selection. Surveys absent from
+# the selection ledger were never processed (no MAP geography); processed surveys with
+# no complete-case rows lost every record to covariate availability (or, if it arose,
+# to missing MAP), as recorded per survey in the study-flow ledger.
+all <- data.frame(survey=r$svkey,country=r$iso3,year=r$year,type=r$SurveyType)
+k <- match(all$survey,sel$survey)
+all$eligible_rows <- sel$eligible_rows[k];all$pfpr_available_rows <- sel$pfpr_available_rows[k]
+all$complete_case_rows <- sel$complete_case_rows[k]
+all$regions <- x$regions[match(all$survey,x$survey)]
+all$status <- ifelse(all$survey %in% x$survey,"Included in primary analysis",
+  ifelse(is.na(k) | all$pfpr_available_rows==0,"Excluded: no MAP prevalence for its regions",
+    "Excluded: required covariates unavailable"))
+stopifnot(all(!is.na(all$regions)==(all$status=="Included in primary analysis")),
+  sum(all$status=="Included in primary analysis")==nrow(x),!anyNA(all$year))
+status_levels <- c("Included in primary analysis","Excluded: no MAP prevalence for its regions","Excluded: required covariates unavailable")
+all$status <- factor(all$status,levels=status_levels)
+
+# Most recent available boundary in each country with any registry survey.
 shape_paths <- character()
-outline <- lapply(summary$country,function(iso) {
-  rr <- r[r$iso3==iso & r$svkey %in% x$survey,];rr <- rr[order(-rr$year),]
+outline <- lapply(unique(all$country),function(iso) {
+  rr <- r[r$iso3==iso,];rr <- rr[order(-rr$year),]
   for(i in seq_len(nrow(rr))) {
     path <- rr$boundary_file[i]
-    if(!file.exists(path)) next
+    if(is.na(path) || !nzchar(path) || !file.exists(path)) next
     shape <- sf::st_make_valid(readRDS(path))
     if(!nrow(shape)) next
     geom <- sf::st_union(sf::st_geometry(sf::st_transform(shape,4326)))
     shape_paths <<- c(shape_paths,path)
     return(sf::st_sf(country=iso,geometry=geom))
   }
-  stop("Missing local country outline for ",iso)
+  if(iso %in% summary$country) stop("Missing local country outline for ",iso)
+  message("No local outline for excluded country ",iso,"; it appears on the timeline only")
+  NULL
 })
-outline <- do.call(rbind,outline)
-outline <- merge(outline,summary,by="country")
+outline <- do.call(rbind,outline[!vapply(outline,is.null,logical(1))])
+outline <- merge(outline,summary,by="country",all.x=TRUE)
+outline$surveys[is.na(outline$surveys)] <- 0L
 centres <- suppressWarnings(sf::st_coordinates(sf::st_point_on_surface(sf::st_geometry(outline))))
 outline$lon <- centres[,1];outline$lat <- centres[,2]
-map <- ggplot(outline)+geom_sf(aes(fill=surveys),colour="white",linewidth=.3)+
+outline$fill <- ifelse(outline$surveys>0,outline$surveys,NA_integer_)
+map <- ggplot(outline)+geom_sf(aes(fill=fill),colour="white",linewidth=.3)+
   ggrepel::geom_text_repel(data=sf::st_drop_geometry(outline),aes(lon,lat,label=country),
     size=4.5,seed=20260915,max.overlaps=Inf,min.segment.length=0,box.padding=.15,
     segment.colour="grey60",segment.size=.25)+
-  scale_fill_gradient(low="#DCEAF3",high="#12557A",name="Surveys",breaks=scales::breaks_pretty(4))+
+  scale_fill_gradient(low="#DCEAF3",high="#12557A",name="Included surveys",breaks=scales::breaks_pretty(4),
+    na.value="grey90")+
   guides(fill=guide_colourbar(barwidth=grid::unit(1.9,"in"),barheight=grid::unit(.2,"in")))+
   theme_minimal(base_size=20)+theme(axis.title=element_blank(),axis.text=element_blank(),
     panel.grid=element_blank(),legend.position="bottom",
     legend.title=element_text(size=18),legend.text=element_text(size=16))
-x$country_label <- factor(x$country,levels=outline$country[order(outline$lat)])
-timeline <- ggplot(x,aes(year,country_label))+
+# Countries without an outline (none expected) sort to the top of the timeline.
+lat_order <- outline$country[order(outline$lat)]
+all$country_label <- factor(all$country,levels=c(lat_order,setdiff(unique(all$country),lat_order)))
+included <- all[all$status==status_levels[1],];excluded <- all[all$status!=status_levels[1],]
+timeline <- ggplot(all,aes(year,country_label))+
   geom_line(aes(group=country_label),colour="grey85",linewidth=.4)+
-  geom_point(aes(size=regions,shape=type),colour="#12557A",alpha=.85)+
+  geom_point(data=included,aes(size=regions,shape=status,colour=status),alpha=.9)+
+  geom_point(data=excluded,aes(shape=status,colour=status),size=2.6,stroke=1.1)+
   scale_size_continuous(range=c(1.2,4),name="Regions")+
-  scale_shape_manual(values=c(DHS=16,MIS=17),name="Type")+
+  scale_shape_manual(values=setNames(c(16,5,4),status_levels),name=NULL,drop=FALSE)+
+  scale_colour_manual(values=setNames(c("#12557A","#B3261E","#B3261E"),status_levels),name=NULL,drop=FALSE)+
   scale_x_continuous(breaks=seq(2000,2025,5))+
   labs(x="Survey year",y=NULL)+theme_minimal(base_size=20)+
-  guides(size=guide_legend(order=1,nrow=1),shape=guide_legend(order=2,nrow=1))+
+  guides(size=guide_legend(order=1,nrow=1),
+    shape=guide_legend(order=2,ncol=1,override.aes=list(size=3.2)),colour=guide_legend(order=2,ncol=1))+
   theme(panel.grid.minor=element_blank(),legend.position="bottom",axis.text=element_text(size=16),
-    axis.title=element_text(size=20),legend.title=element_text(size=18),legend.text=element_text(size=16),
+    axis.title=element_text(size=20),legend.title=element_text(size=18),legend.text=element_text(size=15),
     legend.box="vertical",legend.spacing.y=grid::unit(0,"pt"),plot.margin=margin(8,26,8,8))
-if(length(unique(x$type))==1L) timeline <- timeline+guides(shape="none")
 p <- map+timeline+plot_layout(widths=c(1,1.15))
-ggsave(file.path(out,"survey_map_and_timing.png"),p,width=13,height=10,dpi=300,device=ragg::agg_png,bg="white")
-x$country_label <- NULL
+ggsave(file.path(out,"survey_map_and_timing.png"),p,width=13,height=10.5,dpi=300,device=ragg::agg_png,bg="white")
+x$country_label <- NULL;all$country_label <- NULL
 cbh_atomic_csv(x,file.path(out,"survey_coverage.csv"))
+cbh_atomic_csv(all,file.path(out,"survey_timeline_all.csv"))
 cbh_atomic_csv(summary,file.path(out,"country_summary.csv"))
 inputs <- unique(c(unname(paths),file.path(root,"primary_sample.csv"),shape_paths,"R_cbh/reporting/03_survey_map.R","R_cbh/primary/settings.R"))
 cbh_atomic_csv(data.frame(file=inputs,md5=vapply(inputs,cbh_file_hash,"")),file.path(out,"provenance.csv"))
+n_map <- sum(all$status==status_levels[2]);n_cov <- sum(all$status==status_levels[3])
+mis_dropped <- sum(all$type=="MIS" & all$status!=status_levels[1]);mis_total <- sum(all$type=="MIS")
 writeLines(c("# Figure 1 caption","",
-  sprintf("Geographic coverage and timing of the %s surveys in %s countries contributing to the primary MAP analysis. Country shading indicates the number of included surveys. Timeline point area indicates the number of regions contributing analysis records in each survey; survey types are read from the registry. Region counts are the union across the seven fitted age-band samples. The figure contains %s survey–region pairs; these are not counts of geographically distinct regions across survey years.",nrow(x),nrow(summary),sum(x$regions)),"",
-  "All surveys in the current selected sample are DHS surveys. Country outlines are dissolved from the most recent available DHS boundary files among the included surveys. Survey year describes fieldwork, not the calendar year assigned to each child's band entry. The included surveys and region counts follow the current primary complete-case sample after the declared covariate substitutions."),file.path(out,"CAPTION.md"))
-message("Generated current primary survey map: ",nrow(x)," surveys, ",nrow(summary)," countries")
+  sprintf("Geographic coverage and timing of the %s DHS and MIS surveys with complete birth histories in the survey registry (%s countries). Filled circles are the %s surveys in %s countries that contribute to the primary analysis, with point area indicating the number of survey regions contributing analysis records; country shading indicates the number of included surveys, and grey countries have none. Open diamonds mark %s surveys excluded because MAP prevalence could not be assigned to their regions; crosses mark %s surveys excluded because a required covariate was unavailable for every region after the declared substitutions (%s of the %s MIS surveys fall in this group, so the analysed sample is DHS only).",
+    nrow(all),length(unique(all$country)),nrow(x),nrow(summary),n_map,n_cov,mis_dropped,mis_total),"",
+  sprintf("Region counts are the union across the seven fitted age-band samples; the figure contains %s included survey–region pairs, which are not counts of geographically distinct regions across survey years. Country outlines are dissolved from the most recent available DHS boundary file in each country. Survey year describes fieldwork, not the calendar year assigned to each child's band entry. Per-survey exclusion reasons are in survey_timeline_all.csv.",sum(x$regions))),
+  file.path(out,"CAPTION.md"))
+message("Generated survey map: ",nrow(x)," included of ",nrow(all)," registry surveys; ",n_map," excluded for MAP, ",n_cov," for covariates")

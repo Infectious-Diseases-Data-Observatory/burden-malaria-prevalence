@@ -1,9 +1,18 @@
 "id","x","y","w","h","role","heading","detail"
-"registry",3.8,11.45,6.9,1.35,"main","Survey registry","124 surveys · 37 countries"
-"entered",3.8,9.35,6.9,1.35,"main","Band entries within 5 years","7,844,642 child–age bands"
-"eligible",3.8,7.25,6.9,1.35,"main","Eligible child–age bands","6,431,363 records"
-"sample",3.8,5.15,6.9,1.65,"main","Primary analysis sample","5,465,305 records · 75,726 deaths
+"registry",3.7,13.75,6.7,1.35,"main","Survey registry","124 surveys · 37 countries"
+"entered",3.7,11.55,6.7,1.5,"main","Band entries within 5 years of interview","7,844,642 child–age bands
+120 surveys · 36 countries"
+"eligible",3.7,9.4,6.7,1.35,"main","Eligible child–age bands","6,431,363 records"
+"with_map",3.7,7.25,6.7,1.35,"main","With regional MAP prevalence","6,357,802 records"
+"sample",3.7,5,6.7,1.65,"main","Primary analysis sample","5,465,305 records · 75,726 deaths
 95 surveys · 34 countries"
-"omit_surveys",9.4,10.4,3.65,1.2,"excluded","4 surveys excluded","No MAP geography"
-"omit_eligibility",9.4,8.3,3.65,1.2,"excluded","1,413,279 excluded","Band or year ineligible"
-"omit_missing",9.4,6.2,3.65,1.2,"excluded","966,058 excluded","Missing MAP or covariates"
+"omit_surveys",9.75,12.69,4.7,1.35,"excluded","4 surveys excluded","No MAP geography for the
+survey's regions (LSO)"
+"omit_eligibility",9.75,10.44,4.7,1.75,"excluded","1,413,279 records excluded","994,618: band not complete by interview
+418,661: entry year outside 2000–2024"
+"omit_map",9.75,8.33,4.7,1.35,"excluded","73,561 records excluded","No MAP PfPR for the region
+in the band-entry year"
+"omit_covariates",9.75,6.2,4.7,2,"excluded","892,497 records excluded","Required covariate unavailable:
+Wasting 399,258 · Political stability 173,291
+HIV incidence 142,323 · Electricity 83,796
+Health expenditure 63,255 · Wealth score 30,574"

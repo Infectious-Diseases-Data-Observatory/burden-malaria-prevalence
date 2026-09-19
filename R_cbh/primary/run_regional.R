@@ -2,9 +2,13 @@
 # Current 17-variable primary fit and comparison; no TeX or source extraction.
 source("R_cbh/primary/settings.R")
 args <- commandArgs(trailingOnly=TRUE)
+imputed <- "--imputed" %in% args; args <- setdiff(args,"--imputed")
 if(length(args)>1L || (length(args) && !args %in% c("--resume","--report-only")))
-  stop("Use no arguments (fresh fits), --resume (verified caches), or --report-only (saved fits).")
-Sys.setenv(CBH_PRIMARY_VERSION="regional")
+  stop("Use no arguments (fresh fits), --resume (verified caches), or --report-only (saved fits); add --imputed for the imputed-covariate sensitivity version.")
+# --imputed fits the imputed-covariate sensitivity version (plan section 2.4) and
+# runs only the model stages: it never touches the study flow, survey map, paper
+# manifest, results index or validation, which describe the primary analysis.
+Sys.setenv(CBH_PRIMARY_VERSION=if(imputed) "regional_imputed" else "regional")
 settings <- cbh_primary_settings()
 stages <- c(prepare="R_cbh/primary/00_prepare_regional.R",fit="R_cbh/primary/01_fit.R",
   effects="R_cbh/primary/02_effects.R",diagnostics="R_cbh/primary/04_diagnostics.R",
@@ -17,6 +21,7 @@ stages <- c(prepare="R_cbh/primary/00_prepare_regional.R",fit="R_cbh/primary/01_
   burden_tables="R_cbh/reporting/09_burden_tables.R",
   paper_manifest="R_cbh/reporting/04_paper_figures.R",index="R_cbh/reporting/02_results_index.R",
   validation="R_cbh/reporting/10_validate_reporting.R")
+if(imputed) stages <- stages[names(stages) %in% c("prepare","fit","effects","diagnostics","comparison","report")]
 if("--report-only" %in% args)stages <- stages[!names(stages) %in% c("prepare","fit")]
 dir.create(settings$out,recursive=TRUE,showWarnings=FALSE)
 log <- list()
@@ -33,4 +38,4 @@ files <- list.files(settings$out,recursive=TRUE,full.names=TRUE)
 files <- files[!grepl("output_manifest[.]csv$",files)]
 write.csv(data.frame(file=files,bytes=file.info(files)$size,md5=unname(tools::md5sum(files))),
   file.path(settings$out,"output_manifest.csv"),row.names=FALSE)
-message("Revised primary pipeline complete: ",settings$out,"/REPORT.md")
+message(if(imputed) "Imputed-covariate sensitivity pipeline complete: " else "Revised primary pipeline complete: ",settings$out,"/REPORT.md")
