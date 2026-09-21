@@ -3,6 +3,7 @@
 "results/cbh/primary_map_regional17_gamma2_v3/annual_comparison/input_provenance.csv",37,TRUE
 "results/cbh/primary_map_regional17_gamma2_v3/attributable_fraction_by_age_provenance.csv",6,TRUE
 "results/cbh/primary_map_regional17_gamma2_v3/burden_comparison/figure_provenance.csv",8,TRUE
+"results/cbh/primary_map_regional17_gamma2_v3/burden_comparison/source_comparison_provenance.csv",4,TRUE
 "results/cbh/primary_map_regional17_gamma2_v3/burden/provenance.csv",21,TRUE
 "results/cbh/primary_map_regional17_gamma2_v3/code_provenance.csv",8,TRUE
 "results/cbh/primary_map_regional17_gamma2_v3/comparison_provenance.csv",24,TRUE
