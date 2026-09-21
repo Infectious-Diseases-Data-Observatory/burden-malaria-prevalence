@@ -39,6 +39,8 @@ assets.extend([
     (Path("results/cbh/subgroups_map_gamma2_v1/sfig_pfpr_splines_by_subgroup.png"), Path("Supplementary Figures/sfig_pfpr_splines_by_subgroup.png")),
     (Path("results/cbh/subgroups_map_gamma2_v1/CAPTION.md"), Path("Supplementary Figures/sfig_pfpr_splines_by_subgroup_caption.md")),
     (root / "study_flow/study_flow_diagram.png", Path("Supplementary Figures/sfig_study_flow.png")),
+    (Path("results/cbh/primary_map_regional17_imputed_gamma2_v4/sfig_pfpr_splines_imputed_covariates.png"), Path("Supplementary Figures/sfig_pfpr_splines_imputed_covariates.png")),
+    (Path("results/cbh/primary_map_regional17_imputed_gamma2_v4/CAPTION_sfig_imputed_covariates.md"), Path("Supplementary Figures/sfig_pfpr_splines_imputed_covariates_caption.md")),
     (root / "study_flow/CAPTION.md", Path("Supplementary Figures/sfig_study_flow_caption.md")),
 ])
 for name in ("age_band_results.csv", "age_band_results.md", "age_band_results.latex.txt",

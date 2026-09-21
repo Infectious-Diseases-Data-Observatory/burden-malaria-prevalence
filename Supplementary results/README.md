@@ -14,6 +14,7 @@ Added 18 September 2026. The 17-variable primary specification refitted after im
 
 - [Comparison with the complete-case primary](../results/cbh/primary_map_regional17_imputed_gamma2_v4/REPORT.md)
 - [Multiple-imputation check: pooled curves and contrasts](../results/cbh/primary_map_regional17_imputed_gamma2_v4/multiple_imputation/REPORT.md)
+- [Supplementary manuscript figure: complete-case versus imputed-covariate PfPR curves](../results/cbh/primary_map_regional17_imputed_gamma2_v4/sfig_pfpr_splines_imputed_covariates.png) and [caption](../results/cbh/primary_map_regional17_imputed_gamma2_v4/CAPTION_sfig_imputed_covariates.md), exported to the manuscript's `Supplementary Figures/` folder
 - [Imputation audits: regional](../results/cbh/covariate_imputation_v4/REGIONAL_IMPUTATION.md) and [national](../results/cbh/covariate_imputation_v4/NATIONAL_IMPUTATION.md)
 - [Extended HIV incidence panel](../results/cbh/hiv_incidence/imputed_no_adolescent_series.csv) and [latent-adolescent validation](../results/cbh/hiv_incidence/latent_adolescent_validation.csv)
 

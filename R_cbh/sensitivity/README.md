@@ -28,3 +28,5 @@ Outputs:
 - With `--include-south`, both paths end in `sensitivity_single_imputation_with_south/`.
 
 The fitting script validates convergence, finite coefficients and covariance, unchanged sample size, and agreement between prediction-matrix contrasts and direct link predictions. Identical exposures must give exactly zero log hazard ratio and uncertainty. Cache signatures include the input signature, group assignments, formula, fitting code and R/mgcv versions. `--force` explicitly refits; the report script reads only aggregate files and never refits a model.
+
+`imputation/02_supplementary_figure.R` draws the supplementary manuscript figure comparing the complete-case primary and imputed-covariate PfPR curves from the saved comparison curves of `primary_map_regional17_imputed_gamma2_v4`, with paper-facing labels, and writes its caption and provenance; `R_cbh/reporting/export_paper.py` copies both to the manuscript's `Supplementary Figures/` folder.
