@@ -75,11 +75,10 @@ pick <- function(src, scope, unit) {
   stopifnot(nrow(r) == 1L); r
 }
 deaths <- list(pick("PfPR-ACM model", u5, "deaths"), pick("IHME", u5, "deaths"),
-               pick("UN IGME", u5, "deaths"), pick("WHO WMR 2025", af, "deaths"))
+               pick("UN IGME", u5, "deaths"))
 rates  <- list(pick("PfPR-ACM model", u5, "deaths per 1000 child-years"),
                pick("IHME", u5, "deaths per 1000 child-years"),
-               pick("UN IGME", u5, "deaths per 1000 child-years"),
-               pick("WHO WMR 2025", af, "deaths per 100 000 population at risk"))
+               pick("UN IGME", u5, "deaths per 1000 child-years"))
 num  <- function(x) format(round(x), big.mark = ",", trim = TRUE)
 rat  <- function(x) sprintf("%.2f", x)
 # The report prints its rates to at most one decimal (140, 62.5); match that.
@@ -88,17 +87,17 @@ wmr  <- function(x) sub("\\.0$", "", sprintf("%.1f", x))
 chg  <- function(x) sprintf("$%s%.1f\\%%$", ifelse(-x < 0, "-", "+"), abs(x))
 line <- function(label, vals) paste0("\\quad ", label, " & ", paste(vals, collapse = " & "), " \\\\")
 body <- c(
-  "\\multicolumn{5}{@{}l}{\\textit{Malaria deaths}} \\\\",
+  "\\multicolumn{4}{@{}l}{\\textit{Malaria deaths}} \\\\",
   line("2000", vapply(deaths, function(r) num(r$y2000), "")),
   line("2015", vapply(deaths, function(r) num(r$y2015), "")),
   line("2024", vapply(deaths, function(r) num(r$y2024), "")),
   line("Change 2000--2024", vapply(deaths, function(r) chg(r$decline_from_2000), "")),
   line("Change 2015--2024", vapply(deaths, function(r) chg(r$decline_from_2015), "")),
   "\\addlinespace",
-  "\\multicolumn{5}{@{}l}{\\textit{Malaria mortality rate}} \\\\",
-  line("2000", c(vapply(rates[1:3], function(r) rat(r$y2000), ""), wmr(rates[[4]]$y2000))),
-  line("2015", c(vapply(rates[1:3], function(r) rat(r$y2015), ""), wmr(rates[[4]]$y2015))),
-  line("2024", c(vapply(rates[1:3], function(r) rat(r$y2024), ""), wmr(rates[[4]]$y2024))),
+  "\\multicolumn{4}{@{}l}{\\textit{Malaria mortality rate}} \\\\",
+  line("2000", vapply(rates, function(r) rat(r$y2000), "")),
+  line("2015", vapply(rates, function(r) rat(r$y2015), "")),
+  line("2024", vapply(rates, function(r) rat(r$y2024), "")),
   line("Change 2000--2024", vapply(rates, function(r) chg(r$decline_from_2000), "")),
   line("Change 2015--2024", vapply(rates, function(r) chg(r$decline_from_2015), "")))
 tex <- c("% Standalone table fragment; uses booktabs (already in the manuscript preamble).",
@@ -107,23 +106,17 @@ tex <- c("% Standalone table fragment; uses booktabs (already in the manuscript 
   "\\caption{Malaria mortality by source in 2000, 2015 and 2024, and change to 2024. Negative values are reductions.}",
   "\\label{tab:source-comparison}", "\\small",
   "\\setlength{\\tabcolsep}{3pt}", "\\renewcommand{\\arraystretch}{1.15}",
-  "\\begin{tabular*}{\\linewidth}{@{\\extracolsep{\\fill}}lrrrr@{}}", "\\toprule",
-  paste("&", "\\shortstack{PfPR-ACM\\\\model}", "& IHME &", "\\shortstack{UN\\\\IGME}", "&",
-        "\\shortstack{WHO World Malaria\\\\Report 2025}", "\\\\"),
+  "\\begin{tabular*}{\\linewidth}{@{\\extracolsep{\\fill}}lrrr@{}}", "\\toprule",
+  paste("&", "\\shortstack{PfPR-ACM\\\\model}", "& IHME &", "\\shortstack{UN\\\\IGME}", "\\\\"),
   "\\midrule", body, "\\bottomrule", "\\end{tabular*}",
   "\\par\\vspace{0.5em}", "\\begin{minipage}{\\linewidth}", "\\footnotesize",
-  paste("The first three columns are deaths before age five in the same 42 countries, with rates expressed",
-        "per 1000 under-five child-years on a shared denominator derived from the IHME all-cause count and rate."),
-  paste("The World Malaria Report column is all ages for the WHO African Region, with the rate expressed per",
-        "100\\,000 population at risk: the population of high-endemic areas plus half that of low-endemic areas,",
-        "with the risk proportion held constant from 2000 to 2024. It is therefore context rather than a",
-        "like-for-like comparison, and the report publishes no under-five-specific mortality rate."),
-  paste("Globally the report gives", num(pick("WHO WMR 2025", gl, "deaths")$y2000), "deaths in 2000 and",
-        num(pick("WHO WMR 2025", gl, "deaths")$y2024), "in 2024, with the rate falling from",
-        wmr(pick("WHO WMR 2025", gl, "deaths per 100 000 population at risk")$y2000), "to",
-        paste0(wmr(pick("WHO WMR 2025", gl, "deaths per 100 000 population at risk")$y2024),
-               " per 100\\,000 population at risk.")),
-  "Rates and counts differ in direction after 2015 because the population at risk grew over the period.",
+  paste("All three columns are deaths before age five in the same 42 countries. Rates use the same annual",
+        "under-five person-years, implied by the IHME all-cause death count and rate, so within a year the",
+        "three sources share one denominator."),
+  paste("Model deaths are IHME all-cause deaths in each age band multiplied by the estimated malaria-attributable",
+        "fraction; IHME and UN IGME are cause-specific malaria death estimates. These are different estimands."),
+  paste("Counts and rates move in opposite directions after 2015 because under-five person-time in these",
+        "countries grew by 12% between 2015 and 2024."),
   "\\end{minipage}", "\\end{table}")
 writeLines(tex, file.path(out, "source_comparison.latex.txt"))
 

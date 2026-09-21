@@ -7,31 +7,30 @@
 \small
 \setlength{\tabcolsep}{3pt}
 \renewcommand{\arraystretch}{1.15}
-\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrrrr@{}}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrrr@{}}
 \toprule
-& \shortstack{PfPR-ACM\\model} & IHME & \shortstack{UN\\IGME} & \shortstack{WHO World Malaria\\Report 2025} \\
+& \shortstack{PfPR-ACM\\model} & IHME & \shortstack{UN\\IGME} \\
 \midrule
-\multicolumn{5}{@{}l}{\textit{Malaria deaths}} \\
-\quad 2000 & 1,104,990 & 563,657 & 724,276 & 804,000 \\
-\quad 2015 & 665,559 & 416,122 & 416,815 & 550,000 \\
-\quad 2024 & 565,616 & 428,147 & 440,123 & 579,000 \\
-\quad Change 2000--2024 & $-48.8\%$ & $-24.0\%$ & $-39.2\%$ & $-28.0\%$ \\
-\quad Change 2015--2024 & $-15.0\%$ & $+2.9\%$ & $+5.6\%$ & $+5.3\%$ \\
+\multicolumn{4}{@{}l}{\textit{Malaria deaths}} \\
+\quad 2000 & 1,104,990 & 563,657 & 724,276 \\
+\quad 2015 & 665,559 & 416,122 & 416,815 \\
+\quad 2024 & 565,616 & 428,147 & 440,123 \\
+\quad Change 2000--2024 & $-48.8\%$ & $-24.0\%$ & $-39.2\%$ \\
+\quad Change 2015--2024 & $-15.0\%$ & $+2.9\%$ & $+5.6\%$ \\
 \addlinespace
-\multicolumn{5}{@{}l}{\textit{Malaria mortality rate}} \\
-\quad 2000 & 10.06 & 5.13 & 6.59 & 140 \\
-\quad 2015 & 4.20 & 2.62 & 2.63 & 62.5 \\
-\quad 2024 & 3.19 & 2.41 & 2.48 & 51.9 \\
-\quad Change 2000--2024 & $-68.3\%$ & $-53.0\%$ & $-62.4\%$ & $-62.9\%$ \\
-\quad Change 2015--2024 & $-24.1\%$ & $-8.1\%$ & $-5.7\%$ & $-17.0\%$ \\
+\multicolumn{4}{@{}l}{\textit{Malaria mortality rate}} \\
+\quad 2000 & 10.06 & 5.13 & 6.59 \\
+\quad 2015 & 4.20 & 2.62 & 2.63 \\
+\quad 2024 & 3.19 & 2.41 & 2.48 \\
+\quad Change 2000--2024 & $-68.3\%$ & $-53.0\%$ & $-62.4\%$ \\
+\quad Change 2015--2024 & $-24.1\%$ & $-8.1\%$ & $-5.7\%$ \\
 \bottomrule
 \end{tabular*}
 \par\vspace{0.5em}
 \begin{minipage}{\linewidth}
 \footnotesize
-The first three columns are deaths before age five in the same 42 countries, with rates expressed per 1000 under-five child-years on a shared denominator derived from the IHME all-cause count and rate.
-The World Malaria Report column is all ages for the WHO African Region, with the rate expressed per 100\,000 population at risk: the population of high-endemic areas plus half that of low-endemic areas, with the risk proportion held constant from 2000 to 2024. It is therefore context rather than a like-for-like comparison, and the report publishes no under-five-specific mortality rate.
-Globally the report gives 864,000 deaths in 2000 and 610,000 in 2024, with the rate falling from 28.6 to 13.8 per 100\,000 population at risk.
-Rates and counts differ in direction after 2015 because the population at risk grew over the period.
+All three columns are deaths before age five in the same 42 countries. Rates use the same annual under-five person-years, implied by the IHME all-cause death count and rate, so within a year the three sources share one denominator.
+Model deaths are IHME all-cause deaths in each age band multiplied by the estimated malaria-attributable fraction; IHME and UN IGME are cause-specific malaria death estimates. These are different estimands.
+Counts and rates move in opposite directions after 2015 because under-five person-time in these countries grew by 12% between 2015 and 2024.
 \end{minipage}
 \end{table}
