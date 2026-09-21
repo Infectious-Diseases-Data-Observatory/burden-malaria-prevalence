@@ -6,8 +6,8 @@ source("R_cbh/reporting/labels.R")
 settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional"))
 root <- settings$out;out <- file.path(root,"tables")
 dir.create(out,recursive=TRUE,showWarnings=FALSE)
-paths <- file.path(root,c("annual_comparison/country_estimates_2004_2024.csv",
-  "annual_comparison/annual_totals_2004_2024.csv","nigeria_states/state_totals_2024.csv"))
+paths <- file.path(root,c("annual_comparison/country_estimates_2000_2024.csv",
+  "annual_comparison/annual_totals_2000_2024.csv","nigeria_states/state_totals_2024.csv"))
 x <- cbh_read_csv(paths[1]);x <- x[x$year==2024,]
 cbh_unique(x,"iso3","2024 national estimates")
 stopifnot(nrow(x)==42,all(is.finite(x$model_deaths)),all(is.finite(x$ihme_malaria_deaths)),
@@ -46,13 +46,13 @@ tex <- c("% Replacement table source; saved as plain text. No manuscript file is
   "\\end{minipage}","\\end{table}")
 writeLines(tex,file.path(out,"country_comparison_2024.latex.txt"))
 annual <- cbh_read_csv(paths[2]);states <- cbh_read_csv(paths[3])
-stopifnot(nrow(annual)==21,nrow(states)==37,
+stopifnot(nrow(annual)==25,nrow(states)==37,
   max(abs(unlist(annual[annual$year==2024,c("model_deaths","ihme_malaria_deaths","who_cacode_deaths")])-total))<1e-6)
 writeLines(c("# Current primary tables","",
   "These tables report the age-band effects and national/annual/state burden specified in Sections 3–4 of the analysis plan.","",
   "- [Age-band results](age_band_results.md): observed deaths and percentages summing to 100.0%, EDF, 40%→20% and 20%→0% hazard ratios. [CSV](age_band_results.csv); [LaTeX source as text](age_band_results.latex.txt).",
   "- [2024 country comparison](country_comparison_2024.md), all 42 countries. [Ten-country manuscript presentation](country_comparison_2024_top10.md); [CSV](country_comparison_2024.csv); [LaTeX source as text](country_comparison_2024.latex.txt).",
-  "- [Annual deaths and rates, 2004–2024](../annual_comparison/README.md). [CSV](../annual_comparison/annual_totals_2004_2024.csv).",
+  "- [Annual deaths and rates, 2000–2024](../annual_comparison/README.md). [CSV](../annual_comparison/annual_totals_2000_2024.csv).",
   "- [Nigerian state estimates, 2024](../nigeria_states/README.md). [CSV](../nigeria_states/state_totals_2024.csv).", "",
   "LaTeX source is provided in `.latex.txt` files so the author can paste it into the existing manuscript. No `.tex` files are created or edited."),file.path(out,"README.md"))
 inputs <- c(paths,"R_cbh/reporting/09_burden_tables.R","R_cbh/reporting/labels.R")

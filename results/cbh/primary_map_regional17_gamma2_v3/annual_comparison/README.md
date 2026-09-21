@@ -1,13 +1,13 @@
 # Figure 5: annual under-five malaria mortality
 
-All required inputs are available for 2004–2024. The comparison contains the same 42 countries in all 21 years (882 country-years per source). This is the national burden coverage, not only the 34 countries contributing DHS surveys to model fitting.
+All required inputs are available for 2000–2024. The comparison contains the same 42 countries in all 25 years (1,050 country-years per source). This is the national burden coverage, not only the 34 countries contributing DHS surveys to model fitting.
 
 ## Input audit
 
 - Primary model: seven verified saved MAP gamma=2 fits; no refitting required.
-- MAP: all 21 rasters readable; national means recalculated using population density × cell area, not the legacy density-only country CSV.
-- IHME all-cause: all required disjoint age counts and rates, 2004–2024, export dated 9 September 2026.
-- IHME malaria: direct under-five, both-sex national counts and rates, export dated 3 September 2026, filtered to 2004–2024.
+- MAP: all 25 rasters readable; national means recalculated using population density × cell area, not the legacy density-only country CSV.
+- IHME all-cause: all required disjoint age counts and rates, 2000–2024, export dated 9 September 2026.
+- IHME malaria: direct under-five, both-sex national counts and rates, export dated 3 September 2026, filtered to 2000–2024.
 - UN IGME: direct under-five malaria deaths for every included country-year in the CA-CODE 2026 portal release. The previously cached WHO all-age African Region series multiplied by 0.75 is not used.
 
 ## Calculation and checks
@@ -30,6 +30,10 @@ Rates are deaths per 100,000 under-five child-years.
 
 | Year | PfPR-ACM model deaths | Rate | IHME deaths | Rate | UN IGME deaths | Rate |
 |---|---:|---:|---:|---:|---:|---:|
+| 2000 | 1,104,990 | 1006.1 | 563,657 | 513.2 | 724,276 | 659.5 |
+| 2001 | 1,103,256 | 977.2 | 579,322 | 513.1 | 715,788 | 634.0 |
+| 2002 | 1,078,175 | 928.9 | 584,006 | 503.2 | 701,894 | 604.7 |
+| 2003 | 1,052,805 | 881.9 | 587,812 | 492.4 | 685,954 | 574.6 |
 | 2004 | 1,025,420 | 834.8 | 584,453 | 475.8 | 668,525 | 544.3 |
 | 2005 | 973,935 | 770.8 | 564,067 | 446.4 | 610,848 | 483.5 |
 | 2006 | 925,639 | 712.7 | 554,938 | 427.3 | 592,624 | 456.3 |
@@ -58,8 +62,8 @@ Rates are deaths per 100,000 under-five child-years.
 
 Run `Rscript R_cbh/burden/04_annual_comparison.R --audit-only` first, then `Rscript R_cbh/burden/04_annual_comparison.R` and `Rscript R_cbh/reporting/07_annual_mortality_comparison.R`. The scripts use local inputs and do not download data or refit models.
 
-[Included countries](included_countries.csv) · [Annual totals](annual_totals_2004_2024.csv) · [Country estimates](country_estimates_2004_2024.csv) · [Country-year input audit](country_year_input_audit.csv) · [Denominator audit](denominator_audit.csv) · [Input hashes](input_provenance.csv)
+[Included countries](included_countries.csv) · [Annual totals](annual_totals_2000_2024.csv) · [Country estimates](country_estimates_2000_2024.csv) · [Country-year input audit](country_year_input_audit.csv) · [Denominator audit](denominator_audit.csv) · [Input hashes](input_provenance.csv)
 
 ![Figure 5](fig5_annual_malaria_mortality.png)
 
-Annual malaria mortality before age five, 2004–2024, pooled across the same 42 countries covered by the national burden analysis. For each source, the plotted rate is 100,000 times the sum of national under-five malaria deaths divided by the sum of annual under-five person-years implied by the primary IHME all-cause death counts and rates. Rates therefore use a common population denominator and are not averages of country rates or probabilities per live birth. The PfPR-ACM model applies the seven separate primary MAP gamma=2 PfPR effects to annual age-specific IHME all-cause deaths, using the zero-PfPR counterfactual. National annual MAP PfPR[2–10] is weighted by population counts using a fixed GPW 2020 spatial distribution; these exposure weights are separate from the annual mortality denominator. IHME ages 2–4 share a mortality rate and divide deaths/person-time equally across the model's three annual bands. Signed age-specific contributions are retained. The UN IGME comparator is the CA-CODE 2026 series from the UN IGME portal, retrieved from UNICEF's CME_CAUSE_OF_DEATH dataflow on 17 September 2026 (under five, both sexes, malaria, deaths); it is not the World Malaria Report all-age series or a fixed proportion of it. All curves show point estimates. Joint uncertainty across countries and age bands is not available; marginal interval endpoints are not summed. Model-attributable all-cause mortality reductions and the comparator cause-specific estimates are different estimands. The PfPR-ACM model shares IHME all-cause inputs and this comparison is not independent validation. Zero exposure requires extrapolation. Cape Verde, Lesotho and São Tomé and Príncipe are excluded because usable MAP prevalence is unavailable; the other countries absent from the original national input set are not added.
+Annual malaria mortality before age five, 2000–2024, pooled across the same 42 countries covered by the national burden analysis. For each source, the plotted rate is 100,000 times the sum of national under-five malaria deaths divided by the sum of annual under-five person-years implied by the primary IHME all-cause death counts and rates. Rates therefore use a common population denominator and are not averages of country rates or probabilities per live birth. The PfPR-ACM model applies the seven separate primary MAP gamma=2 PfPR effects to annual age-specific IHME all-cause deaths, using the zero-PfPR counterfactual. National annual MAP PfPR[2–10] is weighted by population counts using a fixed GPW 2020 spatial distribution; these exposure weights are separate from the annual mortality denominator. IHME ages 2–4 share a mortality rate and divide deaths/person-time equally across the model's three annual bands. Signed age-specific contributions are retained. The UN IGME comparator is the CA-CODE 2026 series from the UN IGME portal, retrieved from UNICEF's CME_CAUSE_OF_DEATH dataflow on 17 September 2026 (under five, both sexes, malaria, deaths); it is not the World Malaria Report all-age series or a fixed proportion of it. All curves show point estimates. Joint uncertainty across countries and age bands is not available; marginal interval endpoints are not summed. Model-attributable all-cause mortality reductions and the comparator cause-specific estimates are different estimands. The PfPR-ACM model shares IHME all-cause inputs and this comparison is not independent validation. Zero exposure requires extrapolation. Cape Verde, Lesotho and São Tomé and Príncipe are excluded because usable MAP prevalence is unavailable; the other countries absent from the original national input set are not added.

@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 # Figure 4 (combined): A = 2024 country comparison with IHME; B = Nigerian
-# states versus IHME, 2024; C = annual under-five malaria mortality, 2004–2024.
+# states versus IHME, 2024; C = annual under-five malaria mortality, 2000–2024.
 # The main figure expresses every panel as deaths per 1,000 under-five
 # child-years; the death-count version is a supplementary figure.
 # Plotting only: reads saved aggregates written by the burden/reporting stages.
@@ -79,17 +79,17 @@ pB <- ggplot(x,aes(ihme_malaria_deaths,attributable_under5_deaths,colour=zone))+
   labs(x="IHME malaria deaths before age 5, 2024",y=paste0(model_label," deaths\nbefore age 5, 2024"))+
   paper+cbh_log10_grid_theme()
 
-## ---- C: annual mortality, 2004–2024 --------------------------------------------
+## ---- C: annual mortality, 2000–2024 --------------------------------------------
 long <- read("annual_comparison/figure5_data.csv")
 sources <- c(model_label,"IHME","UN IGME")
 stopifnot(setequal(unique(long$source),sources),all(long$countries==42),
-  identical(sort(unique(long$year)),2004:2024))
+  identical(sort(unique(long$year)),2000:2024))
 long$source <- factor(long$source,levels=sources)
 pC <- ggplot(long,aes(year,rate_per100000,colour=source,linetype=source))+
   geom_line(linewidth=1.15)+
   scale_colour_manual(values=setNames(c("#16747C","#253746","#CC6A30"),sources))+
   scale_linetype_manual(values=setNames(c("solid","longdash","dotdash"),sources))+
-  scale_x_continuous(breaks=c(2004,2009,2014,2019,2024),limits=c(2004,2024),
+  scale_x_continuous(breaks=c(2000,2005,2010,2015,2020,2024),limits=c(2000,2024),
     expand=expansion(mult=c(.015,.025)))+
   scale_y_continuous(limits=c(0,NA),labels=comma,expand=expansion(mult=c(0,.05)))+
   labs(x="Year",y="Under-five malaria deaths\nper 100,000 child-years")+
@@ -107,7 +107,7 @@ cbh_atomic_csv(clipped,file.path(out,"points_outside_display_limits.csv"))
 ## ---- main Figure 4: every panel in deaths per 1,000 under-five child-years -------
 # Same three comparisons expressed as mortality rates, so that panels A and B are not
 # dominated by population size. Linear axes with identical limits and an equality line.
-ann <- read("annual_comparison/country_estimates_2004_2024.csv")
+ann <- read("annual_comparison/country_estimates_2000_2024.csv")
 cr <- ann[ann$year==2024 & ann$complete & is.finite(ann$model_rate_per100000) &
   is.finite(ann$ihme_malaria_rate_per100000),]
 stopifnot(nrow(cr)==42,setequal(cr$iso3,cty$iso3),!anyDuplicated(cr$iso3))
@@ -143,7 +143,7 @@ rC <- ggplot(long,aes(year,rate_per1000,colour=source,linetype=source))+
   geom_line(linewidth=1.15)+
   scale_colour_manual(values=setNames(c("#16747C","#253746","#CC6A30"),sources))+
   scale_linetype_manual(values=setNames(c("solid","longdash","dotdash"),sources))+
-  scale_x_continuous(breaks=c(2004,2009,2014,2019,2024),limits=c(2004,2024),
+  scale_x_continuous(breaks=c(2000,2005,2010,2015,2020,2024),limits=c(2000,2024),
     expand=expansion(mult=c(.015,.025)))+
   scale_y_continuous(limits=c(0,NA),expand=expansion(mult=c(0,.05)))+
   labs(x="Year",y="Under-five malaria deaths\nper 1,000 child-years")+
@@ -166,7 +166,7 @@ caption <- paste(
   sprintf("(A) National rates for 2024 in the %d countries with both estimates available; each point is a country and the dashed line denotes equality. Each country's model and IHME deaths are divided by the same under-five person-years implied by the IHME all-cause death count and rate.",nrow(cr)),
   sprintf("(B) The same comparison for the 36 Nigerian states and the Federal Capital Territory in 2024, using the state person-years implied by the IHME all-cause inputs; colours group states into Nigeria's six geopolitical zones for orientation only. Summed over states the model gives %s deaths against %s IHME malaria deaths (ratio %.2f).",
     fmt(recon$state_sum_attributable_deaths),fmt(recon$ihme_malaria_deaths_state_sum),recon$model_over_ihme_malaria_national),
-  "(C) Annual under-five malaria mortality, 2004–2024, pooled across the same 42 countries covered by the national burden analysis. For each source the rate is the sum of national under-five malaria deaths divided by the sum of under-five person-years implied by the IHME all-cause death counts and rates, so the three series share one denominator. The UN IGME series is the CA-CODE 2026 release.",
+  "(C) Annual under-five malaria mortality, 2000–2024, pooled across the same 42 countries covered by the national burden analysis. For each source the rate is the sum of national under-five malaria deaths divided by the sum of under-five person-years implied by the IHME all-cause death counts and rates, so the three series share one denominator. The UN IGME series is the CA-CODE 2026 release.",
   "Axes in A and B are linear with identical limits. Within each country or state the model and comparator share a denominator, so their ratio is the same as for death counts; the supplementary count version of this figure shows the same comparisons as numbers of deaths.",
   definition,caveats)
 writeLines(c("# Figure 4 caption","",caption),file.path(out,"CAPTION.md"))
@@ -176,13 +176,13 @@ count_caption <- paste(
     nrow(cty),fmt(country_limits[1]),fmt(country_limits[2]),sum(clipped$panel=="A"),fmt(country_limits[1])),
   sprintf("(B) The same comparison for the 36 Nigerian states and the Federal Capital Territory in 2024, with axes from %s to %s deaths; colours group states into Nigeria's six geopolitical zones for orientation only.",
     fmt(state_limits[1]),fmt(state_limits[2])),
-  "(C) Annual under-five malaria mortality, 2004–2024, per 100,000 child-years, pooled across the same 42 countries on the common IHME-implied person-year denominator.",
+  "(C) Annual under-five malaria mortality, 2000–2024, per 100,000 child-years, pooled across the same 42 countries on the common IHME-implied person-year denominator.",
   definition,caveats)
 writeLines(c("# Supplementary figure caption: count version of Figure 4","",count_caption),file.path(out,"CAPTION_counts.md"))
 if(file.exists(file.path(out,"CAPTION_rates.md"))) file.remove(file.path(out,"CAPTION_rates.md"))
 paths <- c(file.path(root,c("burden/country_totals.csv","nigeria_states/state_totals_2024.csv",
   "nigeria_states/national_reconciliation_2024.csv","annual_comparison/figure5_data.csv",
-  "annual_comparison/country_estimates_2004_2024.csv")),
+  "annual_comparison/country_estimates_2000_2024.csv")),
   "R_cbh/reporting/11_burden_comparison_figure.R","R_cbh/reporting/labels.R","R_cbh/reporting/log_axes.R")
 cbh_atomic_csv(data.frame(file=paths,md5=vapply(paths,cbh_file_hash,"")),file.path(out,"figure_provenance.csv"))
 message("Combined Figure 4 saved: ",file.path(out,"fig4_burden_comparison.png"))

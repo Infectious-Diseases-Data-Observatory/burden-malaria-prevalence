@@ -47,13 +47,13 @@ for name in ("age_band_results.csv", "age_band_results.md", "age_band_results.la
              "country_comparison_2024.csv", "country_comparison_2024_top10.md", "country_comparison_2024.latex.txt"):
     assets.append((root / "tables" / name, Path("tables") / name))
 assets.extend([
-    (root / "annual_comparison/annual_totals_2004_2024.csv", Path("tables/annual_totals_2004_2024.csv")),
+    (root / "annual_comparison/annual_totals_2000_2024.csv", Path("tables/annual_totals_2000_2024.csv")),
     (root / "nigeria_states/state_totals_2024.csv", Path("tables/nigeria_state_totals_2024.csv")),
 ])
 handoff = out / "OVERLEAF_UPDATE.md"
 with (root / "prepared_sample.csv").open() as f:
     sample = next(csv.DictReader(f))
-with (root / "annual_comparison/annual_totals_2004_2024.csv").open() as f:
+with (root / "annual_comparison/annual_totals_2000_2024.csv").open() as f:
     annual = next(row for row in csv.DictReader(f) if row["year"] == "2024")
 with (root / "covariate_scaling.csv").open() as f:
     n_covariates = len(list(csv.DictReader(f)))
@@ -61,7 +61,7 @@ fmt = lambda x: f"{float(x):,.0f}"
 handoff.write_text(f"""# Updated primary results
 
 Figures 1–4 (Figure 4 combines the 2024 country comparison, the Nigerian state
-comparison and the 2004–2024 annual trend as panels A–C, all as deaths per 1,000
+comparison and the 2000–2024 annual trend as panels A–C, all as deaths per 1,000
 under-five child-years; its death-count version is a supplementary figure) and the
 supplementary inclusion flow use the {n_covariates}-variable
 regional-adjustment MAP gamma=2 models in `{root.name}`. The analysis contains
@@ -81,7 +81,7 @@ No TeX file has been edited. Update manuscript text and captions manually using:
 - [Country table source](tables/country_comparison_2024.latex.txt).
 - [Main figure captions](figures/primary_figure_captions.md).
 - [Inclusion-flow caption](<Supplementary Figures/sfig_study_flow_caption.md>).
-- [Annual totals](tables/annual_totals_2004_2024.csv) and
+- [Annual totals](tables/annual_totals_2000_2024.csv) and
   [Nigerian state totals](tables/nigeria_state_totals_2024.csv).
 
 The 2024 totals are {fmt(annual['model_deaths'])} PfPR-ACM deaths,

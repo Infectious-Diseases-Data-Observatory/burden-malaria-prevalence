@@ -21,7 +21,7 @@ The primary analysis uses seven separate age-band MAP models, cr PfPR splines, g
 | Supplementary: count version of Figure 4 | [Figure](../results/cbh/primary_map_regional17_gamma2_v3/burden_comparison/sfig_burden_comparison_counts.png) and [caption](../results/cbh/primary_map_regional17_gamma2_v3/burden_comparison/CAPTION_counts.md) |
 | Figure 4A source: country comparison, 2005/2015/2024 | [Three-year scatter](../results/cbh/primary_map_regional17_gamma2_v3/burden/country_vs_ihme.png) |
 | Figure 4B source: Nigerian states, 2024 | [Figure](../results/cbh/primary_map_regional17_gamma2_v3/nigeria_states/fig6_nigeria_states_vs_ihme.png) and [state table and audit](../results/cbh/primary_map_regional17_gamma2_v3/nigeria_states/README.md) |
-| Figure 4C source: annual mortality, 2004–2024 | [Figure](../results/cbh/primary_map_regional17_gamma2_v3/annual_comparison/fig5_annual_malaria_mortality.png) and [totals and input audit](../results/cbh/primary_map_regional17_gamma2_v3/annual_comparison/README.md) |
+| Figure 4C source: annual mortality, 2000–2024 | [Figure](../results/cbh/primary_map_regional17_gamma2_v3/annual_comparison/fig5_annual_malaria_mortality.png) and [totals and input audit](../results/cbh/primary_map_regional17_gamma2_v3/annual_comparison/README.md) |
 | Age contributions | [Figure](../results/cbh/primary_map_regional17_gamma2_v3/burden/deaths_by_age.png) and [country-age estimates](../results/cbh/primary_map_regional17_gamma2_v3/burden/country_age_estimates.csv) |
 | DRC synthetic-cohort survival | [Figure](../results/cbh/primary_map_regional17_gamma2_v3/burden/drc_survival.png) |
 

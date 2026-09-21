@@ -27,9 +27,9 @@ stopifnot(counts[["primary"]]==sample$records,counts[["deaths"]]==sample$deaths,
 age <- read("tables/age_band_results.csv")
 stopifnot(nrow(age)==7L,sum(age$records)==sample$records,sum(age$observed_deaths)==sample$deaths,
   abs(sum(age$displayed_death_share_pct)-100)<1e-10,!"elapsed_seconds" %in% names(age))
-annual <- read("annual_comparison/annual_totals_2004_2024.csv")
+annual <- read("annual_comparison/annual_totals_2000_2024.csv")
 burden <- read("burden/year_summary.csv")
-stopifnot(nrow(annual)==21L,identical(as.integer(annual$year),2004:2024),all(annual$countries==42L),
+stopifnot(nrow(annual)==25L,identical(as.integer(annual$year),2000:2024),all(annual$countries==42L),
   max(abs(annual$model_deaths[match(burden$year,annual$year)]-burden$attributable_under5_deaths))<.01)
 national <- read("tables/country_comparison_2024.csv")
 stopifnot(nrow(national)==42L,

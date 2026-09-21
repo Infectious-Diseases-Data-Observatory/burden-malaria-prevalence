@@ -1,4 +1,8 @@
 "year","path","rows","columns","readable"
+2000,"data/map_annual/pfpr2_10_2000.tif",1752,1680,TRUE
+2001,"data/map_annual/pfpr2_10_2001.tif",1752,1680,TRUE
+2002,"data/map_annual/pfpr2_10_2002.tif",1752,1680,TRUE
+2003,"data/map_annual/pfpr2_10_2003.tif",1752,1680,TRUE
 2004,"data/map_annual/pfpr2_10_2004.tif",1752,1680,TRUE
 2005,"data/map_annual/pfpr2_10_2005.tif",1752,1680,TRUE
 2006,"data/map_annual/pfpr2_10_2006.tif",1752,1680,TRUE

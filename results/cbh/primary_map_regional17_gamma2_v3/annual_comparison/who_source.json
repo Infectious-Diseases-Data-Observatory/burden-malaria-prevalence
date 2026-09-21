@@ -1,9 +1,19 @@
 {
-  "source_url": "https://sdmx.data.unicef.org/ws/public/sdmxapi/rest/data/UNICEF,CME_CAUSE_OF_DEATH,1.0/.DEATHS.MALARIA._T.Y0T4./?format=sdmx-csv&dimensionAtObservation=AllDimensions&startPeriod=2004&endPeriod=2024",
-  "retrieved_utc": "2026-09-17T17:28:44.950656+00:00",
-  "sha256": "7ba179eb8d354da4a11499d0aa015bdd41c686ddd751a633e46ad5ec7fc246f0",
-  "bytes": 476995,
+  "source_url": "https://sdmx.data.unicef.org/ws/public/sdmxapi/rest/data/UNICEF,CME_CAUSE_OF_DEATH,1.0/.DEATHS.MALARIA._T.Y0T4./?format=sdmx-csv&dimensionAtObservation=AllDimensions&startPeriod=2000&endPeriod=2024",
+  "retrieved_utc": "2026-09-21T00:00:00+00:00",
+  "sha256": "0a77bef9e490f5b7d41f7caa5fe09bde1f1ff1aa088584651ab466a482ca4477",
+  "bytes": 568139,
   "portal": "https://childmortality.org/causes-of-death/data",
   "source_label": "CA-CODE / UN IGME (WHO and UNICEF)",
-  "release": "Portal labels CA CODE group (2026); years through 2024"
+  "release": "Portal labels CA CODE group (2026); years 2000 through 2024",
+  "note": "Re-retrieved with startPeriod=2000 to extend the annual comparison back to 2000. The earlier startPeriod=2004 extract is retained alongside it.",
+  "superseded_extract": {
+    "source_url": "https://sdmx.data.unicef.org/ws/public/sdmxapi/rest/data/UNICEF,CME_CAUSE_OF_DEATH,1.0/.DEATHS.MALARIA._T.Y0T4./?format=sdmx-csv&dimensionAtObservation=AllDimensions&startPeriod=2004&endPeriod=2024",
+    "retrieved_utc": "2026-09-17T17:28:44.950656+00:00",
+    "sha256": "7ba179eb8d354da4a11499d0aa015bdd41c686ddd751a633e46ad5ec7fc246f0",
+    "bytes": 476995,
+    "portal": "https://childmortality.org/causes-of-death/data",
+    "source_label": "CA-CODE / UN IGME (WHO and UNICEF)",
+    "release": "Portal labels CA CODE group (2026); years through 2024"
+  }
 }

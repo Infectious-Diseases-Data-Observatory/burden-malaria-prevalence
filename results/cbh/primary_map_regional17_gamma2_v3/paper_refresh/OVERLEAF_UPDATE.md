@@ -1,7 +1,7 @@
 # Updated primary results
 
 Figures 1–4 (Figure 4 combines the 2024 country comparison, the Nigerian state
-comparison and the 2004–2024 annual trend as panels A–C, all as deaths per 1,000
+comparison and the 2000–2024 annual trend as panels A–C, all as deaths per 1,000
 under-five child-years; its death-count version is a supplementary figure) and the
 supplementary inclusion flow use the 17-variable
 regional-adjustment MAP gamma=2 models in `primary_map_regional17_gamma2_v3`. The analysis contains
@@ -21,7 +21,7 @@ No TeX file has been edited. Update manuscript text and captions manually using:
 - [Country table source](tables/country_comparison_2024.latex.txt).
 - [Main figure captions](figures/primary_figure_captions.md).
 - [Inclusion-flow caption](<Supplementary Figures/sfig_study_flow_caption.md>).
-- [Annual totals](tables/annual_totals_2004_2024.csv) and
+- [Annual totals](tables/annual_totals_2000_2024.csv) and
   [Nigerian state totals](tables/nigeria_state_totals_2024.csv).
 
 The 2024 totals are 565,616 PfPR-ACM deaths,

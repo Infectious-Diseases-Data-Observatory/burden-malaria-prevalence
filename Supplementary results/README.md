@@ -4,7 +4,7 @@ Reporting designation updated 18 September 2026. The primary analysis uses **ful
 
 ## Supplementary figures for the manuscript
 
-- [Count version of main Figure 4](../results/cbh/primary_map_regional17_gamma2_v3/burden_comparison/sfig_burden_comparison_counts.png): the 2024 country and Nigerian-state comparisons with IHME and the 2004–2024 annual trend as numbers of deaths (log axes), with its [caption](../results/cbh/primary_map_regional17_gamma2_v3/burden_comparison/CAPTION_counts.md). The main figure shows the same comparisons per 1,000 under-five child-years.
+- [Count version of main Figure 4](../results/cbh/primary_map_regional17_gamma2_v3/burden_comparison/sfig_burden_comparison_counts.png): the 2024 country and Nigerian-state comparisons with IHME and the 2000–2024 annual trend as numbers of deaths (log axes), with its [caption](../results/cbh/primary_map_regional17_gamma2_v3/burden_comparison/CAPTION_counts.md). The main figure shows the same comparisons per 1,000 under-five child-years.
 - [Inclusion flow](../results/cbh/primary_map_regional17_gamma2_v3/study_flow/study_flow_diagram.png) and [caption](../results/cbh/primary_map_regional17_gamma2_v3/study_flow/CAPTION.md).
 - [PfPR splines by subgroup](../results/cbh/subgroups_map_gamma2_v1/sfig_pfpr_splines_by_subgroup.png) and [caption](../results/cbh/subgroups_map_gamma2_v1/CAPTION.md): the primary curves overlaid with refits in the Sahel, Eastern Africa and surveys before/after the median survey year (see below).
 

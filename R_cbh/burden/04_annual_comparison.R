@@ -8,12 +8,12 @@ suppressPackageStartupMessages(library(mgcv))
 settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional"))
 out <- file.path(settings$out, "annual_comparison")
 dir.create(out, recursive = TRUE, showWarnings = FALSE)
-years <- 2004:2024
+years <- 2000:2024
 ages <- cbh_config()$age_bands$age_band
 allcause_path <- list.files("data", pattern = "2026-09-09 10-58-22[.]csv$", full.names = TRUE)
 stopifnot(length(allcause_path) == 1)
 malaria_path <- "data/ihme_malaria_u5_deaths_by_age_country_year.csv"
-who_path <- "data/external/figure5/unicef_cacode_u5_malaria_2004_2024.csv"
+who_path <- "data/external/figure5/unicef_cacode_u5_malaria_2000_2024.csv"
 component_path <- file.path(settings$private, "pfpr_components.rds")
 baseline_path <- file.path(settings$out, "burden/country_totals.csv")
 pop_path <- "data/pop/gpw_v4_population_density_rev11_2020_2.5m.tif"
@@ -98,7 +98,7 @@ cbh_atomic_csv(countries, file.path(out, "included_countries.csv"))
 metadata <- rbindlist(lapply(list(allcause, malaria), function(z)
   unique(z[, .(Condition, Data_Suite, Data_Type, Data_Type_Level)])))
 cbh_atomic_csv(metadata, file.path(out, "ihme_release_metadata.csv"))
-message("Input audit passed: 42 countries x 21 years for all three death series; all MAP rasters readable.")
+message("Input audit passed: 42 countries x ", length(years), " years for all three death series; all MAP rasters readable.")
 if ("--audit-only" %in% commandArgs(TRUE)) quit(save = "no", status = 0)
 
 # Fixed GPW 2020 spatial weights, as in the primary burden calculation.
@@ -121,7 +121,7 @@ nat <- rbindlist(lapply(years, function(y) {
 }))
 stopifnot(nrow(nat) == nrow(grid), all(is.finite(nat$pfpr_pct)),
   all(nat$pfpr_pct >= 0 & nat$pfpr_pct <= 100))
-cbh_atomic_csv(nat, file.path(out, "national_pfpr_2004_2024.csv"))
+cbh_atomic_csv(nat, file.path(out, "national_pfpr_2000_2024.csv"))
 
 bands <- rbindlist(lapply(seq_len(nrow(grid)), function(i) {
   iso <- grid$iso3[i]; y <- grid$year[i]
@@ -147,7 +147,7 @@ bands <- rbindlist(lapply(seq_along(ages), function(i) {
   z
 }))
 stopifnot(all(is.finite(bands$attributable_deaths)))
-cbh_atomic_csv(bands, file.path(out, "country_age_estimates_2004_2024.csv"))
+cbh_atomic_csv(bands, file.path(out, "country_age_estimates_2000_2024.csv"))
 totals <- bands[, .(model_deaths = sum(attributable_deaths),
   any_current_outside_support = any(current_outside_observed_support)), by = .(iso3, year)]
 totals <- merge(totals, coverage, by = c("iso3", "year"))
@@ -156,7 +156,7 @@ totals <- merge(totals, countries, by = "iso3")
 for (s in c("model", "ihme_malaria", "who_cacode"))
   totals[, (paste0(s, "_rate_per100000")) := get(paste0(s, "_deaths")) / under5_person_years * 1e5]
 setorder(totals, year, iso3)
-cbh_atomic_csv(totals, file.path(out, "country_estimates_2004_2024.csv"))
+cbh_atomic_csv(totals, file.path(out, "country_estimates_2000_2024.csv"))
 
 # Numerical regression check against all 126 existing primary country estimates.
 check <- merge(totals, previous[status == "estimated", .(iso3, year,
@@ -175,8 +175,8 @@ annual <- totals[, .(countries = .N, under5_person_years = sum(under5_person_yea
 for (s in c("model", "ihme_malaria", "who_cacode"))
   annual[, (paste0(s, "_rate_per100000")) := get(paste0(s, "_deaths")) / under5_person_years * 1e5]
 stopifnot(nrow(annual) == length(years), all(annual$countries == 42))
-cbh_atomic_csv(annual, file.path(out, "annual_totals_2004_2024.csv"))
+cbh_atomic_csv(annual, file.path(out, "annual_totals_2000_2024.csv"))
 inputs <- unique(c(inputs, "R_cbh/burden/04_annual_comparison.R", "R_cbh/primary/settings.R"))
 cbh_atomic_csv(data.frame(file = inputs, md5 = vapply(inputs, cbh_file_hash, "")),
   file.path(out, "input_provenance.csv"))
-print(annual[year %in% c(2004, 2005, 2015, 2024)])
+print(annual[year %in% c(2000, 2004, 2005, 2015, 2024)])
