@@ -95,6 +95,10 @@ items <- sprintf("%s %s",ifelse(attr$reason %in% names(short),short[attr$reason]
 if(length(items)>6) items <- c(items[1:5],paste("other",fmt(sum(attr$records[-(1:5)]))))
 reason_text <- paste(vapply(split(items,ceiling(seq_along(items)/2)),paste,"",collapse=" · "),collapse="\n")
 omitted_countries <- paste(sort(unique(omitted$country)),collapse=", ")
+# Spell the country out in the exclusion box; the code alone reads poorly in a sentence.
+omitted_names <- paste(sort(unique(countrycode::countrycode(omitted$country,"iso3c","country.name",
+  warn=FALSE))),collapse=", ")
+stopifnot(nzchar(omitted_names),!anyNA(omitted_names))
 n$with_map <- n$eligible-n$missing_map
 # Five retained stages on the left; one box per exclusion reason on the right,
 # each leaving the connecting line between the stages it separates.
@@ -113,7 +117,7 @@ nodes <- data.frame(
     sprintf("%s child–age bands\n%s surveys · %s countries",fmt(n$entered),fmt(n$built),fmt(n$built_countries)),
     paste(fmt(n$eligible),"records"),paste(fmt(n$with_map),"records"),
     sprintf("%s records · %s deaths\n%s surveys · %s countries",fmt(n$primary),fmt(n$deaths),fmt(n$surveys),fmt(n$countries)),
-    sprintf("No MAP geography for the\nsurvey's regions (%s)",omitted_countries),
+    sprintf("%s is malaria free, so MAP\npublishes no prevalence surface",omitted_names),
     sprintf("%s: band not complete by interview\n%s: entry year outside 2000–2024",fmt(n$incomplete),fmt(n$outside_year)),
     "No MAP PfPR for the region\nin the band-entry year",
     paste0("Required covariate unavailable:\n",reason_text)))
@@ -144,7 +148,7 @@ for(i in seq_len(nrow(nodes))) {
 }
 ggsave(file.path(out,"study_flow_diagram.png"),p,width=11.5,height=9.6,dpi=300,device=ragg::agg_png,bg="white")
 caption <- c("# Figure caption — primary sample inclusion","",
-  sprintf("**Figure. Sample inclusion for the primary MAP analysis.** The survey registry contains %s surveys in %s countries. %s surveys lack MAP geography, leaving %s processed surveys in %s countries. Counts below the registry refer to child–age-band records, not unique children, and begin after birth-history validity checks and confirmation that the child reached the band alive.",fmt(n$registry),fmt(n$registry_countries),fmt(n$omitted),fmt(n$built),fmt(n$built_countries)),"",
+  sprintf("**Figure. Sample inclusion for the primary MAP analysis.** The survey registry contains %s surveys in %s countries. %s surveys are excluded because Lesotho is malaria free and the Malaria Atlas Project publishes no prevalence surface for it, leaving %s processed surveys in %s countries. Counts below the registry refer to child–age-band records, not unique children, and begin after birth-history validity checks and confirmation that the child reached the band alive.",fmt(n$registry),fmt(n$registry_countries),fmt(n$omitted),fmt(n$built),fmt(n$built_countries)),"",
   sprintf("The processed surveys contain %s recorded births across their complete birth histories; %s pass history-validity checks, including %s births within 60 months before interview. These birth totals exclude the surveys skipped for missing MAP geography. Children born earlier can still contribute later age-band entries within the five-year window.",fmt(n$recorded_births),fmt(n$valid_births),fmt(n$recent_valid_births)),"",
   sprintf("Among %s band entries within the 60 months before interview, %s have an incomplete potential band and %s have entry years outside 2000–2024. Requiring the full potential band to end by interview for deaths and survivors alike leaves %s eligible records. A further %s lack a regional MAP PfPR value for the band-entry year, leaving %s, and %s lack at least one required covariate after the declared HIV, vaccination and available-region substitutions. Each covariate exclusion is attributed to the first missing covariate in a declared order (national annual series, then regional summaries), so the reasons shown are disjoint: %s. The final sample contains %s records and %s deaths from %s surveys in %s countries.",fmt(n$entered),fmt(n$incomplete),fmt(n$outside_year),fmt(n$eligible),fmt(n$missing_map),fmt(n$with_map),fmt(n$missing_covariates),
     paste(sprintf("%s %s",tolower(attr$label),fmt(attr$records)),collapse="; "),fmt(n$primary),fmt(n$deaths),fmt(n$surveys),fmt(n$countries)),"",

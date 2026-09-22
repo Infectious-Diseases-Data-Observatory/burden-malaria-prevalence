@@ -1,6 +1,6 @@
 # Figure caption — primary sample inclusion
 
-**Figure. Sample inclusion for the primary MAP analysis.** The survey registry contains 124 surveys in 37 countries. 4 surveys are excluded because Lesotho is malaria free and the Malaria Atlas Project publishes no prevalence surface for it, leaving 120 processed surveys in 36 countries. Counts below the registry refer to child–age-band records, not unique children, and begin after birth-history validity checks and confirmation that the child reached the band alive.
+**Figure. Sample inclusion for the primary MAP analysis.** The survey registry contains 124 surveys in 37 countries. 4 surveys lack MAP geography, leaving 120 processed surveys in 36 countries. Counts below the registry refer to child–age-band records, not unique children, and begin after birth-history validity checks and confirmation that the child reached the band alive.
 
 The processed surveys contain 4,416,951 recorded births across their complete birth histories; 4,414,407 pass history-validity checks, including 1,213,911 births within 60 months before interview. These birth totals exclude the surveys skipped for missing MAP geography. Children born earlier can still contribute later age-band entries within the five-year window.
 

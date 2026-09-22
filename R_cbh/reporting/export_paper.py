@@ -24,7 +24,7 @@ def digest(path):
 
 with (root / "paper_figures/manifest.csv").open() as f:
     figures = list(csv.DictReader(f))
-assert [int(x["figure"]) for x in figures] == list(range(1, 5))
+assert [int(x["figure"]) for x in figures] == list(range(1, 4))
 assets = []
 for row in figures:
     source = Path(row["source"])
@@ -39,6 +39,11 @@ assets.extend([
     (Path("results/cbh/subgroups_map_gamma2_v1/sfig_pfpr_splines_by_subgroup.png"), Path("Supplementary Figures/sfig_pfpr_splines_by_subgroup.png")),
     (Path("results/cbh/subgroups_map_gamma2_v1/CAPTION.md"), Path("Supplementary Figures/sfig_pfpr_splines_by_subgroup_caption.md")),
     (root / "study_flow/study_flow_diagram.png", Path("Supplementary Figures/sfig_study_flow.png")),
+    (root / "pfpr_splines.png", Path("Supplementary Figures/sfig_pfpr_mortality_by_age.png")),
+    (Path("results/cbh/nutrition_adjustment_map_gamma2_v1/sfig_pfpr_splines_without_nutrition.png"),
+     Path("Supplementary Figures/sfig_pfpr_splines_without_nutrition.png")),
+    (Path("results/cbh/nutrition_adjustment_map_gamma2_v1/CAPTION.md"),
+     Path("Supplementary Figures/sfig_pfpr_splines_without_nutrition_caption.md")),
     (Path("results/cbh/primary_map_regional17_imputed_gamma2_v4/sfig_pfpr_splines_imputed_covariates.png"), Path("Supplementary Figures/sfig_pfpr_splines_imputed_covariates.png")),
     (Path("results/cbh/primary_map_regional17_imputed_gamma2_v4/CAPTION_sfig_imputed_covariates.md"), Path("Supplementary Figures/sfig_pfpr_splines_imputed_covariates_caption.md")),
     (root / "study_flow/CAPTION.md", Path("Supplementary Figures/sfig_study_flow_caption.md")),

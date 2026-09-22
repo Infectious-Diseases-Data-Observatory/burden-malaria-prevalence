@@ -6,8 +6,8 @@
 "with_map",3.7,7.25,6.7,1.35,"main","With regional MAP prevalence","6,357,802 records"
 "sample",3.7,5,6.7,1.65,"main","Primary analysis sample","5,465,305 records · 75,726 deaths
 95 surveys · 34 countries"
-"omit_surveys",9.75,12.69,4.7,1.35,"excluded","4 surveys excluded","No MAP geography for the
-survey's regions (LSO)"
+"omit_surveys",9.75,12.69,4.7,1.35,"excluded","4 surveys excluded","Lesotho is malaria free, so MAP
+publishes no prevalence surface"
 "omit_eligibility",9.75,10.44,4.7,1.75,"excluded","1,413,279 records excluded","994,618: band not complete by interview
 418,661: entry year outside 2000–2024"
 "omit_map",9.75,8.33,4.7,1.35,"excluded","73,561 records excluded","No MAP PfPR for the region

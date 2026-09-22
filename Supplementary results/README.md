@@ -48,3 +48,11 @@ Added 16 September 2026; superseded by the subgroup refits above, which repeat t
 - [Report, model details and contrasts](../results/cbh/sahel_map_gamma2_v1/REPORT.md)
 - [Region selection audit](../results/cbh/sahel_map_gamma2_v1/region_selection.csv)
 - [Reproduction instructions](../R_cbh/sensitivity/sahel/README.md)
+
+## Adjustment without wasting and stunting
+
+Added 22 September 2026. The seven primary age-band models refitted on the identical complete-case sample with the two nutritional covariates removed (15 covariates instead of 17). Wasting and stunting are measured in surviving children at the time of the survey and may lie on the causal pathway from malaria to death, so adjusting for them risks removing part of the association of interest. Only the adjustment set changes: sample, exposure, reference knots, basis dimensions, gamma=2 and random effects are those of the primary. See plan section 3.4.4.
+
+- [Supplementary figure](../results/cbh/nutrition_adjustment_map_gamma2_v1/sfig_pfpr_splines_without_nutrition.png) and [caption](../results/cbh/nutrition_adjustment_map_gamma2_v1/CAPTION.md)
+- [Hazard-ratio comparison](../results/cbh/nutrition_adjustment_map_gamma2_v1/CONTRASTS.md) and [contrast table](../results/cbh/nutrition_adjustment_map_gamma2_v1/comparison_contrasts.csv)
+- [Fit diagnostics](../results/cbh/nutrition_adjustment_map_gamma2_v1/fit_diagnostics.csv)

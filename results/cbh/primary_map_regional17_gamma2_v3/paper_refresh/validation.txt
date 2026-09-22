@@ -1,4 +1,4 @@
-PASS: four main figures (Figure 4 combining country, state and annual comparisons) reference the revised primary version and match their hashes.
+PASS: 3 main figures (Figure 3 combining country, state and annual comparisons) reference the revised primary version and match their hashes.
 PASS: seven fitted model hashes, convergence flags and gamma=2 verified.
 PASS: flow, 95 DHS surveys, 916 survey-regions, child-band/death/child totals reconcile.
 PASS: age-table death percentages sum to 100.0%; both contrasts retained; no fit-time column.

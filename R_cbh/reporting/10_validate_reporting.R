@@ -9,8 +9,8 @@ sample <- read("primary_sample.csv");figures <- read("paper_figures/manifest.csv
 stopifnot(nrow(manifest)==7L,all(grepl(st$id,manifest$model_file,fixed=TRUE)),
   all(diag$converged),all(diag$input_verified),all(diag$gamma==2),
   identical(unname(vapply(manifest$model_file,cbh_file_hash,"")),manifest$md5),
-  nrow(figures)==4L,identical(as.integer(figures$figure),1:4),
-  basename(figures$source[4])=="fig4_burden_comparison.png",
+  nrow(figures)==3L,identical(as.integer(figures$figure),1:3),
+  basename(figures$source[3])=="fig4_burden_comparison.png",
   all(grepl(st$id,figures$source,fixed=TRUE)),
   identical(unname(vapply(figures$source,cbh_file_hash,"")),figures$md5))
 formula_vars <- all.vars(as.formula(paste(readLines(file.path(root,"model_formula.txt")),collapse=" ")))
@@ -54,7 +54,7 @@ for(p in file.path(root,"tables",c("age_band_results.latex.txt","country_compari
   lines <- readLines(p);rows <- lines[grepl(" & ",lines,fixed=TRUE)]
   stopifnot(length(rows)>7L,all(endsWith(rows,strrep(intToUtf8(92),2))))
 }
-writeLines(c("PASS: four main figures (Figure 4 combining country, state and annual comparisons) reference the revised primary version and match their hashes.",
+writeLines(c(sprintf("PASS: %d main figures (Figure 3 combining country, state and annual comparisons) reference the revised primary version and match their hashes.",nrow(figures)),
   "PASS: seven fitted model hashes, convergence flags and gamma=2 verified.",
   sprintf("PASS: flow, %d DHS surveys, %d survey-regions, child-band/death/child totals reconcile.",sample$surveys,sum(coverage$regions)),
   "PASS: age-table death percentages sum to 100.0%; both contrasts retained; no fit-time column.",

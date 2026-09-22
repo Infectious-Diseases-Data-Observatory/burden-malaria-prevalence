@@ -44,13 +44,21 @@ stopifnot(nrow(d) == 28L, all(is.finite(d$attributable_fraction)),
 cbh_atomic_csv(d, file.path(out, "attributable_fraction_by_age.csv"))
 d$age_band <- factor(d$age_band, levels = ages)
 d$prevalence <- factor(d$pfpr_pct, levels = prevalences, labels = paste0(prevalences, "%"))
+# Conditional pointwise 95% intervals, dodged so the four prevalence series stay legible.
+# The lower limit is allowed below zero: the neonatal interval at 10% includes zero.
+pd <- position_dodge(width = 0.45)
+y_floor <- min(0, floor(min(d$af_lower_95) * 20) / 20)
+stopifnot(max(d$af_upper_95) <= 1)
 p <- ggplot(d, aes(age_band, attributable_fraction, colour = prevalence, group = prevalence)) +
-  geom_line(linewidth = 1.2) + geom_point(size = 3) +
+  geom_hline(yintercept = 0, colour = "grey65", linewidth = .4) +
+  geom_errorbar(aes(ymin = af_lower_95, ymax = af_upper_95), width = .22,
+                linewidth = .7, position = pd) +
+  geom_line(linewidth = 1.2, position = pd) + geom_point(size = 2.8, position = pd) +
   scale_colour_manual(values = c("10%" = "#0072B2", "20%" = "#009E73",
                                  "30%" = "#E69F00", "40%" = "#CC79A7")) +
   scale_y_continuous(breaks = seq(0,1,.2), labels = scales::label_percent(accuracy = 1),
                      expand = expansion(mult = 0)) +
-  coord_cartesian(ylim = c(0,1)) +
+  coord_cartesian(ylim = c(y_floor, 1)) +
   labs(x = "Age (months)", y = "Malaria-attributable share\nof all-cause deaths",
        colour = "PfPR[2–10]") +
   theme_minimal(base_size = 20) +
@@ -65,4 +73,4 @@ inputs <- c(component_path, file.path(out, c("fit_manifest.csv", "fit_diagnostic
             "R_cbh/reporting/06_attributable_fraction_by_age.R", "R_cbh/primary/settings.R")
 cbh_atomic_csv(data.frame(file = inputs, md5 = vapply(inputs, cbh_file_hash, "")),
                file.path(out, "attributable_fraction_by_age_provenance.csv"))
-message("Figure 3 and all 28 age/prevalence estimates saved")
+message("Attributable-fraction figure with intervals and all 28 age/prevalence estimates saved")
