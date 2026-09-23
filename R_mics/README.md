@@ -20,6 +20,9 @@ code, reviewed configuration and aggregate results are tracked.
 9. `08_build_child_bands.R` runs the unchanged builder into `data/derived_mics/cbh_build/`.
 10. `09_regional_covariates.R` computes the 13 regional covariates from the microdata, with the WUENIC and within-survey fallbacks.
 11. `10_exclusion_attribution_mics.R` attributes MICS complete-case exclusions for the study flow.
+12. `11_region_centroids.R` writes boundary centroids of the MICS analysis regions (same method as the DHS centroid cache), used by the Sahel subgroup refit.
 
 Then `Rscript R_cbh/primary/run_regional.R` (default version `regional_mics`) prepares, fits and reports
 `primary_map_regional17_dhsmics_gamma2_v5`. See `docs/ANALYSIS_PLAN.md` section 2.6.
+The sensitivity analyses on the same sample are in `R_cbh/sensitivity/subgroups/`, `R_cbh/sensitivity/nutrition/`
+(both default to DHS+MICS; `--dhs-only` reproduces the DHS-only refits) and `R_cbh/sensitivity/imputation_dhsmics/`.

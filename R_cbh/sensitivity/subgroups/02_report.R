@@ -5,7 +5,8 @@ source("R_cbh/primary/settings.R")
 source("R_cbh/reporting/labels.R")
 source("R_cbh/sensitivity/subgroups/settings.R")
 library(ggplot2)
-st <- cbh_subgroup_settings(); primary <- cbh_primary_settings("regional")
+args <- commandArgs(trailingOnly = TRUE); stopifnot(all(args %in% "--dhs-only"))
+st <- cbh_subgroup_settings(cbh_subgroup_sample(args)); primary <- cbh_primary_settings(st$primary_version)
 read <- function(x) cbh_read_csv(file.path(st$out, x))
 write_csv <- function(d, name) cbh_atomic_csv(d, file.path(st$out, name))
 ages <- cbh_config()$age_bands$age_band
@@ -101,7 +102,7 @@ for (age in ages) {
 lines <- c("# Subgroup sensitivity of the primary PfPR models", "",
   paste0("Seven separate MAP gamma=2 age-band models refitted in four subsets of the fitted 17-variable sample (`", primary$id, "`). Reference: the full primary fits in `", primary$out, "`."), "",
   "## Subsets", "", paste0("- ", vapply(subgroups, describe, "")), "",
-  paste0("Definitions: ", paste(defs[-1], collapse = "; "), ". Survey regions enter whole; centroids are survey-specific boundary centroids from the cached shapefile summary. The period split counts each survey once."), "",
+  paste0("Definitions: ", paste(defs[-1], collapse = "; "), ". Survey regions enter whole; centroids are survey-specific boundary centroids (DHS: the cached shapefile summary; MICS: the analysis-region polygons, `R_mics/11_region_centroids.R`). The period split counts each survey once."), "",
   "## Figures", "",
   "![Splines by subgroup](sfig_pfpr_splines_by_subgroup.png)", "", caption, "",
   "![40% to 20% contrasts](pfpr_40_to_20_by_subgroup.png)", "",
@@ -110,7 +111,7 @@ lines <- c("# Subgroup sensitivity of the primary PfPR models", "",
   "## Validation", "",
   sprintf("All 28 subgroup fits converged with full rank, finite coefficients and covariances and positive smoothing-Hessian eigenvalues; %d needed the tighter-tolerance restart (see restarts.csv where present). Fitted model columns were checked against the selected input rows; curves are anchored at zero at 20%% PfPR. Total pure fitting time %.0f seconds.",
     sum(grepl("strict", cbh_read_csv(file.path(st$out, "fit_manifest.csv"))$selected_version)), sum(diag$elapsed_seconds)), "",
-  "Reproduce: `Rscript R_cbh/sensitivity/subgroups/01_fit.R` then `Rscript R_cbh/sensitivity/subgroups/02_report.R`. Only aggregate tables and figures are published; fitted objects stay under the ignored data directory. Primary fits, burden estimates and manuscript files are unchanged.")
+  paste0("Reproduce: `Rscript R_cbh/sensitivity/subgroups/01_fit.R` then `Rscript R_cbh/sensitivity/subgroups/02_report.R`", if (st$sample == "dhs") " (both with `--dhs-only`)" else "", ". Only aggregate tables and figures are published; fitted objects stay under the ignored data directory. Primary fits, burden estimates and manuscript files are unchanged."))
 writeLines(lines, file.path(st$out, "REPORT.md"))
 source_files <- c(full_path, file.path(primary$out, "fit_diagnostics.csv"),
   file.path(st$out, c("pfpr_curves.csv", "fit_diagnostics.csv", "sample_summary.csv")),

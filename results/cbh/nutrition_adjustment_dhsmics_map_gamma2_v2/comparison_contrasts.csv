@@ -1,0 +1,15 @@
+"age_band","iteration","hr_40_to_20","hr_20_to_0"
+"<1","All 17 covariates (primary analysis)",0.944339322633037,0.946753045592884
+"1-5","All 17 covariates (primary analysis)",0.9151878818572,0.864389928822506
+"6-11","All 17 covariates (primary analysis)",0.830424786425058,0.695741284334596
+"12-23","All 17 covariates (primary analysis)",0.822538891949496,0.54383777703481
+"24-35","All 17 covariates (primary analysis)",0.849589043022707,0.473440125859019
+"36-47","All 17 covariates (primary analysis)",0.843005115341907,0.542896722802078
+"48-59","All 17 covariates (primary analysis)",0.907274030632082,0.578547089282509
+"<1","Wasting and stunting removed (sensitivity)",0.938700465992207,0.931697088175284
+"1-5","Wasting and stunting removed (sensitivity)",0.907417987631936,0.834434212825647
+"6-11","Wasting and stunting removed (sensitivity)",0.827282976803382,0.67530896271836
+"12-23","Wasting and stunting removed (sensitivity)",0.821721028299967,0.517443443706046
+"24-35","Wasting and stunting removed (sensitivity)",0.843435911246551,0.460392584283007
+"36-47","Wasting and stunting removed (sensitivity)",0.842117607285906,0.535584107290526
+"48-59","Wasting and stunting removed (sensitivity)",0.90606081219826,0.567584654790464

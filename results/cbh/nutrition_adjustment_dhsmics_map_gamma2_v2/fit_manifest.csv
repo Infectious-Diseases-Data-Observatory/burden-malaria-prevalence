@@ -1,0 +1,8 @@
+"fit_id","age_band","model_file","md5","selected_version","prepared_data_md5"
+"nonutrition_age_1","<1","data/derived_cbh/models/nutrition_adjustment_dhsmics_map_gamma2_v2/nonutrition_age_1.rds","90c95a431f4497316f74e0e19541b2a9","original","3e84f7ea55fdcc467afbcb0880448eec"
+"nonutrition_age_2","1-5","data/derived_cbh/models/nutrition_adjustment_dhsmics_map_gamma2_v2/nonutrition_age_2.rds","c83e4a4a16714039a3b391fdc7f14ebd","original","3e84f7ea55fdcc467afbcb0880448eec"
+"nonutrition_age_3","6-11","data/derived_cbh/models/nutrition_adjustment_dhsmics_map_gamma2_v2/nonutrition_age_3.rds","c8dd7d27eb5f6d659576d472efb83ae1","original","3e84f7ea55fdcc467afbcb0880448eec"
+"nonutrition_age_4","12-23","data/derived_cbh/models/nutrition_adjustment_dhsmics_map_gamma2_v2/nonutrition_age_4.rds","5fc09c008090433ed6b0b5b73d48e4cc","original","3e84f7ea55fdcc467afbcb0880448eec"
+"nonutrition_age_5","24-35","data/derived_cbh/models/nutrition_adjustment_dhsmics_map_gamma2_v2/nonutrition_age_5.rds","2cb21d6d73debf401766632213a30ec9","original","3e84f7ea55fdcc467afbcb0880448eec"
+"nonutrition_age_6","36-47","data/derived_cbh/models/nutrition_adjustment_dhsmics_map_gamma2_v2/nonutrition_age_6.rds","579233eff23f24ce23765c038cf57f43","original","3e84f7ea55fdcc467afbcb0880448eec"
+"nonutrition_age_7","48-59","data/derived_cbh/models/nutrition_adjustment_dhsmics_map_gamma2_v2/nonutrition_age_7_strict.rds","256b2293b98f62613329d17ae4903bfe","strict_restart","3e84f7ea55fdcc467afbcb0880448eec"

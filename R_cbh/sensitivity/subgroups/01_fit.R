@@ -2,6 +2,7 @@
 # Refit the seven primary age-band models in four subgroups of the fitted
 # 17-variable sample: Sahel (>=12N), Eastern Africa, and surveys before/after
 # the median survey year. Subsets the saved prepared data; no data/HIV rebuild.
+# Default: the DHS and MICS primary (v5). --dhs-only: the DHS-only primary (v3).
 source("R_cbh/load_pipeline.R")
 source("R_cbh/analysis/model.R")
 source("R_cbh/sensitivity/model.R")
@@ -11,8 +12,8 @@ source("R_cbh/sensitivity/subgroups/settings.R")
 library(mgcv)
 library(data.table)
 args <- commandArgs(trailingOnly = TRUE)
-stopifnot(all(args %in% "--force"))
-st <- cbh_subgroup_settings(); primary <- cbh_primary_settings("regional")
+stopifnot(all(args %in% c("--force", "--dhs-only")))
+st <- cbh_subgroup_settings(cbh_subgroup_sample(args)); primary <- cbh_primary_settings(st$primary_version)
 stopifnot(isTRUE(primary$nutrition))
 for (p in c(st$out, st$private)) dir.create(p, recursive = TRUE, showWarnings = FALSE)
 write_csv <- function(d, name) cbh_atomic_csv(d, file.path(st$out, name))
@@ -45,8 +46,10 @@ write_csv(surveys[order(surveys$country, surveys$survey_year), ], "survey_groups
 message("Median survey year among ", nrow(surveys), " included surveys: ", cutoff,
         " (", sum(surveys$period == "early"), " early, ", sum(surveys$period == "late"), " late)")
 
-registry <- cbh_read_csv(st$registry); cbh_unique(registry, "SurveyId", "Registry")
-centroids <- cbh_read_csv(st$centroids); cbh_unique(centroids, c("SurveyId", "regkey"), "Centroids")
+read_all <- function(paths, cols) do.call(rbind, lapply(paths, function(x) cbh_read_csv(x)[cols]))
+registry <- read_all(st$registry, c("SurveyId", "iso3", "svkey")); cbh_unique(registry, "SurveyId", "Registry")
+centroids <- read_all(st$centroids, c("SurveyId", "iso3", "year", "regkey", "lon", "lat"))
+cbh_unique(centroids, c("SurveyId", "regkey"), "Centroids")
 j <- match(centroids$SurveyId, registry$SurveyId)
 stopifnot(!anyNA(j), all(centroids$iso3 == registry$iso3[j]))
 centroids$survey <- registry$svkey[j]

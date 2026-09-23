@@ -6,8 +6,10 @@ source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 source("R_cbh/reporting/labels.R")
 library(ggplot2)
-st <- list(out = "results/cbh/nutrition_adjustment_map_gamma2_v1")
-primary <- cbh_primary_settings("regional")
+args <- commandArgs(trailingOnly = TRUE); stopifnot(all(args %in% "--dhs-only"))
+dhs_only <- "--dhs-only" %in% args
+st <- list(out = file.path("results/cbh", if (dhs_only) "nutrition_adjustment_map_gamma2_v1" else "nutrition_adjustment_dhsmics_map_gamma2_v2"))
+primary <- cbh_primary_settings(if (dhs_only) "regional" else "regional_mics")
 labels <- c(full = "All 17 covariates (primary analysis)",
             drop = "Wasting and stunting removed (sensitivity)")
 colours <- setNames(c("#B36B39", "#215E91"), labels)
