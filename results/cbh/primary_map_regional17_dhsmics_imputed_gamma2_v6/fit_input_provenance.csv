@@ -1,0 +1,8 @@
+"file","md5"
+"data/derived_cbh/models/primary_map_regional17_dhsmics_imputed_gamma2_v6/complete_case_dataset.rds","acf7c321c7c8e990858bb46417ac08c2"
+"R_cbh/primary/reference_knots.csv","44e615dba02b4488660d272c87037299"
+"R_cbh/sensitivity/imputation_dhsmics/04_fit.R","b104b03317c2dba9f19f1463391e2e7e"
+"R_cbh/sensitivity/imputation_dhsmics/settings.R","8da11247c5d618f8a3feb1f093c67fc2"
+"R_cbh/sensitivity/model.R","82b90e69be68ecb99a420e995c896d6b"
+"R_cbh/analysis/model.R","56a5b0e05993e69514e4f3a624e9898d"
+"R_cbh/primary/specification.R","e5ba4dd07aebdd9cc9061e69591da017"

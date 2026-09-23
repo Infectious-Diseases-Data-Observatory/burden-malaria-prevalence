@@ -1,0 +1,8 @@
+"fit_id","age_band","model_file","md5","selected_version","prepared_data_md5"
+"imputed_dhsmics_age_1","<1","data/derived_cbh/models/primary_map_regional17_dhsmics_imputed_gamma2_v6/imputed_dhsmics_age_1.rds","0b5ceee1d9258cae6ba231470945fffe","original","acf7c321c7c8e990858bb46417ac08c2"
+"imputed_dhsmics_age_2","1-5","data/derived_cbh/models/primary_map_regional17_dhsmics_imputed_gamma2_v6/imputed_dhsmics_age_2.rds","db0644eb6bac4217f73e0cfc67daaccd","original","acf7c321c7c8e990858bb46417ac08c2"
+"imputed_dhsmics_age_3","6-11","data/derived_cbh/models/primary_map_regional17_dhsmics_imputed_gamma2_v6/imputed_dhsmics_age_3.rds","bbb96f676714f80023624d699f1953ca","original","acf7c321c7c8e990858bb46417ac08c2"
+"imputed_dhsmics_age_4","12-23","data/derived_cbh/models/primary_map_regional17_dhsmics_imputed_gamma2_v6/imputed_dhsmics_age_4.rds","4fa34c09cdbacd85b73d4921f6d1a496","original","acf7c321c7c8e990858bb46417ac08c2"
+"imputed_dhsmics_age_5","24-35","data/derived_cbh/models/primary_map_regional17_dhsmics_imputed_gamma2_v6/imputed_dhsmics_age_5.rds","c6b038715deceba8946cc5887a5e7755","original","acf7c321c7c8e990858bb46417ac08c2"
+"imputed_dhsmics_age_6","36-47","data/derived_cbh/models/primary_map_regional17_dhsmics_imputed_gamma2_v6/imputed_dhsmics_age_6.rds","f7737d9310edfbe4c8d0bebf576348fe","original","acf7c321c7c8e990858bb46417ac08c2"
+"imputed_dhsmics_age_7","48-59","data/derived_cbh/models/primary_map_regional17_dhsmics_imputed_gamma2_v6/imputed_dhsmics_age_7.rds","8147b6dc07b9015eed1817c1be3532cc","original","acf7c321c7c8e990858bb46417ac08c2"

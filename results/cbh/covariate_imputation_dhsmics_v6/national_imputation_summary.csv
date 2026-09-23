@@ -1,0 +1,4 @@
+"variable","model","n_observed_in_fit","n_imputed","imputed_countries","residual_sd","deviance_explained","interpolated_2001"
+"political_stability","political_stability ~ s(year, k = 6) + s(iso3, bs = ""re"") + s(iso3,     year, bs = ""re"")",950,11,"SSD",0.398510810257506,0.764345371051955,39
+"log_gdp_pc","log_gdp_pc ~ s(year, k = 6) + s(iso3, bs = ""re"") + s(iso3, year,     bs = ""re"")",983,17,"SSD",0.23209481884131,0.933747383967543,0
+"log_health_expenditure_pc","log_health_expenditure_pc ~ s(year, k = 6) + log_gdp_pc + s(iso3,     bs = ""re"") + s(iso3, year, bs = ""re"")",913,80,"AGO BDI BEN BFA CAF CIV CMR COD COG COM ETH GAB GHA GIN GMB GNB KEN LBR MDG MLI MOZ MRT MWI NAM NER NGA RWA SEN SLE SOM SSD STP SWZ TCD TGO TZA UGA ZAF ZMB ZWE",0.229741223851036,0.942005040684694,0
