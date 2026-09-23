@@ -7,7 +7,7 @@ source("R_cbh/covariates/settings.R")
 source("R_cbh/primary/settings.R")
 library(data.table)
 settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional"));cs <- cbh_covariate_settings();cfg <- cbh_config()
-stopifnot(Sys.getenv("CBH_PRIMARY_VERSION","regional") %in% c("regional","regional18","regional_imputed"))
+stopifnot(Sys.getenv("CBH_PRIMARY_VERSION","regional") %in% c("regional","regional18","regional_imputed","regional_mics"))
 spec <- cbh_primary_regional_spec(settings);stopifnot(length(spec$covariates)==if(settings$nutrition)17L else 18L,"urban_pct" %in% spec$covariates)
 for(p in c(settings$out,settings$private))dir.create(p,recursive=TRUE,showWarnings=FALSE)
 meta <- readRDS(file.path(cfg$output_dir,"manifest.rds"))
@@ -37,7 +37,8 @@ source_files <- c(file.path(cfg$output_dir,"manifest.rds"),
   else if(settings$nutrition) file.path(cs$out,"provenance.csv") else file.path(cs$private,"manifest.rds"),
   overlay_path,hiv_panel_path,
   if(settings$imputed) settings$imputed_national else file.path(cs$out,"complete_case_summary.csv"),
-  "R_cbh/primary/00_prepare_regional.R","R_cbh/primary/specification.R","R_cbh/covariates/regional.R","R_cbh/analysis/model.R")
+  "R_cbh/primary/00_prepare_regional.R","R_cbh/primary/specification.R","R_cbh/covariates/regional.R","R_cbh/analysis/model.R",
+  if(settings$mics) c(file.path(settings$mics_output_dir,"manifest.rds"),settings$mics_overlay))
 signature <- cbh_hash(list(files=source_files,hashes=vapply(source_files,cbh_file_hash,""),spec=spec))
 signature_path <- file.path(settings$private,"preparation_signature.rds")
 if(file.exists(settings$data) && file.exists(signature_path)) {
@@ -82,6 +83,31 @@ for(i in seq_len(nrow(m))) {
   pieces[[i]] <- d[complete,keep_cols,drop=FALSE]
   if(i%%20L==0L)message("Assembled ",i,"/",nrow(m)," survey shards")
 }
+if(settings$mics) {
+  # The DHS part must reproduce the complete-case v3 sample exactly before MICS is added.
+  dhs <- rbindlist(pieces)
+  stopifnot(nrow(dhs)==settings$expected_dhs_records,sum(dhs$death)==settings$expected_dhs_deaths,
+    uniqueN(dhs$region)==settings$expected_dhs_regions)
+  message("DHS part reproduces v3: ",nrow(dhs)," records, ",sum(dhs$death)," deaths, ",uniqueN(dhs$region)," regions")
+  rm(dhs)
+  mmeta <- readRDS(file.path(settings$mics_output_dir,"manifest.rds")); stopifnot(mmeta$complete)
+  mm <- mmeta$manifest[mmeta$manifest$status %in% c("built","cached"),]
+  mwide <- cbh_read_csv(settings$mics_overlay); cbh_unique(mwide,c("survey","regkey"),"MICS regional overlay")
+  for(i in seq_len(nrow(mm))) {
+    object <- readRDS(file.path(settings$mics_output_dir,mm$file[i]));stopifnot(identical(object$signature,mm$signature[i]))
+    d <- cbh_attach_incidence(object$data,hiv)
+    j <- match(paste(d$survey,d$regkey),paste(mwide$survey,mwide$regkey))
+    # Unlike the DHS join, a model-ready MICS record without an overlay row is an error, not a silent drop.
+    if(any(d$model_ready & is.na(j))) stop("MICS overlay has no row for ",
+      paste(unique(paste(d$survey,d$regkey)[d$model_ready & is.na(j)]),collapse=", "))
+    for(v in spec$regional)d[[v]] <- mwide[[v]][j]
+    complete <- d$model_ready & complete.cases(d[required])
+    for(v in required)if(is.numeric(d[[v]]))complete <- complete & is.finite(d[[v]])
+    selections[[length(selections)+1]] <- data.frame(survey=mm$survey[i],country=mm$country[i],records=sum(complete),deaths=sum(d$death[complete]))
+    pieces[[length(pieces)+1]] <- d[complete,keep_cols,drop=FALSE]
+  }
+  message("Added ",nrow(mm)," MICS survey shards")
+}
 d <- as.data.frame(rbindlist(pieces));rm(pieces,object);gc(FALSE)
 ages <- cfg$age_bands$age_band
 d$age_band <- factor(d$age_band,levels=ages)
@@ -103,6 +129,8 @@ if(settings$imputed) {
     health_expenditure_imputed=sum(imputed_counts$health_expenditure_imputed),
     hiv_no_adolescent_series=sum(imputed_counts$hiv_no_adolescent_series)),
     file.path(settings$out,"imputation_record_counts.csv"))
+} else if(settings$mics) {
+  cbh_atomic_csv(counts,file.path(settings$out,"prepared_sample_dhs_mics.csv"))
 } else {
   expected <- cbh_read_csv(file.path(cs$out,"complete_case_summary.csv"))
   if(!settings$nutrition)expected <- expected[expected$baseline=="eligible_MAP",]

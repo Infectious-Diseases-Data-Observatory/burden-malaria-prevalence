@@ -1,5 +1,8 @@
 # Supplementary results
 
+> **Note (23 September 2026).** The primary analysis now combines DHS and MICS surveys (`primary_map_regional17_dhsmics_gamma2_v5`). The subgroup, imputed-covariate and no-nutrition sensitivity analyses below were fitted on the DHS-only primary (`primary_map_regional17_gamma2_v3`) and have not yet been refitted on the combined sample.
+
+
 Reporting designation updated 18 September 2026. The primary analysis uses **full-sample MAP prevalence, seven separate age-band models and gamma=2**; see the [analysis plan](../docs/ANALYSIS_PLAN.md). The analyses below are supplementary sensitivity checks of that primary model.
 
 ## Supplementary figures for the manuscript

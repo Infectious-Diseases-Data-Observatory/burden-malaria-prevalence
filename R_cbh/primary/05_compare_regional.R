@@ -6,8 +6,8 @@ source("R_cbh/primary/settings.R")
 source("R_cbh/reporting/labels.R")
 source("R_cbh/reporting/log_axes.R")
 library(ggplot2)
-settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional"));out <- settings$out
-stopifnot(Sys.getenv("CBH_PRIMARY_VERSION","regional") %in% c("regional","regional_imputed"))
+settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional_mics"));out <- settings$out
+stopifnot(Sys.getenv("CBH_PRIMARY_VERSION","regional_mics") %in% c("regional","regional_imputed","regional_mics"))
 formula_path <- file.path(out,"model_formula.txt")
 writeLines(trimws(readLines(formula_path),which="right"),formula_path)
 ages <- cbh_config()$age_bands$age_band
@@ -175,6 +175,16 @@ if(settings$imputed) {
     "| Sample | Complete case | Imputed | Change |","|---|---:|---:|---:|",
     paste0("| ",sample_comparison$measure," | ",fmt(sample_comparison$previous)," | ",fmt(sample_comparison$revised)," | ",fmt(sample_comparison$change)," |"),"",
     "The imputed sample contains the complete-case sample entirely, plus the previously excluded records, 25 of them whole surveys including all five MIS surveys. Differences combine the added records and the imputed covariate values; they are not a test of either alone.","")
+} else if(settings$mics) {
+  title <- "# Primary PfPR-ACM model: DHS and MICS surveys"
+  what_changed <- c(
+    sprintf("Seven separate MAP age-band models, gamma=2, with the same 17-variable specification as `%s`, fitted to the DHS complete-case sample plus every MICS survey with a complete birth history that passes the same complete-case selection. All seven converged, have finite covariance and full rank, and pass the positive smoothing-Hessian and exact fitted-input checks.",basename(settings$reference)),"",
+    "## What changed","",
+    "MICS birth histories were converted to the DHS Births Recode layout (R_mics/07_make_recodes.R) and passed through the same child age-band builder, with annual regional MAP PfPR extracted by the DHS method on DHS boundary polygons (new admin-1 polygons for Guinea-Bissau and the Central African Republic). All 13 regional covariates were computed from the MICS microdata (R_mics/09_regional_covariates.R); Guinea 2016, Comoros 2022 and Chad 2019 use the national WUENIC DTP3 and measles estimates because their recall doses are unusable. Complete-case selection then keeps only MICS surveys with anthropometry and complete national series, as for DHS. The DHS part reproduces the previous sample exactly.","",
+    "MAP band-entry exposure, fixed median child HIV incidence imputation, age bands, full-band offset, unweighted binomial/cloglog likelihood, reference spline knots, cr basis dimensions and gamma=2 are held fixed. Confounders are re-scaled on the enlarged sample.","",
+    "| Sample | DHS only | DHS and MICS | Change |","|---|---:|---:|---:|",
+    paste0("| ",sample_comparison$measure," | ",fmt(sample_comparison$previous)," | ",fmt(sample_comparison$revised)," | ",fmt(sample_comparison$change)," |"),"",
+    "The combined sample contains the DHS sample entirely. Differences reflect the added MICS records and the rescaling of confounders on the larger sample; MICS covariate definitions differ from DHS in documented ways (education level converted to years, facility delivery for the last birth in two years).","")
 } else {
   title <- "# Primary PfPR-ACM model: revised regional adjustment"
   what_changed <- c(
@@ -200,6 +210,7 @@ report <- c(title, "", what_changed,
   "## Reproduction and output scope","",
   "Run `Rscript R_cbh/primary/run_regional.R` for fresh fits, `--resume` to reuse only verified fit caches, or `--report-only` to recalculate effects, diagnostics and comparisons from the saved fits. No raw-source extraction, HIV refitting, supplementary fitting, manuscript editing or TeX generation is performed.","",
   if(settings$imputed) sprintf("The comparator is the current complete-case primary in %s, which remains the primary analysis. This imputed-covariate version is a sensitivity analysis; it does not feed the paper figures, tables or burden estimates.",settings$reference)
+  else if(settings$mics) sprintf("The comparator is the DHS-only primary in %s, preserved unchanged.",settings$reference)
   else "The previous 18-variable fits are preserved in primary_map_regional18_gamma2_v2. Current primary reporting, including annual 2000–2024 comparisons and Nigerian state estimates, is indexed in RESULTS.md and paper_figures/CAPTIONS.md. Subgroup and exposure sensitivity fits remain historical until separately refitted; they are outside this reporting refresh.","",
   "Numerical checks and provenance: fit_diagnostics.csv, fit_manifest.csv, fit_input_provenance.csv, fitted_outcome_checks.csv, comparison_edf.csv, and comparison_provenance.csv. In-sample outcome checks are not external validation or survey influence analyses.")
 writeLines(report,file.path(out,"REPORT.md"))

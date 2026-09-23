@@ -6,7 +6,7 @@
 source("R_cbh/load_pipeline.R")
 library(mgcv)
 source("R_cbh/primary/settings.R")
-settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional"))
+settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional_mics"))
 root <- settings$out
 out <- file.path(root,"nigeria_states")
 dir.create(out,recursive=TRUE,showWarnings=FALSE)

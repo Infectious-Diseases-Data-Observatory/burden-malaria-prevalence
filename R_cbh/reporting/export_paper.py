@@ -11,7 +11,7 @@ from pathlib import Path
 parser = argparse.ArgumentParser()
 parser.add_argument("--destination", type=Path, required=True)
 parser.add_argument("--copy", action="store_true", help="Copy after validating; default is a local export manifest only")
-parser.add_argument("--root", type=Path, default=Path("results/cbh/primary_map_regional17_gamma2_v3"))
+parser.add_argument("--root", type=Path, default=Path("results/cbh/primary_map_regional17_dhsmics_gamma2_v5"))
 args = parser.parse_args()
 root = args.root
 out = root / "paper_refresh"

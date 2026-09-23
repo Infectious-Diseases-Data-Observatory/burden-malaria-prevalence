@@ -2,7 +2,7 @@
 # Link authoritative current primary outputs; keep historical/supplementary labels.
 source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
-root <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional"))$out
+root <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional_mics"))$out
 x <- cbh_read_csv(file.path(root,"fit_diagnostics.csv"))
 sample <- cbh_read_csv(file.path(root,"primary_sample.csv"))
 stopifnot(nrow(x)==7L,all(x$series=="map_full"),all(x$gamma==2),all(x$converged),all(x$input_verified))

@@ -4,11 +4,15 @@ Assessment of the 93 MICS surveys in `data/MICS_Datasets/` against the requireme
 
 Verdicts come from two independent routes: a scripted inventory with direct checks, and per-country audit agents each followed by an adversarial re-check. The two agreed on 38 of the 40 surveys both covered; the two corrections are applied below. Malawi, Mozambique and Zimbabwe were checked directly only.
 
+## Outcome (23 September 2026)
+
+All 47 surveys with a complete birth history were added to the analysis dataset. Under the rule then set for the primary, include surveys with anthropometry, complete-case selection kept **37 MICS surveys**, which enter `primary_map_regional17_dhsmics_gamma2_v5` alongside the 95 DHS surveys. That rule admits the five sub-national surveys with anthropometry (four Kenyan and Dakar city), whose wealth quintiles are ranked within their own sample. Guinea-Bissau and the Central African Republic enter with analysis regions that merge each capital with a neighbour. The verdicts below are the pre-integration assessment, corrected for Zimbabwe 2009.
+
 ## Summary
 
 - **46 of 93 surveys have no complete birth history** (all 24 MICS2, 12 of 16 MICS3, 10 of 19 MICS4). They carry only summary questions (children ever born, children dead, date of last birth) and cannot support the age-band design.
 - **47 surveys in 28 countries have a complete birth history**, structurally equivalent to the DHS Births Recode. Seven use non-standard names (Portuguese in Mozambique 2008, lowercase in Zimbabwe 2009, month-year dates or unit-coded ages elsewhere) but are complete.
-- **26 surveys in 18 countries can enter with the existing method** (19,398 under-five deaths among births in the 5 years before interview), **6 in 5 countries after extra work** (4,369 deaths), and **15 cannot** (5,540 deaths). The eligible surveys would add roughly a third to the 75,726 deaths in the current primary sample, including two countries with no DHS survey (Central African Republic, Guinea-Bissau).
+- **25 surveys in 18 countries can enter with the existing method** (18,898 under-five deaths among births in the 5 years before interview), **6 in 5 countries after extra work** (4,369 deaths), and **16 cannot** (6,040 deaths). The eligible surveys would add roughly a third to the 75,726 deaths in the current primary sample, including two countries with no DHS survey (Central African Republic, Guinea-Bissau).
 
 ## What each requirement needs for MICS
 
@@ -18,7 +22,7 @@ Verdicts come from two independent routes: a scripted inventory with direct chec
 - **Regions and MAP prevalence.** Most MICS regions match an existing DHS boundary file in the same country name for name, sometimes after merging MICS regions into a DHS grouping (Chad, Mauritania, Togo) or aggregating districts to regions (Malawi 2013). Guinea-Bissau and the Central African Republic have no DHS boundary, so new admin-1 polygons are needed. Nigeria's DHS surveys in the study use the six zones, which the MICS zone variable matches.
 - **National series.** Complete for every eligible country. They block Somalia (health expenditure absent before 2013), South Sudan (political stability absent before 2011, health expenditure before 2017) and Sao Tome (no child HIV incidence series), as they block the equivalent DHS records.
 
-## Can enter with the existing method (26 surveys)
+## Can enter with the existing method (25 surveys)
 
 | Survey | Year | Regions | Under-5 deaths, last 5 y | Boundary | Note |
 |---|---:|---:|---:|---|---|
@@ -45,7 +49,6 @@ Verdicts come from two independent routes: a scripted inventory with direct chec
 | SWZ_2014_MICS5 | 2014 | 4 | 128 | Matches SZ2006DHS exactly (Hhohho, Manzini, Shiselweni, Lubombo). | The birth history is complete with an imputed CMC and age at death in months, all 13 covariates are available or derivable from standard variables, the regions reuse the  |
 | SWZ_2021_MICS6 | 2021 | 4 | 73 | Matches SZ2006DHS (names in upper case: HHOHHO, MANZINI, SHISELWENI, LUBOMBO). | The birth history is complete, all covariates are present (WHO z-scores, vaccination by card plus recall), there are 4 admin-1 regions matching SZ2006DHS, national series |
 | TGO_2017_MICS6 | 2017 | 7 | 267 | TG2013DHS has 6 'Regions': Centrale, Kara, Plateaux, Savanes, 'Maritime (Sans Agglomération de  | National survey with a complete CBH and all covariates computable. Regions map onto the existing TG2013DHS polygons once the two Lomé strata are merged. Does not duplicat |
-| ZWE_2009_MICS3 | 2009 | 10 | 500 | Matches the 10 provinces of ZW2005/2010/2015 DHS | Lowercase variable names; WHO z-scores in who_z.sav. |
 | ZWE_2014_MICS5 | 2014 | 10 | 571 | Matches ZW DHS 10 provinces | All covariates present. |
 | ZWE_2019_MICS6 | 2019 | 10 | 285 | Matches ZW DHS 10 provinces | All covariates present. |
 
@@ -60,7 +63,7 @@ Verdicts come from two independent routes: a scripted inventory with direct chec
 | MRT_2011_MICS4 | 2011 | 12 | 517 | MR2020DHS has 14 polygons: Nouakchott Nord/Ouest/Sud and a combined 'Tiris Zemour et Inchiri'.  | The birth history is complete and all 13 covariates are derivable, including WHO z-scores. However, Tiris Zemmour was surveyed without Inchiri, and the existing MR2020DHS |
 | TCD_2019_MICS6 | 2019 | 22 | 1,927 | TD2014DHS has 21 regions; merge MICS regions into its combined polygons (e.g. Borkou/Tibesti) | Regions merge cleanly into TD2014DHS (Ennedi Est+Ouest to Ennedi; Borkou to Borkou/Tibesti). But recall vaccination answers were largely not entered (coded 'donnee non sa |
 
-## Cannot enter the complete-case primary (15 surveys)
+## Cannot enter the complete-case primary (16 surveys)
 
 | Survey | Year | Regions | Under-5 deaths, last 5 y | Boundary | Note |
 |---|---:|---:|---:|---|---|
@@ -79,6 +82,7 @@ Verdicts come from two independent routes: a scripted inventory with direct chec
 | SSD_2010_MICS4 | 2010 | 10 | 997 | No DHS boundary for South Sudan | Political stability absent before 2011 and health expenditure before 2017, so band entries in 2005-2010 fail complete-case selection. |
 | STP_2014_MICS5 | 2014 | 4 | 80 | ST2008DHS has the same 4 groups | No UNAIDS child HIV incidence series for Sao Tome, the same reason the Sao Tome DHS is excluded; usable only in the imputed-covariate sensitivity. |
 | STP_2019_MICS6 | 2019 | 5 | 24 | ST2008DHS 4 groups after merging the two central districts | No UNAIDS child HIV incidence series for Sao Tome, the same reason the Sao Tome DHS is excluded. All other covariates are present (place of delivery is MN20, labelled in  |
+| ZWE_2009_MICS3 | 2009 | 10 | 500 | Matches the 10 provinces of ZW2005/2010/2015 DHS | Zimbabwe's health expenditure series starts in 2010, so every band entry (2004-2009) fails complete-case selection. Missed in the first assessment and found when the surv |
 
 ## Caveats
 

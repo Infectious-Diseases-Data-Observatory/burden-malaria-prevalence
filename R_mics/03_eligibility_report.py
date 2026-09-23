@@ -17,6 +17,13 @@ md = ["# Can MICS surveys enter the primary analysis?", "",
  "Verdicts come from two independent routes: a scripted inventory with direct checks, and per-country audit agents each followed by "
  "an adversarial re-check. The two agreed on 38 of the 40 surveys both covered; the two corrections are applied below. "
  "Malawi, Mozambique and Zimbabwe were checked directly only.", "",
+ "## Outcome (23 September 2026)", "",
+ "All 47 surveys with a complete birth history were added to the analysis dataset. Under the rule then set for the primary, "
+ "include surveys with anthropometry, complete-case selection kept **37 MICS surveys**, which enter "
+ "`primary_map_regional17_dhsmics_gamma2_v5` alongside the 95 DHS surveys. That rule admits the five sub-national surveys "
+ "with anthropometry (four Kenyan and Dakar city), whose wealth quintiles are ranked within their own sample. Guinea-Bissau and the "
+ "Central African Republic enter with analysis regions that merge each capital with a neighbour. The verdicts below are the "
+ "pre-integration assessment, corrected for Zimbabwe 2009.", "",
  "## Summary", "",
  "- **46 of 93 surveys have no complete birth history** (all 24 MICS2, 12 of 16 MICS3, 10 of 19 MICS4). They carry only summary "
  "questions (children ever born, children dead, date of last birth) and cannot support the age-band design.",

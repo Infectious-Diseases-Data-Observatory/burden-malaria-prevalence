@@ -110,8 +110,12 @@ for (s in surveys) {
   if ("hh.sav" %in% files) {
     hh <- read_sav(f("hh.sav"), n_max = 0)
     r$water_var <- first_of(hh, c("WS1"))
-    # Toilet type is WS7 in MICS3, WS8 in MICS4-5 (where WS11 counts households sharing), WS11 in MICS6.
-    r$toilet_var <- if (rnd <= 3) first_of(hh, "WS7") else if (rnd <= 5) first_of(hh, "WS8") else first_of(hh, "WS11")
+    # Toilet type by label: the variable number varies (WS7 in MICS3 and early MICS4, WS8 in later MICS4-5,
+    # WS11 in MICS6), and neighbouring items record sharing or the number of households.
+    tl <- meta[survey == s & file == "hh.sav" & grepl("kind of toilet|type of toilet|toilet facility|type de toilette|lieux d.?aisance|type de latrine|tipo de (casa de banho|sanit|retrete)|instala..o sanit", label, ignore.case = TRUE) &
+      !grepl("shared|partag|compartilh|households using|number of|nombre de|n.mero de|location|emplacement|localiza", label, ignore.case = TRUE)]$variable
+    tl <- c(tl[grepl("^WS", tl, ignore.case = TRUE)], tl[!grepl("^WS", tl, ignore.case = TRUE)])   # reported before observed
+    r$toilet_var <- if (length(tl)) tl[1] else if (rnd <= 3) first_of(hh, "WS7") else if (rnd <= 5) first_of(hh, "WS8") else first_of(hh, "WS11")
     el <- lab_hits(s, "hh.sav", "^electricity$|has electricity|electricity$|[ée]lectricit[ée]|electricidade")
     r$electricity_var <- if (length(el)) el[1] else first_of(hh, c("HC8", "HC8A", "HC9A"))
   }

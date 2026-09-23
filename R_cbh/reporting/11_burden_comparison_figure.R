@@ -10,7 +10,7 @@ source("R_cbh/reporting/labels.R")
 source("R_cbh/reporting/log_axes.R")
 library(ggplot2)
 library(patchwork)
-root <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional"))$out
+root <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional_mics"))$out
 out <- file.path(root,"burden_comparison")
 dir.create(out,recursive=TRUE,showWarnings=FALSE)
 model_label <- cbh_paper_model_label()

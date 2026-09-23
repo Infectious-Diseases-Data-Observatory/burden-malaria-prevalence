@@ -1,0 +1,76 @@
+svkey,mics_label,analysis_region,polygons,note
+MC_BEN2014,Atlantique,Atlantic,Atlantic,translation
+MC_BEN2021,ATLANTIQUE,Atlantic,Atlantic,translation
+MC_CAF2018,Région 1,Regions 1 and 7,Regions 1 and 7,capital merged: local admin-1 file joins Bangui with Ombella-M'Poko
+MC_CAF2018,Région 7,Regions 1 and 7,Regions 1 and 7,capital merged: local admin-1 file joins Bangui with Ombella-M'Poko
+MC_CIV2016,Centre,Central,Central,translation
+MC_CIV2016,Centre-Est,East Central,East Central,translation
+MC_CIV2016,Centre-Nord,North Central,North Central,translation
+MC_CIV2016,Centre-Ouest,West Central,West Central,translation
+MC_CIV2016,Nord,North,North,translation
+MC_CIV2016,Nord-Est,Northeast,Northeast,translation
+MC_CIV2016,Nord-Ouest,Northwest,Northwest,translation
+MC_CIV2016,Ouest,West,West,translation
+MC_CIV2016,Sud sans Ville d'Abidjan,South,South,translation
+MC_CIV2016,Sud-Ouest,Southwest,Southwest,translation
+MC_CIV2016,Ville d'Abidjan,Abidjan,Abidjan,translation
+MC_CMR2014,Adamaoua,Adamawa,Adamawa,translation
+MC_CMR2014,Centre (sans Yaoundé),Centre,Centre,translation
+MC_CMR2014,Est,East,East,translation
+MC_CMR2014,Extrême-Nord,Far North,Far North,translation
+MC_CMR2014,Littoral (sans Douala),Littoral,Littoral,translation
+MC_CMR2014,Nord,North,North,translation
+MC_CMR2014,Nord-Ouest,Northwest,Northwest,translation
+MC_CMR2014,Ouest,West,West,translation
+MC_CMR2014,Sud,South,South,translation
+MC_CMR2014,Sud-Ouest,Southwest,Southwest,translation
+MC_GHA2011,Asante,Ashanti,Ashanti,spelling
+MC_GNB2014,Biombo,SAB and Biombo,SAB and Biombo,capital merged: local admin-1 file joins Bissau with Biombo
+MC_GNB2014,SAB,SAB and Biombo,SAB and Biombo,capital merged: local admin-1 file joins Bissau with Biombo
+MC_GNB2018,Biombo,SAB and Biombo,SAB and Biombo,capital merged: local admin-1 file joins Bissau with Biombo
+MC_GNB2018,SAB,SAB and Biombo,SAB and Biombo,capital merged: local admin-1 file joins Bissau with Biombo
+MC_LSO2018,BOTHA-BOTHE,Butha-Buthe,Butha-Buthe,spelling
+MC_MOZ2008,Maputo cidade,Maputo City,Maputo City,translation
+MC_MOZ2008,Maputo província,Maputo,Maputo,translation
+MC_MRT2011,Dakhlett Nouadibou,Dakhlet Nouadhibou,Dakhlet Nouadhibou,spelling
+MC_MRT2011,Hodh charghy,Eastern Basin Region,Eastern Basin Region,translation (Hodh Ech Chargui)
+MC_MRT2011,Hodh Gharby,Western Basin Region,Western Basin Region,translation (Hodh El Gharbi)
+MC_MRT2011,Nouakchott,Nouakchott,North Nouakchott;West Nouakchott;South Nouakchott,dissolve the three post-2014 Nouakchott wilayas
+MC_MRT2011,Tirs-ezemour,Tiris Zemour and Inchiri,Tiris Zemour and Inchiri,approximate: MICS 2011 sampled Tiris Zemmour only; the polygon includes Inchiri
+MC_MRT2015,Dakhlett Nouadibou,Dakhlet Nouadhibou,Dakhlet Nouadhibou,spelling
+MC_MRT2015,Hodh charghy,Eastern Basin Region,Eastern Basin Region,translation (Hodh Ech Chargui)
+MC_MRT2015,Hodh Gharby,Western Basin Region,Western Basin Region,translation (Hodh El Gharbi)
+MC_MRT2015,Nouakchott,Nouakchott,North Nouakchott;West Nouakchott;South Nouakchott,dissolve the three post-2014 Nouakchott wilayas
+MC_MRT2015,Tirs-ezemour,Tiris Zemour and Inchiri,Tiris Zemour and Inchiri,merge of two MICS regions into the DHS polygon
+MC_MRT2015,Inchiri,Tiris Zemour and Inchiri,Tiris Zemour and Inchiri,merge of two MICS regions into the DHS polygon
+MC_MWI2019,North,Northern,Northern,spelling
+MC_MWI2019,South,Southern,Southern,spelling
+MC_SLE2017,EAST,Eastern,Eastern,spelling
+MC_SLE2017,NORTH,Northern,Northern,spelling
+MC_SLE2017,SOUTH,Southern,Southern,spelling
+MC_SLE2017,WEST,Western,Western,spelling
+MC_SOM2006,Somalialand,North West (Somaliland),Awdal;Woqooyi Galbeed;Togdheer;Sanaag;Sool,approximate zone: Somaliland regions from the local admin-1 file
+MC_SOM2006,Puntland,North East (Puntland),Bari;Nugaal;Mudug,approximate zone: Mudug is split between zones and is assigned wholly here
+MC_SOM2006,Central South,Central South,Galgaduud;Hiraan;Bakool;Bay;Juba Dhexe;Shabelle Hoose;Juba Hoose;Gedo;Shabelle Dhexe & Banadir,approximate zone
+MC_SOM2011NE,Nugal,Nugaal,Nugaal,spelling
+MC_SOM2011SL,Maroodijeex/Saaxil,Woqooyi Galbeed,Woqooyi Galbeed,old region name (Woqooyi Galbeed)
+MC_SSD2010,Lakes,El Buheyrat,El Buheyrat,translation
+MC_SSD2010,Warap,Warab,Warab,spelling
+MC_STP2014,RegiÃ£o Centro Este,Central,Central,approximate grouping against the 2008 DHS districts
+MC_STP2014,RegiÃ£o Norte Oeste,North,North,approximate grouping against the 2008 DHS districts
+MC_STP2014,RegiÃ£o Sul Este,South,South,approximate grouping against the 2008 DHS districts
+MC_STP2014,RegiÃ£o Autonoma de Principe,Principe,Principe,match
+MC_STP2019,DISTRITO DE ÁGUA GRANDE,Central,Central,approximate grouping; two MICS districts merged
+MC_STP2019,DISTRITO DE MÉ-ZÓCHI,Central,Central,approximate grouping; two MICS districts merged
+MC_STP2019,REGIÃO NORTE OESTE,North,North,approximate grouping against the 2008 DHS districts
+MC_STP2019,REGIÃO SUL ESTE,South,South,approximate grouping against the 2008 DHS districts
+MC_STP2019,REGIÃO AUTÓNOMA DO PRÍNCIPE,Principe,Principe,match
+MC_TCD2019,Borkou,Borkou/Tibesti,Borkou/Tibesti,Tibesti not sampled
+MC_TCD2019,Ennedi Est,Ennedi Est/Ennedi Ouest,Ennedi Est/Ennedi Ouest,merge of two MICS regions into the DHS polygon
+MC_TCD2019,Ennedi Ouest,Ennedi Est/Ennedi Ouest,Ennedi Est/Ennedi Ouest,merge of two MICS regions into the DHS polygon
+MC_TGO2017,GOLFE URBAIN,Greater Lomé area,Greater Lomé area,merge of two MICS strata into Greater Lomé
+MC_TGO2017,LOME COMMUNE,Greater Lomé area,Greater Lomé area,merge of two MICS strata into Greater Lomé
+MC_TGO2017,MARITIME,Maritime (excluding Greater Lomé area),Maritime (excluding Greater Lomé area),match
+MC_ZWE2009,harare,Harare Chitungwiza,Harare Chitungwiza,spelling
+MC_ZWE2014,Harare,Harare Chitungwiza,Harare Chitungwiza,spelling
+MC_ZWE2019,Harare,Harare Chitungwiza,Harare Chitungwiza,spelling

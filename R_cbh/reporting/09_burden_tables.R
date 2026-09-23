@@ -3,7 +3,7 @@
 source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 source("R_cbh/reporting/labels.R")
-settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional"))
+settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional_mics"))
 root <- settings$out;out <- file.path(root,"tables")
 dir.create(out,recursive=TRUE,showWarnings=FALSE)
 paths <- file.path(root,c("annual_comparison/country_estimates_2000_2024.csv",

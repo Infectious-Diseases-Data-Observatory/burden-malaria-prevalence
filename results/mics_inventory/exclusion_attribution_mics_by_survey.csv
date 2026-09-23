@@ -1,0 +1,12 @@
+survey,country,reason,records,deaths
+MC_MDG2012S,MDG,wasting_pct,16676,225
+MC_MWI2006,MWI,political_stability,8229,197
+MC_NGA2021,NGA,wasting_pct,162146,2454
+MC_SOM2006,SOM,log_health_expenditure_pc,35871,705
+MC_SOM2011NE,SOM,log_health_expenditure_pc,29796,218
+MC_SOM2011SL,SOM,log_health_expenditure_pc,28324,410
+MC_SSD2010,SSD,log_health_expenditure_pc,57509,955
+MC_STP2014,STP,log_hiv_incidence,11856,74
+MC_STP2019,STP,log_hiv_incidence,10970,33
+MC_ZWE2009,ZWE,log_health_expenditure_pc,37260,539
+MC_ZWE2014,ZWE,log_health_expenditure_pc,8370,115

@@ -6,7 +6,7 @@ source("R_cbh/primary/settings.R")
 source("R_cbh/reporting/labels.R")
 source("R_cbh/reporting/log_axes.R")
 library(ggplot2)
-root <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional"))$out
+root <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional_mics"))$out
 out <- file.path(root,"nigeria_states")
 model_label <- cbh_paper_model_label()
 x <- cbh_read_csv(file.path(out,"state_totals_2024.csv"))

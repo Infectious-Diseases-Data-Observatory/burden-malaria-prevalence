@@ -5,7 +5,7 @@ source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 suppressPackageStartupMessages(library(data.table))
 suppressPackageStartupMessages(library(mgcv))
-settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional"))
+settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional_mics"))
 out <- file.path(settings$out, "annual_comparison")
 dir.create(out, recursive = TRUE, showWarnings = FALSE)
 years <- 2000:2024

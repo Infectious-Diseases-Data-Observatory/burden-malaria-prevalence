@@ -5,7 +5,7 @@
 # is all ages for the WHO African Region and is NOT on the same footing.
 source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
-settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION", "regional"))
+settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION", "regional_mics"))
 out <- file.path(settings$out, "burden_comparison")
 years <- c(2000L, 2004L, 2015L, 2024L)
 

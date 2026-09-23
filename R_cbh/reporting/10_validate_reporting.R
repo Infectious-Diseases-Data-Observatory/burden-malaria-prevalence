@@ -2,7 +2,7 @@
 # Cross-artifact checks for the current plan-defined primary reporting bundle.
 source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
-st <- cbh_primary_settings("regional");root <- st$out
+st <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional_mics"));root <- st$out
 read <- function(p)cbh_read_csv(file.path(root,p))
 manifest <- read("fit_manifest.csv");diag <- read("fit_diagnostics.csv")
 sample <- read("primary_sample.csv");figures <- read("paper_figures/manifest.csv")
@@ -23,7 +23,7 @@ coverage <- read("survey_map/survey_coverage.csv")
 stopifnot(counts[["primary"]]==sample$records,counts[["deaths"]]==sample$deaths,
   counts[["primary_distinct_children"]]==sample$distinct_children,
   counts[["surveys"]]==sample$surveys,nrow(coverage)==sample$surveys,
-  sum(coverage$regions)==st$expected_regions,all(coverage$type=="DHS"))
+  sum(coverage$regions)==st$expected_regions,all(coverage$type %in% if(isTRUE(st$mics)) c("DHS","MICS") else "DHS"))
 age <- read("tables/age_band_results.csv")
 stopifnot(nrow(age)==7L,sum(age$records)==sample$records,sum(age$observed_deaths)==sample$deaths,
   abs(sum(age$displayed_death_share_pct)-100)<1e-10,!"elapsed_seconds" %in% names(age))

@@ -3,7 +3,7 @@
 source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 source("R_cbh/reporting/labels.R")
-root <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional"))$out
+root <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional_mics"))$out
 out <- file.path(root,"paper_figures")
 dir.create(out,recursive=TRUE,showWarnings=FALSE)
 # Figure 3 combines the former Figures 4 (2024 panel), 6 and 5 as panels A, B and C.

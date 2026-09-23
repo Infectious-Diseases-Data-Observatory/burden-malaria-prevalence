@@ -3,7 +3,7 @@
 source("R_cbh/load_pipeline.R")
 library(ggplot2)
 source("R_cbh/primary/settings.R")
-settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional"))
+settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional_mics"))
 root <- settings$out
 out <- file.path(root,"study_flow")
 dir.create(out,recursive=TRUE,showWarnings=FALSE)
@@ -20,6 +20,22 @@ input_paths <- c(
 m <- cbh_read_csv(input_paths[["survey_manifest"]])
 c <- cbh_read_csv(input_paths[["child_checks"]])
 e <- cbh_read_csv(input_paths[["eligibility"]])
+mics <- isTRUE(settings$mics)
+if(mics) {
+  # DHS and MICS ledgers side by side; MICS surveys without a complete birth history never
+  # reach the builder, so they are counted from the MICS inventory as an up-front exclusion.
+  md <- settings$mics_output_dir
+  mics_paths <- c(mics_manifest=file.path(md,"survey_manifest.csv"),mics_child_checks=file.path(md,"child_checks.csv"),
+    mics_eligibility=file.path(md,"eligibility_flow.csv"),mics_registry="data/derived_mics/survey_registry_mics.csv",
+    mics_inventory="results/mics_inventory/survey_inventory.csv",
+    mics_attribution="results/mics_inventory/exclusion_attribution_mics_by_survey.csv",
+    dhs_attribution_by_survey="results/cbh/planned17_covariate_missingness/exclusion_attribution_by_survey.csv")
+  input_paths <- c(input_paths,mics_paths)
+  m <- rbind(m,cbh_read_csv(mics_paths[["mics_manifest"]])[names(m)])
+  c <- rbind(c,cbh_read_csv(mics_paths[["mics_child_checks"]])[names(c)])
+  e <- rbind(e,cbh_read_csv(mics_paths[["mics_eligibility"]])[names(e)])
+  mics_inv <- cbh_read_csv(mics_paths[["mics_inventory"]])
+}
 s <- cbh_read_csv(input_paths[["selection"]])
 if(settings$regional) {
   j <- match(s$survey,m$survey);stopifnot(!anyNA(j),all(s$country==m$country[j]))
@@ -84,9 +100,20 @@ cbh_atomic_csv(s,file.path(out,"survey_selection.csv"))
 # Disjoint attribution of covariate exclusions to the first missing covariate
 # (R_cbh/covariates/14_exclusion_attribution.R); its total must equal the ledger.
 attr <- cbh_read_csv(input_paths[["attribution"]])
-stopifnot(sum(attr$records)==n$missing_covariates)
 registry <- cbh_read_csv(cbh_config()$registry)
-stopifnot(all(s$survey %in% registry$svkey),all(registry$SurveyType[registry$svkey %in% s$survey[s$complete_case_rows>0]]=="DHS"))
+if(mics) {
+  by <- rbind(cbh_read_csv(input_paths[["dhs_attribution_by_survey"]]),cbh_read_csv(input_paths[["mics_attribution"]]))
+  agg <- aggregate(cbind(records,deaths)~reason,data=by,FUN=sum)
+  agg$label <- attr$label[match(agg$reason,attr$reason)]
+  lab_new <- c(log_health_expenditure_pc="Health expenditure per capita",log_hiv_incidence="Child HIV incidence (national series unavailable)",
+    political_stability="Political stability",wasting_pct="Wasting prevalence")
+  agg$label[is.na(agg$label)] <- lab_new[agg$reason[is.na(agg$label)]]
+  attr <- agg
+  mreg <- cbh_read_csv(input_paths[["mics_registry"]])
+  registry <- rbind(registry[c("svkey","iso3","year","SurveyType")],mreg[c("svkey","iso3","year","SurveyType")])
+}
+stopifnot(sum(attr$records)==n$missing_covariates)
+stopifnot(all(s$survey %in% registry$svkey),all(registry$SurveyType[registry$svkey %in% s$survey[s$complete_case_rows>0]] %in% c("DHS","MICS")))
 attr <- attr[order(-attr$records),]
 short <- c(wasting_pct="Wasting",stunting_pct="Stunting",facility_delivery_pct="Facility delivery",
   electricity_pct="Electricity",political_stability="Political stability",log_hiv_incidence="HIV incidence",
@@ -100,6 +127,12 @@ omitted_names <- paste(sort(unique(countrycode::countrycode(omitted$country,"iso
   warn=FALSE))),collapse=", ")
 stopifnot(nzchar(omitted_names),!anyNA(omitted_names))
 n$with_map <- n$eligible-n$missing_map
+if(mics) {
+  n$mics_registry <- nrow(mics_inv); n$mics_no_cbh <- sum(!mics_inv$has_bh)
+  n$dhs_registry <- sum(!startsWith(m$survey,"MC_")); n$omitted_total <- n$omitted+n$mics_no_cbh
+  n$registry_countries <- length(unique(c(m$country,substr(mics_inv$survey,1,3))))
+  n$registry <- n$dhs_registry+n$mics_registry
+}
 # Five retained stages on the left; one box per exclusion reason on the right,
 # each leaving the connecting line between the stages it separates.
 nodes <- data.frame(
@@ -111,13 +144,15 @@ nodes <- data.frame(
   role=c(rep("main",5),rep("excluded",4)),
   heading=c("Survey registry","Band entries within 5 years of interview","Eligible child–age bands",
     "With regional MAP prevalence","Primary analysis sample",
-    paste(fmt(n$omitted),"surveys excluded"),paste(fmt(n$excluded_eligibility),"records excluded"),
+    paste(fmt(if(mics) n$omitted_total else n$omitted),"surveys excluded"),paste(fmt(n$excluded_eligibility),"records excluded"),
     paste(fmt(n$missing_map),"records excluded"),paste(fmt(n$missing_covariates),"records excluded")),
-  detail=c(sprintf("%s surveys · %s countries",fmt(n$registry),fmt(n$registry_countries)),
+  detail=c(if(mics) sprintf("%s DHS/MIS + %s MICS surveys\n%s countries",fmt(n$dhs_registry),fmt(n$mics_registry),fmt(n$registry_countries))
+      else sprintf("%s surveys · %s countries",fmt(n$registry),fmt(n$registry_countries)),
     sprintf("%s child–age bands\n%s surveys · %s countries",fmt(n$entered),fmt(n$built),fmt(n$built_countries)),
     paste(fmt(n$eligible),"records"),paste(fmt(n$with_map),"records"),
     sprintf("%s records · %s deaths\n%s surveys · %s countries",fmt(n$primary),fmt(n$deaths),fmt(n$surveys),fmt(n$countries)),
-    sprintf("%s is malaria free, so MAP\npublishes no prevalence surface",omitted_names),
+    if(mics) sprintf("%s MICS: no complete birth history\n%s in %s (malaria free, no MAP)",fmt(n$mics_no_cbh),fmt(n$omitted),omitted_names)
+      else sprintf("%s is malaria free, so MAP\npublishes no prevalence surface",omitted_names),
     sprintf("%s: band not complete by interview\n%s: entry year outside 2000–2024",fmt(n$incomplete),fmt(n$outside_year)),
     "No MAP PfPR for the region\nin the band-entry year",
     paste0("Required covariate unavailable:\n",reason_text)))
@@ -147,12 +182,20 @@ for(i in seq_len(nrow(nodes))) {
     size=if(small) 4.4 else 5.4,lineheight=1.1,colour="#243D49")
 }
 ggsave(file.path(out,"study_flow_diagram.png"),p,width=11.5,height=9.6,dpi=300,device=ragg::agg_png,bg="white")
+registry_sentence <- if(mics) sprintf("**Figure. Sample inclusion for the primary MAP analysis.** The survey registry contains %s DHS and MIS surveys and %s MICS surveys in %s countries. %s MICS surveys have no complete birth history (only summary questions) and cannot support the age-band design, and %s surveys are excluded because Lesotho is malaria free and the Malaria Atlas Project publishes no prevalence surface for it, leaving %s processed surveys in %s countries. Counts below the registry refer to child–age-band records, not unique children, and begin after birth-history validity checks and confirmation that the child reached the band alive.",fmt(n$dhs_registry),fmt(n$mics_registry),fmt(n$registry_countries),fmt(n$mics_no_cbh),fmt(n$omitted),fmt(n$built),fmt(n$built_countries)) else
+  sprintf("**Figure. Sample inclusion for the primary MAP analysis.** The survey registry contains %s surveys in %s countries. %s surveys are excluded because Lesotho is malaria free and the Malaria Atlas Project publishes no prevalence surface for it, leaving %s processed surveys in %s countries. Counts below the registry refer to child–age-band records, not unique children, and begin after birth-history validity checks and confirmation that the child reached the band alive.",fmt(n$registry),fmt(n$registry_countries),fmt(n$omitted),fmt(n$built),fmt(n$built_countries))
+survey_type <- setNames(registry$SurveyType,registry$svkey)
+zero <- s$survey[s$complete_case_rows==0]
+programme_sentence <- if(mics) sprintf("%s processed surveys contribute no records to the final sample because a required covariate is unavailable for all of their regions: %s DHS or MIS surveys (including all %s MIS surveys, which do not publish the facility-delivery and anthropometry indicators) and %s MICS surveys (no anthropometry, no child HIV incidence series, or national series that start after their band-entry years). The analysed sample therefore combines %s DHS and %s MICS surveys.",
+    fmt(length(zero)),fmt(sum(survey_type[zero]!="MICS")),fmt(sum(registry$SurveyType=="MIS")),fmt(sum(survey_type[zero]=="MICS")),
+    fmt(sum(survey_type[s$survey[s$complete_case_rows>0]]=="DHS")),fmt(sum(survey_type[s$survey[s$complete_case_rows>0]]=="MICS"))) else
+  sprintf("%s processed surveys contribute no records to the final sample because a required covariate is unavailable for all of their regions; this includes all %s MIS surveys in the registry, which do not publish the facility-delivery and anthropometry indicators, so the analysed sample is DHS only.",fmt(sum(s$complete_case_rows==0)),fmt(sum(registry$SurveyType=="MIS")))
 caption <- c("# Figure caption — primary sample inclusion","",
-  sprintf("**Figure. Sample inclusion for the primary MAP analysis.** The survey registry contains %s surveys in %s countries. %s surveys are excluded because Lesotho is malaria free and the Malaria Atlas Project publishes no prevalence surface for it, leaving %s processed surveys in %s countries. Counts below the registry refer to child–age-band records, not unique children, and begin after birth-history validity checks and confirmation that the child reached the band alive.",fmt(n$registry),fmt(n$registry_countries),fmt(n$omitted),fmt(n$built),fmt(n$built_countries)),"",
+  registry_sentence,"",
   sprintf("The processed surveys contain %s recorded births across their complete birth histories; %s pass history-validity checks, including %s births within 60 months before interview. These birth totals exclude the surveys skipped for missing MAP geography. Children born earlier can still contribute later age-band entries within the five-year window.",fmt(n$recorded_births),fmt(n$valid_births),fmt(n$recent_valid_births)),"",
   sprintf("Among %s band entries within the 60 months before interview, %s have an incomplete potential band and %s have entry years outside 2000–2024. Requiring the full potential band to end by interview for deaths and survivors alike leaves %s eligible records. A further %s lack a regional MAP PfPR value for the band-entry year, leaving %s, and %s lack at least one required covariate after the declared HIV, vaccination and available-region substitutions. Each covariate exclusion is attributed to the first missing covariate in a declared order (national annual series, then regional summaries), so the reasons shown are disjoint: %s. The final sample contains %s records and %s deaths from %s surveys in %s countries.",fmt(n$entered),fmt(n$incomplete),fmt(n$outside_year),fmt(n$eligible),fmt(n$missing_map),fmt(n$with_map),fmt(n$missing_covariates),
     paste(sprintf("%s %s",tolower(attr$label),fmt(attr$records)),collapse="; "),fmt(n$primary),fmt(n$deaths),fmt(n$surveys),fmt(n$countries)),"",
-  sprintf("%s processed surveys contribute no records to the final sample because a required covariate is unavailable for all of their regions; this includes all %s MIS surveys in the registry, which do not publish the facility-delivery and anthropometry indicators, so the analysed sample is DHS only.",fmt(sum(s$complete_case_rows==0)),fmt(sum(registry$SurveyType=="MIS"))),"",
+  programme_sentence,"",
   sprintf("These final records represent %s distinct children, including children born more than five years before interview whose later band entries meet the lookback rule. This figure describes the full primary sample, not the Sahel-only sensitivity subset.",fmt(n$primary_distinct_children)),"",
   "Seven completed-month bands are analyzed separately: <1, 1–5, 6–11, 12–23, 24–35, 36–47 and 48–59. The outcome is death during the band. Annual regional MAP PfPR₂–₁₀ and national covariates are assigned at band-entry year; exposure is not averaged over time until death. There is no prevalence floor or requirement for a death in each region/band. Eligible MAP records after 2015 are retained.","",
   if(settings$regional) "The 17 adjustment variables comprise survey-region summaries of maternal age at first birth, education, wealth, urban residence, DTP3/measles coverage, facility delivery, short birth interval, improved water, improved sanitation, electricity, wasting and stunting, plus national annual log child HIV incidence, log GDP per capita, log health expenditure per capita and political stability. Child HIV incidence uses the fixed posterior-median imputation informed by adolescent incidence. Missing regional DTP3/measles use exact country/survey-year UNICEF values; remaining regional gaps use the mean of available regions in the same survey. Whole-survey gaps remain missing. Hib3, PCV, rotavirus and exclusive breastfeeding are excluded." else "Adjustment variables are sex, multiple birth, birth order, maternal age, maternal education, wealth quintile, urban residence, log child HIV incidence, log GDP per capita, log health expenditure per capita and political stability. Child HIV incidence uses the fixed posterior-median imputation informed by adolescent incidence; other model covariates require complete cases. Vaccines and maternal death fraction are excluded.","",
