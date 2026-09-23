@@ -78,7 +78,10 @@ stopifnot(identical(as.numeric(s$eligible_rows),as.numeric(ag$x[j])),
   sum(d$rows)==sum(s$complete_case_rows),sum(d$deaths)==sum(s$complete_case_deaths),
   all(d$surveys==sum(s$complete_case_rows>0)),
   all(d$countries==length(unique(s$country[s$complete_case_rows>0]))))
-n <- list(registry=nrow(m),registry_countries=length(unique(m$country)),omitted=nrow(omitted),
+# registry_with_cbh and registry_countries_with_cbh count surveys, and their countries, with a complete
+# birth history in the build ledgers; the full registry (registry_all, registry_countries_all), including
+# MICS surveys without one, is added once the MICS totals are known.
+n <- list(registry_with_cbh=nrow(m),registry_countries_with_cbh=length(unique(m$country)),omitted=nrow(omitted),
   built=nrow(built),built_countries=length(unique(built$country)),entered=sum(e$entered_in_lookback),
   incomplete=sum(e$incomplete_potential_band),outside_year=sum(e$entry_year_outside_range),
   eligible=sum(e$eligible_band_rows),missing_map=sum(s$eligible_rows-s$pfpr_available_rows),
@@ -93,8 +96,6 @@ n$recent_valid_births <- sum(e$entered_in_lookback[e$age_band=="<1"])
 n$primary_distinct_children <- sample$distinct_children
 stopifnot(n$entered-n$excluded_eligibility==n$eligible,n$eligible-n$excluded_missing==n$primary)
 fmt <- function(x) format(x,big.mark=",",scientific=FALSE,trim=TRUE)
-counts <- data.frame(item=names(n),count=unlist(n),row.names=NULL)
-cbh_atomic_csv(counts,file.path(out,"flow_counts.csv"))
 cbh_atomic_csv(omitted[c("survey","country","survey_year","status")],file.path(out,"excluded_surveys.csv"))
 cbh_atomic_csv(s,file.path(out,"survey_selection.csv"))
 # Disjoint attribution of covariate exclusions to the first missing covariate
@@ -130,9 +131,14 @@ n$with_map <- n$eligible-n$missing_map
 if(mics) {
   n$mics_registry <- nrow(mics_inv); n$mics_no_cbh <- sum(!mics_inv$has_bh)
   n$dhs_registry <- sum(!startsWith(m$survey,"MC_")); n$omitted_total <- n$omitted+n$mics_no_cbh
-  n$registry_countries <- length(unique(c(m$country,substr(mics_inv$survey,1,3))))
-  n$registry <- n$dhs_registry+n$mics_registry
+  n$registry_all <- n$dhs_registry+n$mics_registry
+  n$registry_countries_all <- length(unique(c(m$country,substr(mics_inv$survey,1,3))))
+  stopifnot(n$registry_with_cbh==n$dhs_registry+sum(mics_inv$has_bh))
+} else {
+  n$registry_all <- n$registry_with_cbh; n$registry_countries_all <- n$registry_countries_with_cbh
 }
+counts <- data.frame(item=names(n),count=unlist(n),row.names=NULL)
+cbh_atomic_csv(counts,file.path(out,"flow_counts.csv"))
 # Five retained stages on the left; one box per exclusion reason on the right,
 # each leaving the connecting line between the stages it separates.
 nodes <- data.frame(
@@ -146,8 +152,8 @@ nodes <- data.frame(
     "With regional MAP prevalence","Primary analysis sample",
     paste(fmt(if(mics) n$omitted_total else n$omitted),"surveys excluded"),paste(fmt(n$excluded_eligibility),"records excluded"),
     paste(fmt(n$missing_map),"records excluded"),paste(fmt(n$missing_covariates),"records excluded")),
-  detail=c(if(mics) sprintf("%s DHS/MIS + %s MICS surveys\n%s countries",fmt(n$dhs_registry),fmt(n$mics_registry),fmt(n$registry_countries))
-      else sprintf("%s surveys · %s countries",fmt(n$registry),fmt(n$registry_countries)),
+  detail=c(if(mics) sprintf("%s DHS/MIS + %s MICS surveys\n%s countries",fmt(n$dhs_registry),fmt(n$mics_registry),fmt(n$registry_countries_all))
+      else sprintf("%s surveys · %s countries",fmt(n$registry_all),fmt(n$registry_countries_all)),
     sprintf("%s child–age bands\n%s surveys · %s countries",fmt(n$entered),fmt(n$built),fmt(n$built_countries)),
     paste(fmt(n$eligible),"records"),paste(fmt(n$with_map),"records"),
     sprintf("%s records · %s deaths\n%s surveys · %s countries",fmt(n$primary),fmt(n$deaths),fmt(n$surveys),fmt(n$countries)),
@@ -182,8 +188,8 @@ for(i in seq_len(nrow(nodes))) {
     size=if(small) 4.4 else 5.4,lineheight=1.1,colour="#243D49")
 }
 ggsave(file.path(out,"study_flow_diagram.png"),p,width=11.5,height=9.6,dpi=300,device=ragg::agg_png,bg="white")
-registry_sentence <- if(mics) sprintf("**Figure. Sample inclusion for the primary MAP analysis.** The survey registry contains %s DHS and MIS surveys and %s MICS surveys in %s countries. %s MICS surveys have no complete birth history (only summary questions) and cannot support the age-band design, and %s surveys are excluded because Lesotho is malaria free and the Malaria Atlas Project publishes no prevalence surface for it, leaving %s processed surveys in %s countries. Counts below the registry refer to child–age-band records, not unique children, and begin after birth-history validity checks and confirmation that the child reached the band alive.",fmt(n$dhs_registry),fmt(n$mics_registry),fmt(n$registry_countries),fmt(n$mics_no_cbh),fmt(n$omitted),fmt(n$built),fmt(n$built_countries)) else
-  sprintf("**Figure. Sample inclusion for the primary MAP analysis.** The survey registry contains %s surveys in %s countries. %s surveys are excluded because Lesotho is malaria free and the Malaria Atlas Project publishes no prevalence surface for it, leaving %s processed surveys in %s countries. Counts below the registry refer to child–age-band records, not unique children, and begin after birth-history validity checks and confirmation that the child reached the band alive.",fmt(n$registry),fmt(n$registry_countries),fmt(n$omitted),fmt(n$built),fmt(n$built_countries))
+registry_sentence <- if(mics) sprintf("**Figure. Sample inclusion for the primary MAP analysis.** The survey registry contains %s DHS and MIS surveys and %s MICS surveys in %s countries. %s MICS surveys have no complete birth history (only summary questions) and cannot support the age-band design, and %s surveys are excluded because Lesotho is malaria free and the Malaria Atlas Project publishes no prevalence surface for it, leaving %s processed surveys in %s countries. Counts below the registry refer to child–age-band records, not unique children, and begin after birth-history validity checks and confirmation that the child reached the band alive.",fmt(n$dhs_registry),fmt(n$mics_registry),fmt(n$registry_countries_all),fmt(n$mics_no_cbh),fmt(n$omitted),fmt(n$built),fmt(n$built_countries)) else
+  sprintf("**Figure. Sample inclusion for the primary MAP analysis.** The survey registry contains %s surveys in %s countries. %s surveys are excluded because Lesotho is malaria free and the Malaria Atlas Project publishes no prevalence surface for it, leaving %s processed surveys in %s countries. Counts below the registry refer to child–age-band records, not unique children, and begin after birth-history validity checks and confirmation that the child reached the band alive.",fmt(n$registry_all),fmt(n$registry_countries_all),fmt(n$omitted),fmt(n$built),fmt(n$built_countries))
 survey_type <- setNames(registry$SurveyType,registry$svkey)
 zero <- s$survey[s$complete_case_rows==0]
 programme_sentence <- if(mics) sprintf("%s processed surveys contribute no records to the final sample because a required covariate is unavailable for all of their regions: %s DHS or MIS surveys (including all %s MIS surveys, which do not publish the facility-delivery and anthropometry indicators) and %s MICS surveys (no anthropometry, no child HIV incidence series, or national series that start after their band-entry years). The analysed sample therefore combines %s DHS and %s MICS surveys.",

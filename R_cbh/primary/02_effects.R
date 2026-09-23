@@ -3,6 +3,9 @@
 source("R_cbh/load_pipeline.R")
 library(mgcv)
 source("R_cbh/primary/settings.R")
+# The settings default is the legacy version; require an explicit choice so that a direct run
+# cannot overwrite the preserved results/cbh/primary_map_gamma2_v1 outputs.
+if(!nzchar(Sys.getenv("CBH_PRIMARY_VERSION"))) stop("Set CBH_PRIMARY_VERSION (regional_mics for the current DHS and MICS primary), or run R_cbh/primary/run_regional.R.",call.=FALSE)
 settings <- cbh_primary_settings()
 root <- settings$out
 out <- file.path(root,"burden")

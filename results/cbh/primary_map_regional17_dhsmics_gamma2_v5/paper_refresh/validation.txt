@@ -1,8 +1,10 @@
 PASS: 3 main figures (Figure 3 combining country, state and annual comparisons) reference the revised primary version and match their hashes.
 PASS: seven fitted model hashes, convergence flags and gamma=2 verified.
-PASS: flow, 132 DHS surveys, 1211 survey-regions, child-band/death/child totals reconcile.
+PASS: flow, 132 DHS and MICS surveys (95 DHS, 37 MICS), 1211 survey-regions, child-band/death/child totals reconcile.
+PASS: DHS part reproduces the DHS-only primary (5,465,305 records, 75,726 deaths, 916 survey-regions); 37 MICS surveys add 2,033,154 records and 26,556 deaths.
+PASS: subgroup and no-nutrition refits (subgroups_dhsmics_map_gamma2_v2, nutrition_adjustment_dhsmics_map_gamma2_v2) were fitted to this primary's prepared data (md5 3e84f7ea55fdcc467afbcb0880448eec).
 PASS: age-table death percentages sum to 100.0%; both contrasts retained; no fit-time column.
 PASS: 25 annual totals use 42 countries and reproduce the three national-burden years.
-PASS: 2024 country table reproduces all three Figure 5 totals; 37 state totals reconcile.
+PASS: 2024 country table reproduces all three Figure 3 panel C totals for 2024; 37 state totals reconcile.
 PASS: producer/data provenance hashes match; table source has valid row terminators.
 PASS: no TeX files created in this result version.

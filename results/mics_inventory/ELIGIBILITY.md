@@ -6,7 +6,7 @@ Verdicts come from two independent routes: a scripted inventory with direct chec
 
 ## Outcome (23 September 2026)
 
-All 47 surveys with a complete birth history were added to the analysis dataset. Under the rule then set for the primary, include surveys with anthropometry, complete-case selection kept **37 MICS surveys**, which enter `primary_map_regional17_dhsmics_gamma2_v5` alongside the 95 DHS surveys. That rule admits the five sub-national surveys with anthropometry (four Kenyan and Dakar city), whose wealth quintiles are ranked within their own sample. Guinea-Bissau and the Central African Republic enter with analysis regions that merge each capital with a neighbour. The verdicts below are the pre-integration assessment, corrected for Zimbabwe 2009.
+All 47 surveys with a complete birth history were added to the analysis dataset. Under the rule then set for the primary, include surveys with anthropometry, complete-case selection kept **37 MICS surveys**, which enter `primary_map_regional17_dhsmics_gamma2_v5` alongside the 95 DHS surveys. That rule admits the six sub-national surveys with anthropometry (five Kenyan and Dakar city), whose wealth quintiles are ranked within their own sample. Guinea-Bissau and the Central African Republic enter with analysis regions that merge each capital with a neighbour. The verdicts below are the pre-integration assessment, corrected for Zimbabwe 2009.
 
 ## Summary
 
@@ -87,8 +87,8 @@ All 47 surveys with a complete birth history were added to the analysis dataset.
 ## Caveats
 
 - Adding MICS changes the primary sample definition from DHS and MIS to DHS, MIS and MICS, so it would be a new primary version rather than a sensitivity. The survey random effect absorbs level differences between programmes, but not differences in covariate definitions.
-- Sub-national MICS (five Kenyan county, province or settlement samples, Dakar city, southern Madagascar, two Somali zones) are excluded for consistency with the national-survey design. Their wealth quintiles are also ranked within the sub-national sample, not nationally, so that covariate would have to be rebuilt against a national reference before any could enter. Nyanza 2011 is the strongest candidate.
+- This assessment excluded sub-national MICS (five Kenyan county, province or settlement samples, Dakar city, southern Madagascar, two Somali zones) for consistency with the national-survey design. Their wealth quintiles are also ranked within the sub-national sample, not nationally, so that covariate would have to be rebuilt against a national reference. Nyanza 2011 was the strongest candidate. The rule later set for the primary admits those with anthropometry, with the within-sample ranking retained (see Outcome).
 - Several MICS surveys overlap DHS surveys in the same country and years (for example Gambia 2018 with DHS 2019, Sierra Leone 2017 with DHS 2019). They are independent samples, not duplicates, so both can enter.
-- Nigeria 2021 (no anthropometry) and Sao Tome 2014 and 2019 (no child HIV series) fit the methods the imputed-covariate sensitivity already uses, so they could enter that version. Somalia and South Sudan would need several years of national series extrapolated, which that version does not currently do.
+- Nigeria 2021 (no anthropometry) and Sao Tome 2014 and 2019 (no child HIV series) fit the methods the imputed-covariate sensitivity already used, so they could enter that version. Somalia and South Sudan would need several years of national series extrapolated. The imputed-covariate version on the DHS and MICS sample (`primary_map_regional17_dhsmics_imputed_gamma2_v6`) now includes all of them, with the Somali and South Sudanese national series extrapolated by GAMs.
 - The under-five death counts here are among births in the 5 years before interview. The primary analysis counts deaths in eligible complete age bands, which is a similar but not identical quantity.
 

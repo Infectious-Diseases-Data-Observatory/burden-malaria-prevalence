@@ -1,10 +1,10 @@
 #!/usr/bin/env Rscript
-# Figure 5: matched countries and one population denominator across sources.
+# Source of Figure 3 panel C (annual trend): matched countries and one population denominator across sources.
 source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 source("R_cbh/reporting/labels.R")
 library(ggplot2)
-root <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional_mics"))$out
+settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional_mics")); root <- settings$out
 out <- file.path(root, "annual_comparison")
 x <- cbh_read_csv(file.path(out, "annual_totals_2000_2024.csv"))
 stopifnot(identical(x$year, 2000:2024), all(x$countries == 42))
@@ -45,15 +45,24 @@ caption <- paste(
   "All curves show point estimates. Joint uncertainty across countries and age bands is not available; marginal interval endpoints are not summed.",
   paste("Model-attributable all-cause mortality reductions and the comparator cause-specific estimates are different estimands. The", model_label, "shares IHME all-cause inputs and this comparison is not independent validation."),
   "Zero exposure requires extrapolation. Cape Verde, Lesotho and São Tomé and Príncipe are excluded because usable MAP prevalence is unavailable; the other countries absent from the original national input set are not added.")
-writeLines(c("# Figure 5 caption", "", caption), file.path(out, "CAPTION.md"))
+writeLines(c("# Annual mortality figure caption (source of Figure 3 panel C)", "", caption), file.path(out, "CAPTION.md"))
 audit <- cbh_read_csv(file.path(out, "denominator_audit.csv"))
 check <- cbh_read_csv(file.path(out, "agreement_with_existing_primary.csv"))
 fmt <- function(z) format(round(z), big.mark = ",", trim = TRUE, scientific = FALSE)
+# Survey countries contributing to model fitting, and how many of them are in the burden set.
+survey_countries <- unique(cbh_read_csv(file.path(root, "survey_coverage.csv"))$country)
+burden_countries <- cbh_read_csv(file.path(out, "included_countries.csv"))$iso3
+stopifnot(length(burden_countries) == 42L, length(survey_countries) == cbh_read_csv(file.path(root, "primary_sample.csv"))$countries)
+outside <- sort(setdiff(survey_countries, burden_countries))
 rows <- vapply(seq_len(nrow(x)), function(i) sprintf("| %d | %s | %.1f | %s | %.1f | %s | %.1f |",
   x$year[i], fmt(x$model_deaths[i]), x$model_rate_per100000[i], fmt(x$ihme_malaria_deaths[i]),
   x$ihme_malaria_rate_per100000[i], fmt(x$who_cacode_deaths[i]), x$who_cacode_rate_per100000[i]), "")
-writeLines(c("# Figure 5: annual under-five malaria mortality", "",
-  "All required inputs are available for 2000–2024. The comparison contains the same 42 countries in all 25 years (1,050 country-years per source). This is the national burden coverage, not only the 34 countries contributing DHS surveys to model fitting.", "",
+writeLines(c("# Figure 3C source: annual under-five malaria mortality", "",
+  paste0("All required inputs are available for 2000–2024. The comparison contains the same 42 countries in all 25 years (1,050 country-years per source). ",
+    sprintf("This is the national burden coverage, not only the %d countries contributing %s surveys to model fitting; %d of them are among the 42",
+      length(survey_countries), if (isTRUE(settings$mics)) "DHS or MICS" else "DHS", length(survey_countries) - length(outside)),
+    if (length(outside)) paste0(" (", paste(outside, collapse = ", "), if (length(outside) == 1L) " contributes" else " contribute",
+      " survey data only).") else "."), "",
   "## Input audit", "",
   "- Primary model: seven verified saved MAP gamma=2 fits; no refitting required.",
   "- MAP: all 25 rasters readable; national means recalculated using population density × cell area, not the legacy density-only country CSV.",
@@ -64,7 +73,7 @@ writeLines(c("# Figure 5: annual under-five malaria mortality", "",
   "For country c, year t and age band g: D_model(c,t,g) = D_allcause(c,t,g) × {1 − exp[f_g(0) − f_g(P_c,t)]}. Sum over ages and countries. For each source s: rate_s(t) = 100,000 × sum_c D_s(c,t) / sum_c PY_U5(c,t). Here PY_U5 = D_allcause,U5 / (rate_allcause,U5 / 100,000). Keep this same denominator for all sources.", "",
   sprintf("Disjoint age deaths reproduce the all-cause under-five totals (maximum relative error %.3g). The sum of age-implied person-years differs from the directly reported under-five implied denominator by at most %.4f%%; we use the direct under-five denominator for the pooled rate.",
     max(abs(audit$death_sum_relative_error)), 100 * max(abs(audit$person_year_sum_relative_error))), "",
-  sprintf("IHME malaria and all-cause count/rate pairs imply denominators differing by at most %.4f%% where the malaria rate is positive. Native IHME malaria rates and the differences are retained in denominator_audit.csv; the Figure 5 IHME rates are recomputed using the common all-cause denominator. Zero malaria count/rate pairs cannot identify population and are not used to infer it.",
+  sprintf("IHME malaria and all-cause count/rate pairs imply denominators differing by at most %.4f%% where the malaria rate is positive. Native IHME malaria rates and the differences are retained in denominator_audit.csv; the IHME rates in this figure are recomputed using the common all-cause denominator. Zero malaria count/rate pairs cannot identify population and are not used to infer it.",
     100 * max(abs(audit$malaria_denominator_relative_difference), na.rm = TRUE)), "",
   sprintf("All 126 existing country estimates for 2005, 2015 and 2024 are reproduced; maximum absolute death-count difference %.3g.", max(abs(check$death_difference))), "",
   "The exports identify the data suite as GBD but do not state an unambiguous release or estimation/forecast version. Precise release alignment remains unverified; date and denominator differences are documented rather than assumed away. UN IGME uses a separate cause-of-death model and mortality envelope. National exposure is transported beyond the DHS fitting countries, and MAP population coverage and extrapolation flags are retained in the country/age CSVs. Fixed 2020 spatial weights do not describe changes in within-country population geography over time.", "",
@@ -76,9 +85,9 @@ writeLines(c("# Figure 5: annual under-five malaria mortality", "",
   "[WHO indicator metadata](https://www.who.int/data/gho/data/indicators/indicator-details/GHO/number-of-deaths), [UN IGME cause-of-death portal](https://childmortality.org/causes-of-death/data), [CA-CODE 2000–2024 study](https://doi.org/10.1136/bmj-2025-088686). Exact UNICEF API URL, retrieval time and SHA256 are in [source metadata](who_source.json).", "",
   "Run `Rscript R_cbh/burden/04_annual_comparison.R --audit-only` first, then `Rscript R_cbh/burden/04_annual_comparison.R` and `Rscript R_cbh/reporting/07_annual_mortality_comparison.R`. The scripts use local inputs and do not download data or refit models.", "",
   "[Included countries](included_countries.csv) · [Annual totals](annual_totals_2000_2024.csv) · [Country estimates](country_estimates_2000_2024.csv) · [Country-year input audit](country_year_input_audit.csv) · [Denominator audit](denominator_audit.csv) · [Input hashes](input_provenance.csv)", "",
-  "![Figure 5](fig5_annual_malaria_mortality.png)", "", caption), file.path(out, "README.md"))
+  "![Annual under-five malaria mortality](fig5_annual_malaria_mortality.png)", "", caption), file.path(out, "README.md"))
 file.copy("data/external/figure5/source.json", file.path(out, "who_source.json"), overwrite = TRUE)
-paths <- c(file.path(out, "annual_totals_2000_2024.csv"),
+paths <- c(file.path(out, c("annual_totals_2000_2024.csv", "included_countries.csv")), file.path(root, "survey_coverage.csv"),
   "R_cbh/reporting/07_annual_mortality_comparison.R", "R_cbh/reporting/labels.R")
 cbh_atomic_csv(data.frame(file = paths, md5 = vapply(paths, cbh_file_hash, "")),
   file.path(out, "figure_provenance.csv"))

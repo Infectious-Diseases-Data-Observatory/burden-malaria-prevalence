@@ -31,12 +31,14 @@ paper <- base+theme(text=element_text(size=20),axis.title=element_text(size=20),
   legend.title=element_text(size=18),legend.text=element_text(size=16),
   panel.spacing=grid::unit(24,"pt"),plot.margin=margin(10,24,10,10))
 d$age_label <- age_factor(d$age_band)
+# PfPR axis 0-80%, as in the other supplementary spline figures; every curve's central support lies inside it.
+stopifnot(max(d$pfpr_pct[d$within_central_support])<=80)
 p <- ggplot(d[d$within_central_support,],aes(pfpr_pct,log_hazard_ratio))+
   geom_hline(yintercept=0,colour="grey65",linewidth=.4)+
   geom_vline(xintercept=20,colour="grey80",linewidth=.4)+
   geom_ribbon(aes(ymin=lower_95,ymax=upper_95),fill="#215E91",alpha=.17)+
   geom_line(colour="#215E91",linewidth=1)+facet_wrap(~age_label,ncol=4)+
-  scale_x_continuous(limits=c(0,100),breaks=c(0,20,40,60,80,100))+
+  scale_x_continuous(limits=c(0,80),breaks=c(0,20,40,60,80))+
   labs(x="PfPR[2–10] (%)",y="Log hazard ratio\nrelative to PfPR = 20%")+paper
 save_plot(p,"pfpr_splines.png",14,8)
 hr$age_label <- factor(hr$age_band,levels=rev(ages))

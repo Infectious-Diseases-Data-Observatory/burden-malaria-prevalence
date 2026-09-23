@@ -36,6 +36,8 @@ paper <- theme_minimal(base_size = 18) + theme(panel.grid.minor = element_blank(
   legend.text = element_text(size = 15), legend.title = element_blank(),
   panel.spacing = grid::unit(20, "pt"), plot.margin = margin(10, 24, 10, 10))
 shown <- d[d$within_central_support, ]
+# PfPR axis 0-80%, as in the other supplementary spline figures; every curve's central support lies inside it.
+stopifnot(max(shown$pfpr_pct) <= 80)
 shown$is_full <- shown$subgroup == "map_full"
 p <- ggplot(shown, aes(pfpr_pct, log_hazard_ratio, colour = series)) +
   geom_hline(yintercept = 0, colour = "grey60", linewidth = .4) +
@@ -45,7 +47,7 @@ p <- ggplot(shown, aes(pfpr_pct, log_hazard_ratio, colour = series)) +
   geom_line(aes(linewidth = is_full)) +
   scale_linewidth_manual(values = c(`TRUE` = 1.5, `FALSE` = 1), guide = "none") +
   facet_wrap(~age_label, ncol = 4) +
-  scale_x_continuous(limits = c(0, 100), breaks = c(0, 20, 40, 60, 80, 100)) +
+  scale_x_continuous(limits = c(0, 80), breaks = c(0, 20, 40, 60, 80)) +
   scale_colour_manual(values = colours) +
   guides(colour = guide_legend(nrow = 2, override.aes = list(linewidth = 1.3))) +
   labs(x = "PfPR[2–10] (%)", y = "Log hazard ratio\nrelative to PfPR = 20%") + paper

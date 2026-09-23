@@ -1,6 +1,6 @@
 # Key results — primary MAP analysis
 
-The primary analysis uses seven separate age-band MAP models, cr PfPR splines, gamma=2 and 17 regional/annual covariates. The sample contains 2,292,089 children, 7,498,459 child-band records and 102,282 deaths from 132 surveys in 36 countries.
+The primary analysis uses seven separate age-band MAP models, cr PfPR splines, gamma=2 and 17 regional/annual covariates. The sample contains 2,292,089 children, 7,498,459 child-band records and 102,282 deaths from 132 surveys (95 DHS and 37 MICS) in 36 countries.
 
 [Current primary figures and tables](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/RESULTS.md)
 
@@ -9,28 +9,31 @@ The primary analysis uses seven separate age-band MAP models, cr PfPR splines, g
 | Result | Output |
 |---|---|
 | Figure 1: survey map and timing | [Figure](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/survey_map/survey_map_and_timing.png) and [caption](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/survey_map/CAPTION.md) |
-| Inclusion flow | [Figure](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/study_flow/study_flow_diagram.png) and [caption](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/study_flow/CAPTION.md) |
-| Figure 2: seven PfPR curves | [Figure](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/pfpr_splines.png) and [estimates](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/pfpr_curves.csv) |
-| Figure 3: malaria-attributable share by age | [Figure](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/attributable_fraction_by_age.png) and [estimates](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/attributable_fraction_by_age.csv) |
+| Figure 2: malaria-attributable share by age | [Figure](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/attributable_fraction_by_age.png) and [estimates](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/attributable_fraction_by_age.csv) |
+| Figure 3: countries (A), Nigerian states (B) and annual trend (C) versus IHME/UN IGME, deaths per 1,000 child-years | [Combined figure](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/burden_comparison/fig4_burden_comparison.png) and [caption](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/burden_comparison/CAPTION.md) |
+| Figure 3A source: country comparison, 2005/2015/2024 | [Three-year scatter](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/burden/country_vs_ihme.png) |
+| Figure 3B source: Nigerian states, 2024 | [Figure](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/nigeria_states/fig6_nigeria_states_vs_ihme.png) and [state table and audit](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/nigeria_states/README.md) |
+| Figure 3C source: annual mortality, 2000–2024 | [Figure](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/annual_comparison/fig5_annual_malaria_mortality.png) and [totals and input audit](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/annual_comparison/README.md) |
+| Supplementary: inclusion flow | [Figure](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/study_flow/study_flow_diagram.png) and [caption](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/study_flow/CAPTION.md) |
+| Supplementary: seven PfPR curves | [Figure](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/pfpr_splines.png) and [estimates](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/pfpr_curves.csv) |
+| Supplementary: count version of Figure 3 | [Figure](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/burden_comparison/sfig_burden_comparison_counts.png) and [caption](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/burden_comparison/CAPTION_counts.md) |
+| Supplementary: subgroup refits | [Report](../results/cbh/subgroups_dhsmics_map_gamma2_v2/REPORT.md) |
+| Supplementary: refit without nutrition covariates | [Contrasts](../results/cbh/nutrition_adjustment_dhsmics_map_gamma2_v2/CONTRASTS.md) |
+| Supplementary: imputed covariates | [Report](../results/cbh/primary_map_regional17_dhsmics_imputed_gamma2_v6/REPORT.md) |
 | Age-band results table | [Table](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/tables/age_band_results.md) and [LaTeX source as text](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/tables/age_band_results.latex.txt) |
 | Country, annual and state tables | [Table index](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/tables/README.md) |
 | PfPR 40% to 20% effects | [Figure](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/pfpr_40_to_20.png) and [contrasts](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/pfpr_40_to_20_contrasts.csv) |
 | Diagnostics | [Numerical checks](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/fit_diagnostics.csv) and [fitted outcomes](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/fitted_outcome_checks.csv) |
 | Mortality, 2005/2015/2024 | [Country figure](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/burden/country_deaths_all_years.png) and [country totals](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/burden/country_totals.csv) |
-| Figure 4: countries (A), Nigerian states (B) and annual trend (C) versus IHME/UN IGME, deaths per 1,000 child-years | [Combined figure](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/burden_comparison/fig4_burden_comparison.png) and [caption](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/burden_comparison/CAPTION.md) |
-| Supplementary: count version of Figure 4 | [Figure](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/burden_comparison/sfig_burden_comparison_counts.png) and [caption](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/burden_comparison/CAPTION_counts.md) |
-| Figure 4A source: country comparison, 2005/2015/2024 | [Three-year scatter](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/burden/country_vs_ihme.png) |
-| Figure 4B source: Nigerian states, 2024 | [Figure](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/nigeria_states/fig6_nigeria_states_vs_ihme.png) and [state table and audit](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/nigeria_states/README.md) |
-| Figure 4C source: annual mortality, 2000–2024 | [Figure](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/annual_comparison/fig5_annual_malaria_mortality.png) and [totals and input audit](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/annual_comparison/README.md) |
 | Age contributions | [Figure](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/burden/deaths_by_age.png) and [country-age estimates](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/burden/country_age_estimates.csv) |
 | DRC synthetic-cohort survival | [Figure](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/burden/drc_survival.png) |
 
 [Paper figure manifest and captions](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/paper_figures/CAPTIONS.md)
 
-Sensitivity analyses are [supplementary](<../Supplementary results/README.md>). The previous MAP gamma=2 outputs remain in `results/cbh/primary_map_regional18_gamma2_v2/`, with a comparison in the new report.
+Sensitivity analyses are [supplementary](<../Supplementary results/README.md>). The comparator primary remains in `results/cbh/primary_map_regional17_gamma2_v3/`, with a comparison in the new report; the DHS part of this sample reproduces it exactly.
 
 ## Historical figures
 
 Older PNGs in this directory are retained for traceability. The gamma=1 [geography/period/structure figure](pfpr_spline_sensitivity_by_age_geography_period.png) remains a key exploratory result; planned gamma=2 replacements have not been run. See the [original index](../archive/2026-09-15-code-audit/Key%20results/README.md).
 
-Run `Rscript run_all.R --primary` to refit and regenerate the primary results from prepared inputs. Primary figures and tables follow the current analysis plan; historical sensitivity plots are not relabelled. Use `Rscript R_cbh/primary/run_regional.R --report-only` for saved fits. The standalone reporting scripts and old `R_dhs/11_study_flow.R` and `R_dhs/33_key_results.R` wrappers use the same primary selection.
+Run `Rscript run_all.R --primary` to refit and regenerate the primary results from prepared inputs. Primary figures and tables follow the current analysis plan. Use `Rscript R_cbh/primary/run_regional.R --report-only` for saved fits. The standalone reporting scripts and old `R_dhs/11_study_flow.R` and `R_dhs/33_key_results.R` wrappers use the same primary selection. The sensitivity refits are run separately from `R_cbh/sensitivity/subgroups/`, `R_cbh/sensitivity/nutrition/` and `R_cbh/sensitivity/imputation_dhsmics/`.

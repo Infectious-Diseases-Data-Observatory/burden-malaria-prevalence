@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript
 # Analysis-region polygons for the two MICS countries with no DHS boundary file.
-# Source: the local Africa admin-1 shapefile from the Snow prevalence project. It merges
+# Source: the local Africa admin-1 shapefile from the Snow prevalence project (path in
+# R_mics/config/paths.R; override with MICS_ADMIN1_SHP). It merges
 # each capital with a neighbour (Bissau with Biombo; Bangui with Ombella-M'Poko), so the
 # corresponding MICS regions are merged into one analysis region:
 #   Guinea-Bissau: 9 MICS regions -> 8 analysis regions (SAB + Biombo combined).
@@ -9,7 +10,8 @@
 # the country's seven health regions; Region 7 is 100% urban in the MICS data, consistent with Bangui.
 suppressPackageStartupMessages({ library(sf); library(dplyr) })
 sf_use_s2(FALSE)
-src <- "/Users/jameswatson/Documents/Claude Projects/Prevalence Model/Snow Prevalence Data/shape files/Africa_New_Admin.shp"
+source("R_mics/config/paths.R")   # mics_admin1_shp
+src <- mics_admin1_shp
 stopifnot(file.exists(src))
 a <- st_make_valid(st_read(src, quiet = TRUE))
 out <- "data/derived_mics/boundaries"; dir.create(out, recursive = TRUE, showWarnings = FALSE)

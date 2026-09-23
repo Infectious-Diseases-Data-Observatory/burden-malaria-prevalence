@@ -12,6 +12,7 @@ suppressPackageStartupMessages({ library(haven); library(data.table) })
 setup <- fread("data/derived_mics/survey_setup.csv")
 rmap <- fread("data/derived_mics/region_map.csv")
 root <- "data/MICS_extracted"; out <- "data/derived_mics/recodes"
+dir.create(out, recursive = TRUE, showWarnings = FALSE)
 num <- function(x) as.numeric(zap_missing(zap_labels(x)))
 NR <- 0L
 nv <- function(x) if (is.null(x)) rep(NA_real_, NR) else num(x)   # absent field -> missing, not an error

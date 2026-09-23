@@ -10,7 +10,7 @@ root <- "data/MICS_extracted"; D <- "data/derived_mics"
 aud <- "results/mics_inventory/covariates"; dir.create(aud, recursive = TRUE, showWarnings = FALSE)
 setup <- fread(file.path(D, "survey_setup.csv")); reg <- fread(file.path(D, "survey_registry_mics.csv"))
 rmap <- fread(file.path(D, "region_map.csv")); inv <- fread("results/mics_inventory/survey_inventory.csv")
-built <- fread(file.path(D, "cbh_build/survey_manifest.csv"))[status == "built"]$survey
+built <- fread(file.path(D, "cbh_build/survey_manifest.csv"))[status %in% c("built", "cached")]$survey   # cached = reused shard
 setup <- setup[svkey %in% built]
 setup[, year := reg$year[match(svkey, reg$svkey)]]; setup[, iso3 := substr(folder, 1, 3)]
 card_only <- c("MC_GIN2016", "MC_COM2022", "MC_TCD2019")   # recall doses unusable: WUENIC fallback (user decision)

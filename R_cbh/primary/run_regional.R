@@ -3,17 +3,23 @@
 source("R_cbh/primary/settings.R")
 args <- commandArgs(trailingOnly=TRUE)
 imputed <- "--imputed" %in% args; args <- setdiff(args,"--imputed")
-mics <- "--mics" %in% args; args <- setdiff(args,"--mics")
+mics <- "--mics" %in% args; args <- setdiff(args,"--mics")   # accepted for old calls; DHS+MICS is the default
 dhs_only <- "--dhs-only" %in% args; args <- setdiff(args,"--dhs-only")
+if(mics && dhs_only) stop("--mics and --dhs-only conflict: DHS+MICS (v5) is the default; --dhs-only runs the DHS-only v3.")
 # Since 23 September 2026 the primary combines DHS and MICS surveys; --dhs-only runs the DHS-only v3.
 if(!imputed && !dhs_only) mics <- TRUE
 if(length(args)>1L || (length(args) && !args %in% c("--resume","--report-only")))
-  stop("Use no arguments (fresh fits), --resume (verified caches), or --report-only (saved fits); add --imputed for the imputed-covariate sensitivity version.")
-# --imputed fits the imputed-covariate sensitivity version (plan section 2.4) and
-# runs only the model stages: it never touches the study flow, survey map, paper
-# manifest, results index or validation, which describe the primary analysis.
+  stop(paste("Use no arguments (fresh fits of the DHS+MICS primary, primary_map_regional17_dhsmics_gamma2_v5),",
+    "--resume (reuse verified fit caches) or --report-only (saved fits). Add --dhs-only for the DHS-only v3 history",
+    "(primary_map_regional17_gamma2_v3) or --imputed for the DHS-only imputed-covariate v4 history",
+    "(primary_map_regional17_imputed_gamma2_v4). The DHS+MICS imputed-covariate version (v6) is run by",
+    "R_cbh/sensitivity/imputation_dhsmics/, not by this runner."))
 # The DHS-plus-MICS version (primary_map_regional17_dhsmics_gamma2_v5) is the default primary and runs every
 # stage; the study flow and survey map combine the DHS and MICS ledgers.
+# --dhs-only (v3) and --imputed (v4) are history. --imputed runs only the model stages: it never
+# touches the study flow, survey map, paper manifest, results index or validation, which describe
+# the primary analysis. Neither runs the index stage, so a history run never repoints the shared
+# Key results/README.md away from v5.
 Sys.setenv(CBH_PRIMARY_VERSION=if(imputed) "regional_imputed" else if(mics) "regional_mics" else "regional")
 settings <- cbh_primary_settings()
 stages <- c(prepare="R_cbh/primary/00_prepare_regional.R",fit="R_cbh/primary/01_fit.R",
@@ -28,6 +34,7 @@ stages <- c(prepare="R_cbh/primary/00_prepare_regional.R",fit="R_cbh/primary/01_
   paper_manifest="R_cbh/reporting/04_paper_figures.R",index="R_cbh/reporting/02_results_index.R",
   validation="R_cbh/reporting/10_validate_reporting.R")
 if(imputed) stages <- stages[names(stages) %in% c("prepare","fit","effects","diagnostics","comparison","report")]
+if(imputed || !mics) stages <- stages[names(stages)!="index"]   # keyed on the version run, not the flags
 if("--report-only" %in% args)stages <- stages[!names(stages) %in% c("prepare","fit")]
 dir.create(settings$out,recursive=TRUE,showWarnings=FALSE)
 log <- list()

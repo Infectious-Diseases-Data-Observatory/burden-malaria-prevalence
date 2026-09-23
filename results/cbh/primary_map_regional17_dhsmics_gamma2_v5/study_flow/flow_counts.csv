@@ -1,6 +1,6 @@
 "item","count"
-"registry",171
-"registry_countries",41
+"registry_with_cbh",171
+"registry_countries_with_cbh",41
 "omitted",5
 "built",166
 "built_countries",40
@@ -20,3 +20,10 @@
 "valid_births",5917443
 "recent_valid_births",1642334
 "primary_distinct_children",2292089
+"with_map",8797963
+"mics_registry",93
+"mics_no_cbh",46
+"dhs_registry",124
+"omitted_total",51
+"registry_all",217
+"registry_countries_all",43

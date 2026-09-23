@@ -1,6 +1,6 @@
-# Figure 5: annual under-five malaria mortality
+# Figure 3C source: annual under-five malaria mortality
 
-All required inputs are available for 2000–2024. The comparison contains the same 42 countries in all 25 years (1,050 country-years per source). This is the national burden coverage, not only the 34 countries contributing DHS surveys to model fitting.
+All required inputs are available for 2000–2024. The comparison contains the same 42 countries in all 25 years (1,050 country-years per source). This is the national burden coverage, not only the 36 countries contributing DHS or MICS surveys to model fitting; 35 of them are among the 42 (ZAF contributes survey data only).
 
 ## Input audit
 
@@ -16,7 +16,7 @@ For country c, year t and age band g: D_model(c,t,g) = D_allcause(c,t,g) × {1 �
 
 Disjoint age deaths reproduce the all-cause under-five totals (maximum relative error 1.78e-15). The sum of age-implied person-years differs from the directly reported under-five implied denominator by at most 0.1009%; we use the direct under-five denominator for the pooled rate.
 
-IHME malaria and all-cause count/rate pairs imply denominators differing by at most 0.2140% where the malaria rate is positive. Native IHME malaria rates and the differences are retained in denominator_audit.csv; the Figure 5 IHME rates are recomputed using the common all-cause denominator. Zero malaria count/rate pairs cannot identify population and are not used to infer it.
+IHME malaria and all-cause count/rate pairs imply denominators differing by at most 0.2140% where the malaria rate is positive. Native IHME malaria rates and the differences are retained in denominator_audit.csv; the IHME rates in this figure are recomputed using the common all-cause denominator. Zero malaria count/rate pairs cannot identify population and are not used to infer it.
 
 All 126 existing country estimates for 2005, 2015 and 2024 are reproduced; maximum absolute death-count difference 1.75e-10.
 
@@ -64,6 +64,6 @@ Run `Rscript R_cbh/burden/04_annual_comparison.R --audit-only` first, then `Rscr
 
 [Included countries](included_countries.csv) · [Annual totals](annual_totals_2000_2024.csv) · [Country estimates](country_estimates_2000_2024.csv) · [Country-year input audit](country_year_input_audit.csv) · [Denominator audit](denominator_audit.csv) · [Input hashes](input_provenance.csv)
 
-![Figure 5](fig5_annual_malaria_mortality.png)
+![Annual under-five malaria mortality](fig5_annual_malaria_mortality.png)
 
 Annual malaria mortality before age five, 2000–2024, pooled across the same 42 countries covered by the national burden analysis. For each source, the plotted rate is 100,000 times the sum of national under-five malaria deaths divided by the sum of annual under-five person-years implied by the primary IHME all-cause death counts and rates. Rates therefore use a common population denominator and are not averages of country rates or probabilities per live birth. The PfPR-ACM model applies the seven separate primary MAP gamma=2 PfPR effects to annual age-specific IHME all-cause deaths, using the zero-PfPR counterfactual. National annual MAP PfPR[2–10] is weighted by population counts using a fixed GPW 2020 spatial distribution; these exposure weights are separate from the annual mortality denominator. IHME ages 2–4 share a mortality rate and divide deaths/person-time equally across the model's three annual bands. Signed age-specific contributions are retained. The UN IGME comparator is the CA-CODE 2026 series from the UN IGME portal, retrieved from UNICEF's CME_CAUSE_OF_DEATH dataflow on 21 September 2026 (under five, both sexes, malaria, deaths); it is not the World Malaria Report all-age series or a fixed proportion of it. All curves show point estimates. Joint uncertainty across countries and age bands is not available; marginal interval endpoints are not summed. Model-attributable all-cause mortality reductions and the comparator cause-specific estimates are different estimands. The PfPR-ACM model shares IHME all-cause inputs and this comparison is not independent validation. Zero exposure requires extrapolation. Cape Verde, Lesotho and São Tomé and Príncipe are excluded because usable MAP prevalence is unavailable; the other countries absent from the original national input set are not added.

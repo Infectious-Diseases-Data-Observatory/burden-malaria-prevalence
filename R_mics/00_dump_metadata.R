@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-# Run first: catalogues every MICS .sav file (names, labels) into data/derived_mics/ (git-ignored).
+# Run after 00a_extract.R: catalogues every MICS .sav file (names, labels) into data/derived_mics/ (git-ignored).
 # Variable-level metadata for every MICS .sav file (names, labels, value-label counts).
 suppressPackageStartupMessages(library(haven))
 root <- "data/MICS_extracted"
@@ -17,6 +17,7 @@ for (s in sort(list.dirs(root, recursive = FALSE, full.names = FALSE))) {
   }
 }
 m <- do.call(rbind, rows)
+dir.create("data/derived_mics", recursive = TRUE, showWarnings = FALSE)
 write.csv(m, "data/derived_mics/variable_metadata.csv", row.names = FALSE)
 cat("variables catalogued:", nrow(m), "| files:", nrow(unique(m[, c("survey","file")])),
     "| read errors:", sum(m$label == "READ_ERROR", na.rm = TRUE), "\n")

@@ -8,7 +8,8 @@ suppressPackageStartupMessages({ library(sf); library(terra); library(data.table
 sf_use_s2(FALSE)
 source("R_cbh/R/geography.R")   # cbh_rkey(), identical to R_dhs rkey()
 root <- normalizePath(".")
-snow <- "/Users/jameswatson/Documents/Claude Projects/Prevalence Model/Snow Prevalence Data/shape files/Africa_New_Admin.shp"
+source("R_mics/config/paths.R")   # mics_admin1_shp
+snow <- mics_admin1_shp
 out <- "data/derived_mics"; bdir <- file.path(out, "boundaries"); dir.create(bdir, showWarnings = FALSE)
 setup <- fread(file.path(out, "survey_setup.csv"))
 rmap <- fread(file.path(out, "region_map.csv"))

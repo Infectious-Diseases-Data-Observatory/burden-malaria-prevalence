@@ -1,17 +1,64 @@
 # Malaria prevalence and child mortality
 
-> **Current analysis (18 September 2026):** seven separate child–age-band MAP models with `gamma=2` and 17 regional/annual covariates. Primary Figures 1–6, the inclusion flow and age/national/annual/state tables use `primary_map_regional17_gamma2_v3`; [current outputs](results/cbh/primary_map_regional17_gamma2_v3/RESULTS.md). Reproduce reporting with `Rscript R_cbh/primary/run_regional.R --report-only`. Start with the [analysis plan](docs/ANALYSIS_PLAN.md), [code audit](docs/CODE_AUDIT.md) and [current result index](<Key results/README.md>). `Rscript run_all.R --help` lists explicit current commands. The survey-region description below is historical; superseded scripts are in [the archive](archive/2026-09-15-code-audit/).
+> **Current analysis (23 September 2026):** DHS and UNICEF MICS complete birth histories, seven separate child age-band MAP models with `gamma=2` and 17 regional/annual covariates. Primary Figures 1–3, the inclusion flow and the age-band, national, annual and state tables use `primary_map_regional17_dhsmics_gamma2_v5`: 132 surveys (95 DHS, 37 MICS) in 36 countries, 7,498,459 child-band records and 102,282 deaths; [current outputs](results/cbh/primary_map_regional17_dhsmics_gamma2_v5/RESULTS.md). The DHS-only primary `primary_map_regional17_gamma2_v3` is kept as the benchmark. Start with the [analysis plan](docs/ANALYSIS_PLAN.md), the [primary pipeline](R_cbh/primary/REGIONAL_REFIT.md), the [current result index](<Key results/README.md>), [supplementary results](<Supplementary results/README.md>) and [open issues](docs/OPEN_ANALYSIS_ISSUES.md). The [code audit](docs/CODE_AUDIT.md) is a dated 15 September snapshot. `Rscript run_all.R --help` lists explicit current commands. The survey-region description further below is historical; superseded scripts are in [the archive](archive/2026-09-15-code-audit/).
+
+## Current analysis
+
+Each child contributes one record per completed-month age band (<1, 1–5, 6–11, 12–23, 24–35, 36–47, 48–59) that it entered alive in the 60 months before interview and whose full width ended by interview. Band death is modelled with a binomial/cloglog GAM per age band: a smooth in the regional MAP PfPR₂₋₁₀ at band entry, a calendar-time smooth, 13 survey-region and four national annual confounders, and survey, country and region random intercepts. The fitted curves give attributable fractions and national malaria-attributable under-five deaths for 2000–2024, compared with IHME and UN IGME.
+
+| Folder | Content |
+|---|---|
+| `R_cbh/` | Child age-band builder (`01_make_analysis_data.R`), regional covariates, HIV incidence imputation, primary fits (`primary/`), burden, reporting and sensitivity analyses |
+| `R_mics/` | MICS inventory, region mapping, MAP extraction, conversion to the Births Recode layout and regional covariates ([README](R_mics/README.md)) |
+| `results/cbh/` | Aggregate results by versioned folder; the current primary is `primary_map_regional17_dhsmics_gamma2_v5/` |
+| `results/mics_inventory/` | MICS inventory, [eligibility assessment](results/mics_inventory/ELIGIBILITY.md) and exclusion attribution |
+| `docs/` | Analysis plan, open issues, code audit |
+| `Key results/`, `Supplementary results/` | Index of current primary outputs (generated) and of supplementary results (maintained by hand) |
+
+### Reproduction sequence
+
+Run from the project root; `Rscript run_all.R --help` prints the same order. Microdata and model objects stay in the git-ignored `data/` tree. Steps 1–4 use local files only. Step 0 reuses cached public-data snapshots; only its explicit retrieval scripts (`R_cbh/covariates/01_fetch_published.R`, `12_fetch_nutrition.py`) query the DHS API.
+
+```sh
+# 0. Upstream DHS inputs (not run by any run_all mode): child-band shards, the child HIV
+#    incidence panel and the 17-variable regional overlay (R_cbh/covariates/README.md), in
+#    that order: the covariate audits (03, 13, 14) read the HIV panel.
+Rscript run_all.R --check-inputs         # local DHS dataset prerequisites
+Rscript R_cbh/01_make_analysis_data.R
+Rscript R_cbh/hiv/01_fit_incidence.R     # rerun with --extended for the imputed-covariate panel
+Rscript R_cbh/covariates/run.R           # then 11, 12 (python3; queries the DHS API, reuses cached pages), 13 and 14
+
+# 1. MICS build (R_mics/README.md): R_mics/00a_extract.R, then 00 to 11 in order.
+#    Skips 08_build_child_bands.R when its manifest exists; --force runs it.
+Rscript run_all.R --mics-build
+
+# 2. Primary v5: prepare, fresh fits, effects, burden, figures, tables and validation
+Rscript run_all.R --primary              # R_cbh/primary/run_regional.R
+Rscript R_cbh/primary/run_regional.R --report-only   # from saved fits
+
+# 3. Sensitivity analyses on the v5 sample: subgroups, no nutrition, imputed covariates (v6).
+#    The imputed-covariate fits take hours; run detached.
+Rscript run_all.R --sensitivities
+
+# 4. Paper assets (validates by default; --copy copies figures, captions and table source, never TeX)
+python3 R_cbh/reporting/export_paper.py --destination <Overleaf folder>
+```
+
+Rerunning step 0's builder or `R_mics/08_build_child_bands.R` rewrites the build manifest and forces fresh v5 and sensitivity fits (steps 2 and 3); see [REGIONAL_REFIT.md](R_cbh/primary/REGIONAL_REFIT.md).
+
+## Historical survey-region pipeline (R_dhs)
+
+This section and those below describe the earlier `R_dhs` analysis and are kept for reference. Most of its scripts from 04 onwards are in [`archive/2026-09-15-code-audit/R_dhs/`](archive/2026-09-15-code-audit/). `R_dhs/` keeps the data-access and extraction scripts whose outputs (`data/derived_dhs/`) the current pipeline still reads, and two wrappers (`11_study_flow.R`, `33_key_results.R`) that call `R_cbh/reporting/`.
 
 Relationship between *Plasmodium falciparum* parasite prevalence (MAP PfPR₂₋₁₀)
 and all-cause child mortality across sub-Saharan Africa, estimated at the
 DHS/MIS survey-region level and extrapolated to a national malaria-attributable
 burden.
 
-📄 **[SUMMARY.md](SUMMARY.md)** / **SUMMARY.pdf** — methods and results with the
-key figures embedded. 📁 **[Key results/](Key%20results/)** — the curated
-sensitivity figures with a README saying which script draws each.
+📄 **[SUMMARY.md](SUMMARY.md)** / **SUMMARY.pdf** — methods and results of this
+historical pipeline with the key figures embedded.
 
-## What the analysis does
+### What the analysis did
 
 Each DHS or MIS survey region contributes one observation: all-cause
 post-neonatal (1 month to 5 years) and neonatal mortality over the **12 months
@@ -33,25 +80,24 @@ cross-validation. Population-average attributable fractions are then applied to
 national MAP prevalence and IGME all-cause mortality to give a burden series for
 2000–2024, compared with IHME/GBD and WHO.
 
-## Repository layout
+### Repository layout (historical pipeline)
 
 ```
 R_dhs/00_config.R            paths, constants (CHMORT_PERIOD, AF_REFERENCE, ...) and shared helpers
 R_dhs/01-03                  data access, MAP extraction, panel assembly
-R_dhs/04-13                  main models, plots, sensitivities, burden, triangulation
-R_dhs/14-29                  manuscript figures and further sensitivity analyses
-R_dhs/30-37                  Bayesian (brms) refits, model comparison, subgroups, burden trend
+R_dhs/04-13                  main models, plots, sensitivities, burden, triangulation      [mostly archived]
+R_dhs/14-29                  manuscript figures and further sensitivity analyses           [archived]
+R_dhs/30-37                  Bayesian (brms) refits, model comparison, subgroups, burden trend [mostly archived]
 R_dhs/run_all.R              runs the pipeline in order
 R_dhs/COVARIATE_SOURCES.md   provenance of every covariate
 tests/                       unit tests for the region-name matching
 results/dhs_rebuild/         figures (.png) and tables (.csv)                    [tracked]
-Key results/                 curated copies of the key figures + README           [tracked]
 data/                        raw inputs, derived panel, cached model fits       [git-ignored]
-R/, run_all.R (root)         legacy three-component pipeline, superseded          [kept for reference]
-archive/                     superseded exploratory scripts                     [git-ignored]
+R/                           legacy three-component pipeline, superseded          [kept for reference]
+archive/                     superseded scripts                                  [dated audit folders tracked]
 ```
 
-## Running it
+### Running the historical pipeline
 
 From the repository root:
 
@@ -73,7 +119,7 @@ Rscript -e 'rmarkdown::render("SUMMARY.md", output_format = "pdf_document")'
 R packages: `rdhs, DHS.rates, terra, sf, malariaAtlas, countrycode, mgcv, brms,
 loo, posterior, ggplot2, rmarkdown` (and a working Stan toolchain for `brms`).
 
-### Data inputs
+#### Data inputs
 
 | Input | Where | How to obtain |
 |---|---|---|
@@ -86,7 +132,7 @@ loo, posterior, ggplot2, rmarkdown` (and a working Stan toolchain for `brms`).
 | IHME/GBD under-5 malaria deaths | `data/ihme_malaria_u5_deaths_by_country.csv` | GBD Results tool (free login); needed for the burden comparison only |
 | WHO WMR 2025 deaths | fetched by script 10 or supplied via `WHO_JSON_PATH` | WHO GHO API |
 
-## Pipeline map
+### Pipeline map
 
 | Script | Does |
 |---|---|
@@ -120,16 +166,19 @@ Two constants in `00_config.R` define the primary analysis: `CHMORT_PERIOD`
 random PfPR slopes are off (`INCLUDE_COUNTRY_PFPR_SLOPE`) and examined only as a
 sensitivity.
 
-## Legacy pipeline
+### Legacy pipeline
 
-The root `run_all.R` and the `R/` folder hold the earlier three-component
-analysis (country-level malaria share against PfPR, a DHS mixed model on the
-log rate with country random slopes, and the RDT-to-microscopy conversion). It
-is superseded by `R_dhs/` and kept for reference; its RDT-to-microscopy
+The `R/` folder keeps the remaining scripts of the earlier three-component
+analysis (data fetch, the RDT-to-microscopy conversion of component 3 and the
+component-2 malaria-death time series `11_malaria_deaths_timeseries.R`); components 1
+and 2 (country-level malaria share against PfPR, and a DHS mixed model on the log rate
+with country random slopes) and the former root runner are in
+`archive/2026-09-15-code-audit/`; the root `run_all.R` is now the explicit router for the
+current analysis. The legacy pipeline is superseded and kept for reference; its RDT-to-microscopy
 conversion (`results/rdt_microscopy_conversion.csv`, microscopy ≈ 0.74 × RDT)
-is still read by `21_map_vs_measured_prevalence.R`.
+was read by `21_map_vs_measured_prevalence.R` (archived).
 
-## Caveats
+### Caveats of the historical pipeline
 
 - The national burden is not a validation against a common estimand: the model
   includes indirect malaria-associated deaths, whereas IHME and WHO assign

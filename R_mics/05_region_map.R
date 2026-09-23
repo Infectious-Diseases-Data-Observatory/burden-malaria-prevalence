@@ -4,7 +4,8 @@
 suppressPackageStartupMessages({ library(haven); library(sf); library(data.table) })
 sf_use_s2(FALSE)
 source("R_cbh/R/geography.R")   # cbh_rkey()
-snow <- "/Users/jameswatson/Documents/Claude Projects/Prevalence Model/Snow Prevalence Data/shape files/Africa_New_Admin.shp"
+source("R_mics/config/paths.R")   # mics_admin1_shp
+snow <- mics_admin1_shp
 # survey folder, svkey, region variable (in bh.sav unless noted), boundary source
 S <- fread(text = "
 folder|svkey|region_var|boundary

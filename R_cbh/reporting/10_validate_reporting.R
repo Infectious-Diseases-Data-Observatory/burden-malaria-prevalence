@@ -24,6 +24,30 @@ stopifnot(counts[["primary"]]==sample$records,counts[["deaths"]]==sample$deaths,
   counts[["primary_distinct_children"]]==sample$distinct_children,
   counts[["surveys"]]==sample$surveys,nrow(coverage)==sample$surveys,
   sum(coverage$regions)==st$expected_regions,all(coverage$type %in% if(isTRUE(st$mics)) c("DHS","MICS") else "DHS"))
+mics_lines <- character()
+if(isTRUE(st$mics)) {
+  # The DHS part must reproduce the DHS-only primary exactly, and the DHS+MICS sensitivity
+  # refits must have been fitted to this primary's prepared data (checked from CSVs only).
+  expected_mics_surveys <- 37L
+  by_survey <- read("prepared_selection_by_survey.csv")
+  by_survey <- merge(by_survey,coverage[c("survey","type","regions")],by="survey")
+  dhs <- by_survey[by_survey$type=="DHS",];n_mics <- sum(by_survey$type=="MICS")
+  stopifnot(nrow(by_survey)==nrow(coverage),sum(by_survey$records)==sample$records,sum(by_survey$deaths)==sample$deaths,
+    sum(dhs$records)==st$expected_dhs_records,sum(dhs$deaths)==st$expected_dhs_deaths,
+    sum(dhs$regions)==st$expected_dhs_regions,n_mics==expected_mics_surveys)
+  prepared_md5 <- unique(manifest$prepared_data_md5)
+  sensitivities <- c(subgroups="results/cbh/subgroups_dhsmics_map_gamma2_v2",nutrition="results/cbh/nutrition_adjustment_dhsmics_map_gamma2_v2")
+  for(d in sensitivities) {
+    fp <- cbh_read_csv(file.path(d,"fit_input_provenance.csv"))
+    if(length(prepared_md5)!=1L || fp$file[1]!=st$data || fp$md5[1]!=prepared_md5)
+      stop("Sensitivity refit in ",d," was not fitted to the prepared data of ",st$id)
+  }
+  mics_lines <- c(sprintf("PASS: DHS part reproduces the DHS-only primary (%s records, %s deaths, %d survey-regions); %d MICS surveys add %s records and %s deaths.",
+      format(sum(dhs$records),big.mark=","),format(sum(dhs$deaths),big.mark=","),sum(dhs$regions),n_mics,
+      format(sample$records-sum(dhs$records),big.mark=","),format(sample$deaths-sum(dhs$deaths),big.mark=",")),
+    sprintf("PASS: subgroup and no-nutrition refits (%s) were fitted to this primary's prepared data (md5 %s).",
+      paste(basename(sensitivities),collapse=", "),prepared_md5))
+}
 age <- read("tables/age_band_results.csv")
 stopifnot(nrow(age)==7L,sum(age$records)==sample$records,sum(age$observed_deaths)==sample$deaths,
   abs(sum(age$displayed_death_share_pct)-100)<1e-10,!"elapsed_seconds" %in% names(age))
@@ -56,10 +80,13 @@ for(p in file.path(root,"tables",c("age_band_results.latex.txt","country_compari
 }
 writeLines(c(sprintf("PASS: %d main figures (Figure 3 combining country, state and annual comparisons) reference the revised primary version and match their hashes.",nrow(figures)),
   "PASS: seven fitted model hashes, convergence flags and gamma=2 verified.",
-  sprintf("PASS: flow, %d DHS surveys, %d survey-regions, child-band/death/child totals reconcile.",sample$surveys,sum(coverage$regions)),
+  sprintf("PASS: flow, %s, %d survey-regions, child-band/death/child totals reconcile.",
+    if(isTRUE(st$mics)) sprintf("%d DHS and MICS surveys (%d DHS, %d MICS)",sample$surveys,sum(coverage$type=="DHS"),sum(coverage$type=="MICS"))
+    else sprintf("%d DHS surveys",sample$surveys),sum(coverage$regions)),
+  mics_lines,
   "PASS: age-table death percentages sum to 100.0%; both contrasts retained; no fit-time column.",
   sprintf("PASS: %d annual totals use 42 countries and reproduce the three national-burden years.",nrow(annual)),
-  "PASS: 2024 country table reproduces all three Figure 5 totals; 37 state totals reconcile.",
+  "PASS: 2024 country table reproduces all three Figure 3 panel C totals for 2024; 37 state totals reconcile.",
   "PASS: producer/data provenance hashes match; table source has valid row terminators.",
   "PASS: no TeX files created in this result version."),file.path(root,"paper_refresh/validation.txt"))
 message("Primary reporting validation passed")

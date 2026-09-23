@@ -1,8 +1,8 @@
 # Complete-birth-history dataset pipeline
 
-**Primary analysis without data setup:** `Rscript run_all.R --primary` freshly fits the seven MAP gamma=2 models and regenerates primary summaries, diagnostics, country mortality and figures. See [primary pipeline](primary/README.md) and [current report](../results/cbh/primary_map_gamma2_v1/REPORT.md). The dataset-building instructions below are a separate stage.
+**Primary analysis without data setup:** `Rscript run_all.R --primary` freshly fits the seven MAP gamma=2 models on DHS and UNICEF MICS surveys and regenerates primary summaries, diagnostics, country mortality and figures. See [primary pipeline](primary/REGIONAL_REFIT.md) and [current report](../results/cbh/primary_map_regional17_dhsmics_gamma2_v5/REPORT.md) (`primary_map_regional17_dhsmics_gamma2_v5`). The dataset-building instructions below are a separate stage and build the DHS shards in `data/derived_cbh/`. The MICS shards are built with the same, unchanged builder by `R_mics/08_build_child_bands.R` into `data/derived_mics/cbh_build/`, after the MICS birth histories are converted to the Births Recode layout ([MICS pipeline](../R_mics/README.md)).
 
-> The current primary uses seven separate MAP models at gamma=2. This page documents the base dataset; some older fitting references below describe historical joint models. See [the plan](../docs/ANALYSIS_PLAN.md) and [audit](../docs/CODE_AUDIT.md) for authoritative commands and outstanding work.
+> The current primary uses seven separate MAP models at gamma=2 and the 17-variable regional adjustment. This page documents the base DHS dataset; some older fitting references below describe historical joint models. See [the plan](../docs/ANALYSIS_PLAN.md) and [audit](../docs/CODE_AUDIT.md) for authoritative commands and outstanding work.
 
 Stage 1 of the new pipeline for the [seven-band PfPR model](../docs/PFPR_AGE_BAND_MODEL.md). It reads local Births Recodes and external-data snapshots, creates child–age-band records, and checks eligibility and joins. It does not fit a model. No legacy fitting script or fitted object is required.
 
@@ -74,7 +74,7 @@ Paths are declared in `00_config.R`; no network access or package installation o
 | `data/derived_dhs/statcompiler_covariates.csv` | Optional survey-level WASH and wasting candidates |
 | `R_cbh/config/*.csv` | Explicit survey calendar/geography choices and overrides |
 
-This first implementation reuses **external-data extraction snapshots** already present locally; it rebuilds child histories from the local recodes. Migration of ZIP ingestion, registry discovery, raster extraction and external-panel downloading into this new folder is subsequent work. No old R code is sourced at runtime. Four Lesotho surveys in the registry currently lack MAP geography and are reported as unavailable, not assigned zero exposure.
+This first implementation reuses **external-data extraction snapshots** already present locally; it rebuilds child histories from the local recodes. Migration of ZIP ingestion, registry discovery, raster extraction and external-panel downloading into this new folder is subsequent work. No old R code is sourced at runtime. Four Lesotho surveys in the DHS registry (and MICS Lesotho 2018 in the MICS build) lack MAP geography, because Lesotho is malaria free, and are reported as unavailable, not assigned zero exposure.
 
 ## Load for a model
 
