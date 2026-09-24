@@ -6,6 +6,15 @@ of the 22 September version, 333 lines), a short quote of the current text and r
 was checked against the results files listed at the end. The export copies this file to Overleaf as
 `MANUSCRIPT_TEXT_UPDATES.md`.
 
+> **Superseded for numbers (24 September 2026).** The primary is now `primary_map_regional17_dhsmics_gamma2_v7`: this
+> file's v5 sample plus Liberia's 2007, 2013 and 2019–20 DHS, whose child HIV incidence is now derived from UNAIDS counts
+> (135 surveys: 98 DHS, 37 MICS; 37 countries; 7,607,122 child age-band records; 103,987 deaths). The sensitivities are
+> refitted on v7 (subgroups and no-nutrition v3, imputed covariates v8). Every number below is v5's and is kept as the
+> v5 record; for v7 values and replacement text use `docs/MANUSCRIPT_AUDIT_2026-09-24_v7.md` in the analysis repository
+> ([link](MANUSCRIPT_AUDIT_2026-09-24_v7.md)), which audits the current `main.tex` against v7.
+> Items superseded outright are marked below (Line 225, Liberia; Line 247, sensitivity counts), and the paper now has a
+> fourth main figure (see "New Figure 4").
+
 The imputed-covariate sensitivity (`primary_map_regional17_dhsmics_imputed_gamma2_v6`) and its multiple-imputation check
 are complete. The wording below that depends on them is taken from its `REPORT.md`, `CAPTION_sfig_imputed_covariates.md`
 and `multiple_imputation/REPORT.md`.
@@ -42,8 +51,9 @@ models, 17 covariates, gamma = 2, fixed reference knots); covariates are re-scal
 
 ## Before pasting
 
-Run `python3 R_cbh/reporting/export_paper.py --destination <Overleaf folder> --copy`; it stops if the v6 figure or
-caption is missing. It refreshes every results figure `main.tex` includes (all except `figures/Causal_diagram.pdf`),
+Run `python3 R_cbh/reporting/export_paper.py --destination <Overleaf folder> --copy`; since 24 September 2026 it exports
+from v7 by default and stops if the v8 imputed-covariate figure or caption, or any of the four main figures, is missing
+(the v5 export ran on 24 September 2026). It also copies Figure 4 as `figures/fig4_under5_death_probability.png`. It refreshes every results figure `main.tex` includes (all except `figures/Causal_diagram.pdf`),
 including `figures/fig3_burden_comparison.png` for Figure 3, and writes the table sources `tables/age_band_results.latex.txt`,
 `tables/country_comparison_2024.latex.txt` and `tables/source_comparison.latex.txt`. Until the export runs, the images
 in Overleaf are the DHS-only versions.
@@ -247,6 +257,14 @@ Values: medians 1.73 (north) and 1.24 (south); Lagos ratio 0.70.
 Include `figures/fig3_burden_comparison.png` (updated in Overleaf on 24 September 2026); the export no longer writes
 `figures/fig4_burden_comparison.png`, and the old file and `figures/fig4_burden_comparison_caption.md` can be deleted.
 
+### New Figure 4 (probability of dying before age 5), added 24 September 2026
+
+The export writes `figures/fig4_under5_death_probability.png` (source
+`results/cbh/primary_map_regional17_dhsmics_gamma2_v7/under5_probability/under5_death_probability_2024.png`): the
+probability of dying before age 5 in 2024 by country, per 1,000 live births, from all causes (synthetic cohort from IHME
+age-band all-cause death rates) and the part caused by malaria under the PfPR-ACM model. If `main.tex` has no figure
+environment for it, add one; the draft caption is `under5_probability/CAPTION.md`, also in the paper-figure `CAPTIONS.md`.
+
 ### Line 142 (Figure 3 caption)
 
 Current: "Comparison of national and subnational (Nigeria only) estimates of malaria mortality rates in children under 5
@@ -371,6 +389,11 @@ MICS regional summaries were computed from the microdata with the MICS women's, 
 
 ### Line 225 (fallbacks; Liberia and São Tomé)
 
+> **Superseded for Liberia (24 September 2026).** From v7 Liberia's 2007, 2013 and 2019–20 DHS are in the sample, with
+> child HIV incidence derived from UNAIDS AIDSinfo counts; only its 2009 MIS is excluded (no anthropometry). The
+> replacement below is wrong for Liberia; use the v7 audit's L207–208 and L220 items. São Tomé and Príncipe remains
+> excluded for want of an incidence series.
+
 Current: "Missing regional DTP3 and measles coverage was replaced by the corresponding national UNICEF estimate for the
 survey year (\url{https://immunizationdata.who.int/}). ... Liberia and Sao Tome had no data and were excluded."
 
@@ -391,6 +414,10 @@ The 165,149 records with MAP prevalence are in LB51FL, LB5AFL (MIS), LB6AFL, LB7
 total is the "HIV incidence" exclusion in the study-flow figure, which counts after the MAP merge.
 
 ### Line 247 (sensitivity analyses)
+
+> **Superseded counts (24 September 2026).** The subgroup refits on v7 (`subgroups_dhsmics_map_gamma2_v3`) have 72 early
+> and 63 late surveys (Sahel and Eastern Africa unchanged), and the imputed-covariate version v8 takes Liberia's HIV rate
+> from the UNAIDS counts; see the v7 audit.
 
 Current: "...Sahelian survey regions (...; 23 surveys, 7 countries, 14,545 deaths), Eastern Africa (...: 38 surveys, 12
 countries, 23,583 deaths), and surveys before versus after the median survey year of 2013 (50 and 45 surveys,
@@ -599,7 +626,9 @@ written from memory: the author should check authors, volume, pages and DOI befo
 
 ## Results files used
 
-All paths are in the analysis repository.
+All paths are in the analysis repository. These are the v5 sources; the v7 equivalents are in
+`results/cbh/primary_map_regional17_dhsmics_gamma2_v7/`, `subgroups_dhsmics_map_gamma2_v3/`,
+`nutrition_adjustment_dhsmics_map_gamma2_v3/` and `primary_map_regional17_dhsmics_imputed_gamma2_v8/`.
 
 - `results/cbh/primary_map_regional17_dhsmics_gamma2_v5/`:
   - `prepared_sample.csv`, `REPORT.md`, `RESULTS.md`

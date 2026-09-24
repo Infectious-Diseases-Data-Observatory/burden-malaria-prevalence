@@ -1,6 +1,6 @@
 # Malaria prevalence and child mortality
 
-> **Current analysis (23 September 2026):** DHS and UNICEF MICS complete birth histories, seven separate child age-band MAP models with `gamma=2` and 17 regional/annual covariates. Primary Figures 1–3, the inclusion flow and the age-band, national, annual and state tables use `primary_map_regional17_dhsmics_gamma2_v5`: 132 surveys (95 DHS, 37 MICS) in 36 countries, 7,498,459 child-band records and 102,282 deaths; [current outputs](results/cbh/primary_map_regional17_dhsmics_gamma2_v5/RESULTS.md). The DHS-only primary `primary_map_regional17_gamma2_v3` is kept as the benchmark. Start with the [analysis plan](docs/ANALYSIS_PLAN.md), the [primary pipeline](R_cbh/primary/REGIONAL_REFIT.md), the [current result index](<Key results/README.md>), [supplementary results](<Supplementary results/README.md>) and [open issues](docs/OPEN_ANALYSIS_ISSUES.md). The [code audit](docs/CODE_AUDIT.md) is a dated 15 September snapshot. `Rscript run_all.R --help` lists explicit current commands. The survey-region description further below is historical; superseded scripts are in [the archive](archive/2026-09-15-code-audit/).
+> **Current analysis (24 September 2026):** DHS and UNICEF MICS complete birth histories, seven separate child age-band MAP models with `gamma=2` and 17 regional/annual covariates. Primary Figures 1–4, the inclusion flow and the age-band, national, annual and state tables use `primary_map_regional17_dhsmics_gamma2_v7`: 135 surveys (98 DHS, 37 MICS) in 37 countries, 7,607,122 child-band records and 103,987 deaths; [current outputs](results/cbh/primary_map_regional17_dhsmics_gamma2_v7/RESULTS.md). v7 is the 23 September DHS+MICS primary `primary_map_regional17_dhsmics_gamma2_v5` plus Liberia, whose child HIV incidence is now derived from UNAIDS counts ([R_cbh/hiv/README.md](R_cbh/hiv/README.md)); v5 is kept as history and as v7's comparator. The DHS-only primary `primary_map_regional17_gamma2_v3` is kept as the benchmark. Start with the [analysis plan](docs/ANALYSIS_PLAN.md), the [primary pipeline](R_cbh/primary/REGIONAL_REFIT.md), the [current result index](<Key results/README.md>), [supplementary results](<Supplementary results/README.md>) and [open issues](docs/OPEN_ANALYSIS_ISSUES.md). The [code audit](docs/CODE_AUDIT.md) is a dated 15 September snapshot. `Rscript run_all.R --help` lists explicit current commands. The survey-region description further below is historical; superseded scripts are in [the archive](archive/2026-09-15-code-audit/).
 
 ## Current analysis
 
@@ -10,7 +10,7 @@ Each child contributes one record per completed-month age band (<1, 1–5, 6–1
 |---|---|
 | `R_cbh/` | Child age-band builder (`01_make_analysis_data.R`), regional covariates, HIV incidence imputation, primary fits (`primary/`), burden, reporting and sensitivity analyses |
 | `R_mics/` | MICS inventory, region mapping, MAP extraction, conversion to the Births Recode layout and regional covariates ([README](R_mics/README.md)) |
-| `results/cbh/` | Aggregate results by versioned folder; the current primary is `primary_map_regional17_dhsmics_gamma2_v5/` |
+| `results/cbh/` | Aggregate results by versioned folder; the current primary is `primary_map_regional17_dhsmics_gamma2_v7/` (v5 is history) |
 | `results/mics_inventory/` | MICS inventory, [eligibility assessment](results/mics_inventory/ELIGIBILITY.md) and exclusion attribution |
 | `docs/` | Analysis plan, open issues, code audit |
 | `Key results/`, `Supplementary results/` | Index of current primary outputs (generated) and of supplementary results (maintained by hand) |
@@ -22,29 +22,32 @@ Run from the project root; `Rscript run_all.R --help` prints the same order. Mic
 ```sh
 # 0. Upstream DHS inputs (not run by any run_all mode): child-band shards, the child HIV
 #    incidence panel and the 17-variable regional overlay (R_cbh/covariates/README.md), in
-#    that order: the covariate audits (03, 13, 14) read the HIV panel.
+#    that order: the covariate audits (03, 13, 14) read the HIV panel. hiv/03 (after both
+#    01 runs) writes the base and extended panels with Liberia's UNAIDS-derived child
+#    incidence, read by v7 and the imputed v8; 14 --liberia writes the v7 DHS attribution.
 Rscript run_all.R --check-inputs         # local DHS dataset prerequisites
 Rscript R_cbh/01_make_analysis_data.R
 Rscript R_cbh/hiv/01_fit_incidence.R     # rerun with --extended for the imputed-covariate panel
-Rscript R_cbh/covariates/run.R           # then 11, 12 (python3; queries the DHS API, reuses cached pages), 13 and 14
+Rscript R_cbh/hiv/03_add_liberia_aidsinfo.R
+Rscript R_cbh/covariates/run.R           # then 11, 12 (python3; queries the DHS API, reuses cached pages), 13 and 14 (and 14 --liberia)
 
 # 1. MICS build (R_mics/README.md): R_mics/00a_extract.R, then 00 to 11 in order.
 #    Skips 08_build_child_bands.R when its manifest exists; --force runs it.
 Rscript run_all.R --mics-build
 
-# 2. Primary v5: prepare, fresh fits, effects, burden, figures, tables and validation
+# 2. Primary v7: prepare, fresh fits, effects, burden, figures (1-4), tables and validation
 Rscript run_all.R --primary              # R_cbh/primary/run_regional.R
 Rscript R_cbh/primary/run_regional.R --report-only   # from saved fits
 
-# 3. Sensitivity analyses on the v5 sample: subgroups, no nutrition, imputed covariates (v6).
-#    The imputed-covariate fits take hours; run detached.
+# 3. Sensitivity analyses on the v7 sample: subgroups (v3), no nutrition (v3), imputed covariates (v8)
+#    and SMC before/after (v2). The imputed-covariate fits take hours; run detached.
 Rscript run_all.R --sensitivities
 
 # 4. Paper assets (validates by default; --copy copies figures, captions and table source, never TeX)
 python3 R_cbh/reporting/export_paper.py --destination <Overleaf folder>
 ```
 
-Rerunning step 0's builder or `R_mics/08_build_child_bands.R` rewrites the build manifest and forces fresh v5 and sensitivity fits (steps 2 and 3); see [REGIONAL_REFIT.md](R_cbh/primary/REGIONAL_REFIT.md).
+Rerunning step 0's builder or `R_mics/08_build_child_bands.R` rewrites the build manifest and forces fresh v7 and sensitivity fits (steps 2 and 3); see [REGIONAL_REFIT.md](R_cbh/primary/REGIONAL_REFIT.md).
 
 ## Historical survey-region pipeline (R_dhs)
 

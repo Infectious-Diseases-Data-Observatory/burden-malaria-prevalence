@@ -8,14 +8,15 @@ first failing script. No step uses the network.
 
 > **Rerunning 08 invalidates the primary and every sensitivity fit.** `08_build_child_bands.R` rewrites
 > `data/derived_mics/cbh_build/manifest.rds`, with new timestamps, even when every shard is reused from cache. The preparation
-> signature of `primary_map_regional17_dhsmics_gamma2_v5` hashes that file, so the next primary run re-prepares the data and
-> refits v5, and the subgroup (`subgroups_dhsmics_map_gamma2_v2`), no-nutrition (`nutrition_adjustment_dhsmics_map_gamma2_v2`)
-> and imputed-covariate (`primary_map_regional17_dhsmics_imputed_gamma2_v6`) refits go stale. `run_all.R --mics-build` therefore
+> signature of the current primary `primary_map_regional17_dhsmics_gamma2_v7` (v5 plus Liberia, since 24 September 2026)
+> hashes that file, so the next primary run re-prepares the data and refits v7, and the subgroup
+> (`subgroups_dhsmics_map_gamma2_v3`), no-nutrition (`nutrition_adjustment_dhsmics_map_gamma2_v3`), SMC
+> (`smc_dhsmics_map_gamma2_v2`) and imputed-covariate (`primary_map_regional17_dhsmics_imputed_gamma2_v8`) refits go stale. `run_all.R --mics-build` therefore
 > skips 08 when the manifest records a completed build; add `--force` to run it, then run `run_all.R --primary` and
 > `run_all.R --sensitivities`. The builder writes an incomplete manifest before it starts, so after an interrupted 08 the next
-> `--mics-build` runs 08 again. A change by 09 to `data/derived_mics/regional_covariates_wide_mics.csv`, which the v5
+> `--mics-build` runs 08 again. A change by 09 to `data/derived_mics/regional_covariates_wide_mics.csv`, which the v7
 > preparation also hashes, has the same effect as rerunning 08, as does any edit of `R_cbh/*.R` or `R_cbh/R/*.R`, which every
-> shard signature hashes. 01, 06, 10 and 11 also always run, and rewrite files hashed by the v5 study flow and survey map
+> shard signature hashes. 01, 06, 10 and 11 also always run, and rewrite files hashed by the v7 study flow and survey map
 > (`survey_inventory.csv`, `survey_registry_mics.csv`, `boundaries/MC_*.rds`, `exclusion_attribution_mics_by_survey.csv`), by
 > the subgroup fit signature (registry, `mics_region_centroids.csv`) or by the imputed-covariate provenance (registry,
 > `map_pfpr_window_years_mics.csv`); if their bytes change, run at least `Rscript R_cbh/primary/run_regional.R --report-only`
@@ -79,18 +80,18 @@ skipped because Lesotho is malaria free and MAP publishes no prevalence surface 
 
 **Ordering**
 
-- Each step reads earlier outputs: 00 → 01 (variable metadata); 01 → 02, 06, 09, the v5 study flow and survey map
-  (`survey_inventory.csv`); 04 → 05, 06; 05 → 06, 07, 09 (`survey_setup.csv`, `region_map.csv`); 06 → 08, 09, 11, the v5
+- Each step reads earlier outputs: 00 → 01 (variable metadata); 01 → 02, 06, 09, the v7 study flow and survey map
+  (`survey_inventory.csv`); 04 → 05, 06; 05 → 06, 07, 09 (`survey_setup.csv`, `region_map.csv`); 06 → 08, 09, 11, the v7
   study flow and survey map, and the subgroup and imputed-covariate refits (registry, rules, PfPR tables, boundaries);
-  07 → 08 (recodes); 08 → 09, 10, the v5 preparation and study flow, and the imputed-covariate refit (manifest and build
-  ledgers); 09 → 10, the v5 preparation and the imputed-covariate refit (covariate overlay).
-- 10 must run before the v5 study flow (`R_cbh/reporting/01_study_flow.R`, a stage of `run_regional.R`), which reads
+  07 → 08 (recodes); 08 → 09, 10, the v7 preparation and study flow, and the imputed-covariate refit (manifest and build
+  ledgers); 09 → 10, the v7 preparation and the imputed-covariate refit (covariate overlay).
+- 10 must run before the v7 study flow (`R_cbh/reporting/01_study_flow.R`, a stage of `run_regional.R`), which reads
   `results/mics_inventory/exclusion_attribution_mics_by_survey.csv`.
 - 11 must run before the subgroup refit (`R_cbh/sensitivity/subgroups/01_fit.R`), which reads
   `data/derived_mics/mics_region_centroids.csv`.
 - 02 and 03 only write `INVENTORY.md` and `ELIGIBILITY.md`; nothing downstream reads them.
 
 Then `Rscript run_all.R --primary` (`R_cbh/primary/run_regional.R`, default version `regional_mics`) prepares, fits and reports
-`primary_map_regional17_dhsmics_gamma2_v5`. See `docs/ANALYSIS_PLAN.md` Sections 2.1–2.4 (MICS inputs, geography, records, covariates and inclusion). `Rscript run_all.R --sensitivities` runs
+`primary_map_regional17_dhsmics_gamma2_v7` (v5, the 23 September version without Liberia, is history). See `docs/ANALYSIS_PLAN.md` Sections 2.1–2.4 (MICS inputs, geography, records, covariates and inclusion). `Rscript run_all.R --sensitivities` runs
 the sensitivity analyses on the same sample: `R_cbh/sensitivity/subgroups/` and `R_cbh/sensitivity/nutrition/` (both default to
-DHS+MICS; `--dhs-only` reproduces the DHS-only refits) and `R_cbh/sensitivity/imputation_dhsmics/`.
+DHS+MICS; `--dhs-only` reproduces the DHS-only refits), `R_cbh/sensitivity/imputation_dhsmics/` and `R_cbh/sensitivity/smc/`.

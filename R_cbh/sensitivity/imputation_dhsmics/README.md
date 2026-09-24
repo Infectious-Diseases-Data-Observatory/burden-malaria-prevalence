@@ -1,12 +1,20 @@
-# Imputed-covariate sensitivity on the DHS and MICS sample (v6)
+# Imputed-covariate sensitivity on the DHS and MICS sample (v8)
 
 This folder refits the 17-covariate primary specification after imputing every remaining covariate gap, so that all
-MAP-eligible DHS and MICS records are retained. The version is `primary_map_regional17_dhsmics_imputed_gamma2_v6`.
-It is compared with the complete-case DHS+MICS primary, `primary_map_regional17_dhsmics_gamma2_v5`.
+MAP-eligible DHS and MICS records are retained. The version is `primary_map_regional17_dhsmics_imputed_gamma2_v8`.
+It is compared with the complete-case DHS+MICS primary, `primary_map_regional17_dhsmics_gamma2_v7`.
+
+v8 (24 September 2026) replaces v6, which was the same analysis compared with v5 and is kept unchanged as history
+(`results/cbh/primary_map_regional17_dhsmics_imputed_gamma2_v6/`). The only input change is child HIV incidence for
+Liberia, which now comes from UNAIDS counts (`R_cbh/hiv/03_add_liberia_aidsinfo.R`, panel
+`child_incidence_country_year_extended_lbr.csv`) instead of the latent-adolescent imputation, and is held fixed across
+the 10 imputations. São Tomé and Príncipe still uses the latent-adolescent imputation. The national and regional
+covariate imputations (steps 1 and 2) are shared with v6 and keep their `_v6` paths. Results: `REPORT.md` in the v8
+folder, written by `06_report.R`.
 
 The methods are those of the DHS-only version, `primary_map_regional17_imputed_gamma2_v4`, which runs through
-`R_cbh/primary/run_regional.R --imputed`. This version lives in its own folder so that v5's code provenance is not
-touched: that provenance covers `R_cbh/primary/settings.R` and `00_prepare_regional.R`.
+`R_cbh/primary/run_regional.R --imputed`. This version lives in its own folder so that the committed primaries' code
+provenance is not touched: that provenance covers `R_cbh/primary/settings.R` and `00_prepare_regional.R`.
 
 Run from the project root, in order. The fits and the multiple-imputation refits are long, so run them detached.
 
@@ -22,14 +30,14 @@ Run from the project root, in order. The fits and the multiple-imputation refits
    mean matching, m = 10, with the v4 specification.
 3. `03_prepare.R` builds the analysis dataset from both survey manifests. It uses:
    - the imputed overlay and national panel, joined by country and band entry year;
-   - the extended HIV panel.
+   - the extended HIV panel with Liberia's UNAIDS-derived rate (`child_incidence_country_year_extended_lbr.csv`).
 
    It stops unless every MAP-eligible record is retained: 8,797,963 records, 123,419 deaths, 1,457 survey-regions,
    166 surveys and 40 countries. The DHS part must equal v4.
 4. `04_fit.R` fits the seven age-band models with the primary formula, the reference knots and gamma = 2.
 5. `05_propagate.R` runs the multiple-imputation check. It refits in each of the 10 imputed datasets, with the
    smoothing parameters fixed at the point fit, and pools with Rubin's rules.
-6. `06_report.R` writes the comparison with v5, the supplementary manuscript figure and caption, and `REPORT.md`.
+6. `06_report.R` writes the comparison with v7, the supplementary manuscript figure and caption, and `REPORT.md`.
 
 The South Sudan pre-independence fills are a modelling choice. The alternatives are whole-Sudan values, carrying the
 2011 values back, or omitting MC_SSD2010, whose 57,509 records are 0.65% of the sample. The imputed values are listed
