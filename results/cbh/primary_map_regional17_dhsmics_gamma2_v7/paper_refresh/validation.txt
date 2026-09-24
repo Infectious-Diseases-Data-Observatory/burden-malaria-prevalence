@@ -1,0 +1,10 @@
+PASS: 4 main figures (Figure 3 combining country, state and annual comparisons; Figure 4 under-5 death probability) reference the revised primary version and match their hashes.
+PASS: seven fitted model hashes, convergence flags and gamma=2 verified.
+PASS: flow, 135 DHS and MICS surveys (98 DHS, 37 MICS), 1227 survey-regions, child-band/death/child totals reconcile.
+PASS: DHS part matches the DHS-only complete-case sample (primary_map_regional17_gamma2_v3) plus Liberia's 2007, 2013 and 2019-20 DHS (5,573,968 records, 77,431 deaths, 932 survey-regions); 37 MICS surveys add 2,033,154 records and 26,556 deaths.
+PASS: subgroup and no-nutrition refits (subgroups_dhsmics_map_gamma2_v3, nutrition_adjustment_dhsmics_map_gamma2_v3) were fitted to this primary's prepared data (md5 9bac580948ac7c8a92240385a588fcd2).
+PASS: age-table death percentages sum to 100.0%; both contrasts retained; no fit-time column.
+PASS: 25 annual totals use 42 countries and reproduce the three national-burden years.
+PASS: 2024 country table reproduces all three Figure 3 panel C totals for 2024; 37 state totals reconcile.
+PASS: producer/data provenance hashes match; table source has valid row terminators.
+PASS: no TeX files created in this result version.

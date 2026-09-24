@@ -1,0 +1,19 @@
+"id","x","y","w","h","role","heading","detail"
+"registry",3.7,13.75,6.7,1.35,"main","Survey registry","124 DHS/MIS + 93 MICS surveys
+43 countries"
+"entered",3.7,11.55,6.7,1.5,"main","Band entries within 5 years of interview","10,657,524 child–age bands
+166 surveys · 40 countries"
+"eligible",3.7,9.4,6.7,1.35,"main","Eligible child–age bands","8,891,429 records"
+"with_map",3.7,7.25,6.7,1.35,"main","With regional MAP prevalence","8,797,963 records"
+"sample",3.7,5,6.7,1.65,"main","Primary analysis sample","7,607,122 records · 103,987 deaths
+135 surveys · 37 countries"
+"omit_surveys",9.75,12.69,4.7,1.35,"excluded","51 surveys excluded","46 MICS: no complete birth history
+5 in Lesotho (malaria free, no MAP)"
+"omit_eligibility",9.75,10.44,4.7,1.75,"excluded","1,766,095 records excluded","1,347,434: band not complete by interview
+418,661: entry year outside 2000–2024"
+"omit_map",9.75,8.33,4.7,1.35,"excluded","93,466 records excluded","No MAP PfPR for the region
+in the band-entry year"
+"omit_covariates",9.75,6.2,4.7,2,"excluded","1,190,841 records excluded","Required covariate unavailable:
+Wasting 600,901 · Health expenditure 260,385
+Political stability 181,520 · Electricity 83,796
+HIV incidence 33,665 · Wealth score 30,574"
