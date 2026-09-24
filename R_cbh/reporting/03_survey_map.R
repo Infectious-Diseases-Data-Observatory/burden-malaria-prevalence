@@ -30,8 +30,20 @@ j <- match(x$survey,r$svkey)
 stopifnot(!anyNA(j),all(x$country==r$iso3[j]))
 x$year <- r$year[j];x$type <- r$SurveyType[j]
 stopifnot(!anyNA(x),all(x$type %in% c("DHS","MIS","MICS")))
+# Mothers (complete birth histories) contributing at least one child-band record to the primary
+# analysis, per included survey: children in the prepared sample matched to their shard's mother id.
+analysed <- unique(as.character(readRDS(st$data)$data$child_id))
+shard_dirs <- c(cbh_config()$output_dir,if(mics) st$mics_output_dir)
+mothers <- do.call(rbind,lapply(shard_dirs,function(dir) {
+  m <- readRDS(file.path(dir,"manifest.rds"))$manifest; m <- m[m$survey %in% x$survey,]
+  do.call(rbind,lapply(seq_len(nrow(m)),function(i) { o <- readRDS(file.path(dir,m$file[i])); stopifnot(identical(o$signature,m$signature[i]))
+    d <- o$data[as.character(o$data$child_id) %in% analysed,,drop=FALSE]
+    data.frame(survey=m$survey[i],children=length(unique(d$child_id)),mothers=length(unique(d$mother_id))) })) }))
+cbh_unique(mothers,"survey","Mothers by survey")
+stopifnot(setequal(mothers$survey,x$survey),sum(mothers$children)==sample$distinct_children,all(mothers$mothers>0))
+x$mothers <- mothers$mothers[match(x$survey,mothers$survey)]
 summary <- do.call(rbind,lapply(split(x,x$country),function(d)
-  data.frame(country=d$country[1],surveys=nrow(d),first_year=min(d$year),last_year=max(d$year),survey_regions=sum(d$regions))))
+  data.frame(country=d$country[1],surveys=nrow(d),first_year=min(d$year),last_year=max(d$year),survey_regions=sum(d$regions),mothers=sum(d$mothers))))
 
 # Every registry survey, with its fate in the primary selection. Surveys absent from
 # the selection ledger were never processed (no MAP geography); processed surveys with
@@ -80,9 +92,21 @@ map <- ggplot(outline)+geom_sf(aes(fill=fill),colour="white",linewidth=.3)+
   theme_minimal(base_size=20)+theme(axis.title=element_blank(),axis.text=element_blank(),
     panel.grid=element_blank(),legend.position="bottom",
     legend.title=element_text(size=18),legend.text=element_text(size=16))
-# Countries without an outline (none expected) sort to the top of the timeline.
-lat_order <- outline$country[order(outline$lat)]
-all$country_label <- factor(all$country,levels=c(lat_order,setdiff(unique(all$country),lat_order)))
+# Timeline rows grouped by UN M49 sub-region (Middle Africa labelled Central Africa), countries in
+# alphabetical order of ISO3 code within each region, with the number of mothers on the right.
+m49 <- list(`West Africa`=c("BEN","BFA","CIV","CPV","GHA","GIN","GMB","GNB","LBR","MLI","MRT","NER","NGA","SEN","SLE","TGO"),
+  `Central Africa`=c("AGO","CAF","CMR","COD","COG","GAB","GNQ","STP","TCD"),
+  `East Africa`=c("BDI","COM","DJI","ERI","ETH","KEN","MDG","MOZ","MUS","MWI","RWA","SOM","SSD","TZA","UGA","ZMB","ZWE"),
+  `Southern Africa`=c("BWA","LSO","NAM","SWZ","ZAF"))
+region_of <- setNames(rep(names(m49),lengths(m49)),unlist(m49))
+stopifnot(all(all$country %in% names(region_of)))
+all$region_group <- factor(region_of[all$country],levels=names(m49))
+row_order <- unique(all[order(all$region_group,all$country),"country"])
+all$country_label <- factor(all$country,levels=rev(row_order))
+levels(all$region_group) <- sub(" ","\n",levels(all$region_group))
+n_rows <- unique(all[c("country","country_label","region_group")])
+n_rows$mothers <- summary$mothers[match(n_rows$country,summary$country)]; n_rows$mothers[is.na(n_rows$mothers)] <- 0L
+n_rows$label <- sprintf("(n=%s)",format(n_rows$mothers,big.mark=",",trim=TRUE))
 # Shape gives the programme (DHS and MIS circles, MICS triangles); fill gives inclusion (filled
 # included, open excluded, whatever the exclusion reason; reasons stay in survey_timeline_all.csv).
 all$programme <- factor(ifelse(all$type=="MICS","MICS","DHS/MIS"),levels=c("DHS/MIS","MICS"))
@@ -96,24 +120,30 @@ survey_points <- function(d,mapping,...) list(geom_point(data=d[!d$nudge,],mappi
   geom_point(data=d[d$nudge,],mapping=mapping,position=position_nudge(y=.3),...))
 timeline <- ggplot(all,aes(year,country_label))+
   geom_line(aes(group=country_label),colour="grey85",linewidth=.4)+
+  geom_text(data=n_rows,aes(x=2025.9,y=country_label,label=label),hjust=0,size=4.3,colour="grey25")+
   survey_points(all,aes(shape=programme,fill=inclusion),colour=ink,size=3.4,stroke=1)+
   scale_shape_manual(values=c(`DHS/MIS`=21,MICS=24),name=NULL,drop=FALSE)+
   scale_fill_manual(values=c(Included=ink,Excluded="white"),name=NULL,drop=FALSE)+
   scale_x_continuous(breaks=seq(2000,2025,5))+
+  coord_cartesian(xlim=c(1999.3,2025.2),clip="off")+
+  facet_grid(region_group~.,scales="free_y",space="free_y",switch="y")+
   labs(x="Survey year",y=NULL)+theme_minimal(base_size=20)+
   guides(shape=guide_legend(order=1,nrow=1,override.aes=list(fill=ink,size=4)),
     fill=guide_legend(order=2,nrow=1,override.aes=list(shape=21,size=4)))+
-  theme(panel.grid.minor=element_blank(),legend.position="bottom",axis.text.x=element_text(size=17),axis.text.y=element_text(size=15),
-    axis.title=element_text(size=20),legend.text=element_text(size=18),legend.box="horizontal",
-    legend.spacing.x=grid::unit(14,"pt"),plot.margin=margin(8,26,8,8))
-p <- map+timeline+plot_layout(widths=c(1,1.15))
-ggsave(file.path(out,"survey_map_and_timing.png"),p,width=13,height=11,dpi=300,device=ragg::agg_png,bg="white")
+  theme(panel.grid.minor=element_blank(),legend.position="bottom",axis.text.x=element_text(size=17),axis.text.y.left=element_text(size=15),
+    axis.title=element_text(size=20),legend.text=element_text(size=18),
+    legend.box="horizontal",legend.spacing.x=grid::unit(14,"pt"),strip.placement="outside",
+    strip.text.y.left=element_text(size=15,face="bold",angle=0,hjust=1),panel.spacing.y=grid::unit(10,"pt"),plot.margin=margin(8,120,8,8))
+p <- map+timeline+plot_layout(widths=c(1,1.25))
+ggsave(file.path(out,"survey_map_and_timing.png"),p,width=14,height=12,dpi=300,device=ragg::agg_png,bg="white")
 nudged <- unique(paste(all$country[all$nudge],all$year[all$nudge]))
-x$country_label <- NULL;all$country_label <- NULL;all$programme <- NULL;all$inclusion <- NULL;all$nudge <- NULL
+x$country_label <- NULL;all$country_label <- NULL;all$programme <- NULL;all$inclusion <- NULL;all$nudge <- NULL;all$region_group <- NULL
 cbh_atomic_csv(x,file.path(out,"survey_coverage.csv"))
 cbh_atomic_csv(all,file.path(out,"survey_timeline_all.csv"))
 cbh_atomic_csv(summary,file.path(out,"country_summary.csv"))
-inputs <- unique(c(unname(paths),file.path(root,"primary_sample.csv"),shape_paths,"R_cbh/reporting/03_survey_map.R","R_cbh/primary/settings.R"))
+cbh_atomic_csv(mothers,file.path(out,"mothers_by_survey.csv"))
+inputs <- unique(c(unname(paths),file.path(root,"primary_sample.csv"),st$data,file.path(shard_dirs,"manifest.rds"),shape_paths,
+  "R_cbh/reporting/03_survey_map.R","R_cbh/primary/settings.R"))
 cbh_atomic_csv(data.frame(file=inputs,md5=vapply(inputs,cbh_file_hash,"")),file.path(out,"provenance.csv"))
 n_map <- sum(all$status==status_levels[2]);n_cov <- sum(all$status==status_levels[3])
 mis_dropped <- sum(all$type=="MIS" & all$status!=status_levels[1]);mis_total <- sum(all$type=="MIS")
@@ -127,8 +157,8 @@ if(mics) {
     if(cov_mics) "; the MICS surveys lack anthropometry or a child HIV incidence series, or their band-entry years precede a national series" else "")
   nudge_text <- if(length(nudged)) sprintf(" Where a MICS survey shares a country and year with a DHS or MIS survey (%s), the MICS symbol is drawn slightly above the line.",paste(nudged,collapse=", ")) else ""
   writeLines(c("# Figure 1 caption","",
-    sprintf("Geographic coverage and timing of the %s DHS and MIS surveys and %s MICS surveys with complete birth histories (%s countries). Circles are DHS and MIS surveys and triangles MICS surveys; filled symbols are the %s DHS and %s MICS surveys that contribute to the primary analysis (%s countries), and open symbols the %s excluded surveys: %s in Lesotho, which is malaria free, so MAP prevalence cannot be assigned, and %s for which a required covariate was unavailable for every region after the declared substitutions (%s). Country shading indicates the number of included surveys; grey countries have none.%s The %s MICS surveys without a complete birth history are not shown.",
-      nd,nm,length(unique(all$country)),inc_d,inc_m,nrow(summary),n_map+n_cov,n_map,n_cov,cov_text,nudge_text,sum(!mics_inv$has_bh)),"",
+    sprintf("Geographic coverage and timing of the %s DHS and MIS surveys and %s MICS surveys with complete birth histories (%s countries). Circles are DHS and MIS surveys and triangles MICS surveys; filled symbols are the %s DHS and %s MICS surveys that contribute to the primary analysis (%s countries), and open symbols the %s excluded surveys: %s in Lesotho, which is malaria free, so MAP prevalence cannot be assigned, and %s for which a required covariate was unavailable for every region after the declared substitutions (%s). Country shading indicates the number of included surveys; grey countries have none. Timeline rows are grouped by UN sub-region (Central Africa: UN Middle Africa), and n is the number of mothers (complete birth histories) contributing at least one child to the primary analysis, summed over the country's included surveys (%s in total).%s The %s MICS surveys without a complete birth history are not shown.",
+      nd,nm,length(unique(all$country)),inc_d,inc_m,nrow(summary),n_map+n_cov,n_map,n_cov,cov_text,format(sum(mothers$mothers),big.mark=","),nudge_text,sum(!mics_inv$has_bh)),"",
     "Country outlines are dissolved from the most recent available boundary file in each country (DHS files, or the analysis-region polygons built for MICS). Survey year describes fieldwork, not the calendar year assigned to each child's band entry. Per-survey exclusion reasons are in survey_timeline_all.csv."),
     file.path(out,"CAPTION.md"))
 } else writeLines(c("# Figure 1 caption","",
