@@ -61,7 +61,7 @@ Saved so far:
 
 ## SMC introduction before/after (DHS and MICS)
 
-Added 23 September 2026. The seven primary age-band models refitted in the eight countries with SMC in the DataWell cluster file, with an admin-1 indicator for band entry at or after the unit's SMC switch-on (Nigeria by state). Main analysis: confirmed (district- or region-level) switch-ons only; national-scope years, a coverage share and a 3-year-early placebo are sensitivities. No age band shows a statistically detectable association (hazard ratios 0.83–1.15, all intervals include 1); placebo hazard ratios 0.92–1.07. Plan Section 3.4.5.
+Added 23 September 2026; a supplementary result that is not part of the paper (24 September 2026). The seven primary age-band models refitted in the eight countries with SMC in the DataWell cluster file, with an admin-1 indicator for band entry at or after the unit's SMC switch-on (Nigeria by state). Main analysis: confirmed (district- or region-level) switch-ons only; national-scope years, a coverage share and a 3-year-early placebo are sensitivities. No age band shows a statistically detectable association (hazard ratios 0.83–1.15, all intervals include 1); placebo hazard ratios 0.92–1.07. Plan Section 3.4.5.
 
 - [Report](../results/cbh/smc_dhsmics_map_gamma2_v1/REPORT.md) and [hazard ratios by age](../results/cbh/smc_dhsmics_map_gamma2_v1/smc_hazard_ratios_by_age.png)
 - [Serial coverage maps, 2015–2022](../results/cbh/smc_dhsmics_map_gamma2_v1/smc_coverage_maps_2015_2022.png) and [caption](../results/cbh/smc_dhsmics_map_gamma2_v1/CAPTION_smc_coverage_maps.md)
