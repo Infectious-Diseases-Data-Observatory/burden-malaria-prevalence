@@ -11,9 +11,9 @@ from pathlib import Path
 parser = argparse.ArgumentParser()
 parser.add_argument("--destination", type=Path, required=True)
 parser.add_argument("--copy", action="store_true", help="Copy after validating; default is a local export manifest only")
-parser.add_argument("--root", type=Path, default=Path("results/cbh/primary_map_regional17_dhsmics_gamma2_v5"))
+parser.add_argument("--root", type=Path, default=Path("results/cbh/primary_map_regional17_dhsmics_gamma2_v7"))
 parser.add_argument("--reference", type=Path, default=Path("results/cbh/primary_map_regional17_gamma2_v3"),
-                    help="DHS-only primary that the DHS part of a DHS+MICS root must reproduce")
+                    help="DHS-only primary; the DHS part of a DHS+MICS root must reproduce it unless the root has dhs_part.csv")
 args = parser.parse_args()
 root = args.root
 out = root / "paper_refresh"
@@ -21,9 +21,9 @@ out.mkdir(parents=True, exist_ok=True)
 destination = args.destination.expanduser().resolve()
 assert destination.is_dir()
 # Sensitivities refitted on the DHS and MICS sample; the DHS-only versions are kept as history.
-subgroups = Path("results/cbh/subgroups_dhsmics_map_gamma2_v2")
-nutrition = Path("results/cbh/nutrition_adjustment_dhsmics_map_gamma2_v2")
-imputed = Path("results/cbh/primary_map_regional17_dhsmics_imputed_gamma2_v6")
+subgroups = Path("results/cbh/subgroups_dhsmics_map_gamma2_v3")
+nutrition = Path("results/cbh/nutrition_adjustment_dhsmics_map_gamma2_v3")
+imputed = Path("results/cbh/primary_map_regional17_dhsmics_imputed_gamma2_v8")
 manuscript_updates = Path("docs/MANUSCRIPT_UPDATE_DHS_MICS.md")
 
 def digest(path):
@@ -34,7 +34,7 @@ def read_csv(path):
         return list(csv.DictReader(f))
 
 figures = read_csv(root / "paper_figures/manifest.csv")
-assert [int(x["figure"]) for x in figures] == list(range(1, 4))
+assert [int(x["figure"]) for x in figures] == list(range(1, 5))
 assets = []
 for row in figures:
     source = Path(row["source"])
@@ -114,13 +114,19 @@ codes = lambda x: ", ".join(sorted(x))
 mis_total = sum(row["type"] == "MIS" for row in timeline)
 outside = survey_countries - burden_countries
 if mics["surveys"]:
-    reference = read_csv(args.reference / "prepared_sample.csv")[0]
+    if (root / "dhs_part.csv").is_file():
+        # The DHS part is declared by the primary's settings (e.g. v3 plus Liberia) and checked by the preparation.
+        reference = read_csv(root / "dhs_part.csv")[0]
+        dhs_label = reference["note"]
+    else:
+        reference = read_csv(args.reference / "prepared_sample.csv")[0]
+        dhs_label = f"the DHS-only primary `{args.reference.name}`"
     assert all(int(reference[k]) == dhs[k] for k in ("records", "deaths", "regions", "surveys")) and \
-        int(reference["countries"]) == len(dhs["countries"]), "DHS part does not reproduce the DHS-only primary"
+        int(reference["countries"]) == len(dhs["countries"]), "DHS part does not match its declared sample"
     added = mics["countries"] - dhs["countries"]
     composition = (
         f"It combines {dhs['surveys']} DHS and {mics['surveys']} UNICEF MICS surveys. "
-        f"The DHS part reproduces the DHS-only primary `{args.reference.name}` exactly "
+        f"The DHS part is {dhs_label} "
         f"({fmt(dhs['records'])} records, {fmt(dhs['deaths'])} deaths, {fmt(dhs['regions'])} survey-regions, "
         f"{dhs['surveys']} surveys, {len(dhs['countries'])} countries); the MICS surveys add "
         f"{fmt(mics['records'])} records, {fmt(mics['deaths'])} deaths, {fmt(mics['regions'])} survey-regions"
@@ -146,9 +152,11 @@ if v6.is_file():
 title = "Updated primary results (DHS and MICS surveys)" if mics["surveys"] else "Updated primary results"
 handoff.write_text(f"""# {title}
 
-Figures 1–3 (Figure 3 combines the 2024 country comparison, the Nigerian state
+Figures 1–4 (Figure 3 combines the 2024 country comparison, the Nigerian state
 comparison and the 2000–2024 annual trend as panels A–C, all as deaths per 1,000
-under-five child-years; its death-count version is a supplementary figure) and the
+under-five child-years, with its death-count version as a supplementary figure;
+Figure 4 is the probability of dying before age 5 by country, all causes and with
+malaria transmission removed) and the
 supplementary inclusion flow use the {n_covariates}-variable
 regional-adjustment MAP gamma=2 models in `{root.name}`. The analysis contains
 {fmt(sample['children'])} children, {fmt(sample['records'])} child-band records and

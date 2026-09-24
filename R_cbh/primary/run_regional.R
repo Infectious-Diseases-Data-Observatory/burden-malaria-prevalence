@@ -31,6 +31,7 @@ stages <- c(prepare="R_cbh/primary/00_prepare_regional.R",fit="R_cbh/primary/01_
   nigeria_burden="R_cbh/burden/05_nigeria_state_burden.R",nigeria_plot="R_cbh/reporting/08_nigeria_state_comparison.R",
   burden_figure="R_cbh/reporting/11_burden_comparison_figure.R",
   burden_tables="R_cbh/reporting/09_burden_tables.R",source_table="R_cbh/reporting/12_source_comparison_table.R",
+  u5_probability="R_cbh/reporting/13_under5_death_probability.R",
   paper_manifest="R_cbh/reporting/04_paper_figures.R",index="R_cbh/reporting/02_results_index.R",
   validation="R_cbh/reporting/10_validate_reporting.R")
 if(imputed) stages <- stages[names(stages) %in% c("prepare","fit","effects","diagnostics","comparison","report")]
