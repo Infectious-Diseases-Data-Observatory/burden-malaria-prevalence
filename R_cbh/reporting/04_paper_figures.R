@@ -11,7 +11,7 @@ dir.create(out,recursive=TRUE,showWarnings=FALSE)
 # supplement, so the attributable-fraction figure becomes Figure 2 and the
 # burden comparison becomes Figure 3.
 # Figure 4 (added 24 September 2026): probability of dying before age 5 by country, all causes
-# and with malaria transmission removed (R_cbh/reporting/13_under5_death_probability.R).
+# and caused by malaria, with national PfPR in a left panel (R_cbh/reporting/13_under5_death_probability.R).
 figures <- data.frame(figure=1:4,
   filename=c("fig1_survey_map_and_timing.png","fig2_malaria_attributable_fraction_by_age.png",
     "fig3_burden_comparison.png","fig4_under5_death_probability.png"),
@@ -32,7 +32,7 @@ writeLines(c("# Main-paper figures and draft captions","",
   "## Figure 3 — comparison with IHME and UN IGME as deaths per 1,000 child-years: countries (A), Nigerian states (B) and annual trend (C)","",
   "File: `fig3_burden_comparison.png`. Panel sources: `annual_comparison/country_estimates_2000_2024.csv` (2024 rates), `nigeria_states/state_totals_2024.csv`, `annual_comparison/figure5_data.csv`. The death-count version is the supplementary figure `burden_comparison/sfig_burden_comparison_counts.png` with its own caption (`CAPTION_counts.md`). The separate three-year country scatter (`burden/country_vs_ihme.png`), state figure (`nigeria_states/`) and annual figure (`annual_comparison/`) remain saved results but are no longer paper figures.","",
   readLines(file.path(root,"burden_comparison/CAPTION.md"))[-c(1,2)],"",
-  "## Figure 4 — probability of dying before age 5, all causes and with malaria transmission removed","",
+  "## Figure 4 — national PfPR and probability of dying before age 5, all causes and caused by malaria","",
   "File: `fig4_under5_death_probability.png` (source `under5_probability/under5_death_probability_2024.png`; values in `under5_probability/under5_death_probability.csv`).","",
   readLines(file.path(root,"under5_probability/CAPTION.md"))[-c(1,2)],"",
   "## Supplementary figure — PfPR and mortality by age (formerly Figure 2)","",

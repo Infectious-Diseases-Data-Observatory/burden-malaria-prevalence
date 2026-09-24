@@ -155,8 +155,8 @@ handoff.write_text(f"""# {title}
 Figures 1–4 (Figure 3 combines the 2024 country comparison, the Nigerian state
 comparison and the 2000–2024 annual trend as panels A–C, all as deaths per 1,000
 under-five child-years, with its death-count version as a supplementary figure;
-Figure 4 is the probability of dying before age 5 by country, all causes and with
-malaria transmission removed) and the
+Figure 4 is the probability of dying before age 5 by country, all causes and caused
+by malaria, with national PfPR in a narrow left panel) and the
 supplementary inclusion flow use the {n_covariates}-variable
 regional-adjustment MAP gamma=2 models in `{root.name}`. The analysis contains
 {fmt(sample['children'])} children, {fmt(sample['records'])} child-band records and
