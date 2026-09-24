@@ -101,8 +101,18 @@ m49 <- list(`West Africa`=c("BEN","BFA","CIV","CPV","GHA","GIN","GMB","GNB","LBR
 region_of <- setNames(rep(names(m49),lengths(m49)),unlist(m49))
 stopifnot(all(all$country %in% names(region_of)))
 all$region_group <- factor(region_of[all$country],levels=names(m49))
-row_order <- unique(all[order(all$region_group,all$country),"country"])
-all$country_label <- factor(all$country,levels=rev(row_order))
+# Full country names (as in Figure 4), with DRC, CAF and RC abbreviated (decided 24 September 2026);
+# alphabetical by name within each region.
+country_names <- c(AGO="Angola",BDI="Burundi",BEN="Benin",BFA="Burkina Faso",BWA="Botswana",CAF="CAF",CIV="Côte d'Ivoire",
+  CMR="Cameroon",COD="DRC",COG="RC",COM="Comoros",CPV="Cabo Verde",DJI="Djibouti",ERI="Eritrea",ETH="Ethiopia",GAB="Gabon",
+  GHA="Ghana",GIN="Guinea",GMB="The Gambia",GNB="Guinea-Bissau",GNQ="Equatorial Guinea",KEN="Kenya",LBR="Liberia",LSO="Lesotho",
+  MDG="Madagascar",MLI="Mali",MOZ="Mozambique",MRT="Mauritania",MUS="Mauritius",MWI="Malawi",NAM="Namibia",NER="Niger",
+  NGA="Nigeria",RWA="Rwanda",SEN="Senegal",SLE="Sierra Leone",SOM="Somalia",SSD="South Sudan",STP="São Tomé and Príncipe",
+  SWZ="Eswatini",TCD="Chad",TGO="Togo",TZA="Tanzania",UGA="Uganda",ZAF="South Africa",ZMB="Zambia",ZWE="Zimbabwe")
+stopifnot(all(all$country %in% names(country_names)))
+all$country_name <- unname(country_names[all$country])
+row_order <- unique(all[order(all$region_group,all$country_name),"country_name"])
+all$country_label <- factor(all$country_name,levels=rev(row_order))
 levels(all$region_group) <- sub(" ","\n",levels(all$region_group))
 n_rows <- unique(all[c("country","country_label","region_group")])
 n_rows$mothers <- summary$mothers[match(n_rows$country,summary$country)]; n_rows$mothers[is.na(n_rows$mothers)] <- 0L
@@ -134,10 +144,10 @@ timeline <- ggplot(all,aes(year,country_label))+
     axis.title=element_text(size=20),legend.text=element_text(size=18),
     legend.box="horizontal",legend.spacing.x=grid::unit(14,"pt"),strip.placement="outside",
     strip.text.y.left=element_text(size=15,face="bold",angle=0,hjust=1),panel.spacing.y=grid::unit(10,"pt"),plot.margin=margin(8,120,8,8))
-p <- map+timeline+plot_layout(widths=c(1,1.25))
-ggsave(file.path(out,"survey_map_and_timing.png"),p,width=14,height=12,dpi=300,device=ragg::agg_png,bg="white")
+p <- map+timeline+plot_layout(widths=c(1,1.45))
+ggsave(file.path(out,"survey_map_and_timing.png"),p,width=16,height=12,dpi=300,device=ragg::agg_png,bg="white")
 nudged <- unique(paste(all$country[all$nudge],all$year[all$nudge]))
-x$country_label <- NULL;all$country_label <- NULL;all$programme <- NULL;all$inclusion <- NULL;all$nudge <- NULL;all$region_group <- NULL
+x$country_label <- NULL;all$country_label <- NULL;all$country_name <- NULL;all$programme <- NULL;all$inclusion <- NULL;all$nudge <- NULL;all$region_group <- NULL
 cbh_atomic_csv(x,file.path(out,"survey_coverage.csv"))
 cbh_atomic_csv(all,file.path(out,"survey_timeline_all.csv"))
 cbh_atomic_csv(summary,file.path(out,"country_summary.csv"))
