@@ -44,6 +44,12 @@ Refitted on 24 September 2026 as `primary_map_regional17_dhsmics_imputed_gamma2_
 - [Imputation audits: regional](../results/cbh/covariate_imputation_dhsmics_v6/REGIONAL_IMPUTATION.md) and [national](../results/cbh/covariate_imputation_dhsmics_v6/NATIONAL_IMPUTATION.md), with the [Somalia, South Sudan and Zimbabwe series](../results/cbh/covariate_imputation_dhsmics_v6/somalia_south_sudan_zimbabwe_series.csv)
 - [Liberia's UNAIDS-derived HIV incidence](../results/cbh/hiv_incidence/liberia_aidsinfo/REPORT.md); [extended HIV incidence panel](../results/cbh/hiv_incidence/imputed_no_adolescent_series.csv) and [latent-adolescent validation](../results/cbh/hiv_incidence/latent_adolescent_validation.csv)
 
+## Primary model without the survey-region random intercept
+
+Added 24 September 2026. The seven v7 age-band models refitted without `s(region, bs = "re")` (survey and country random intercepts kept; same data, knots and gamma = 2). Hazard ratios change by at most 0.023 (40%→20%) and 0.014 (20%→0%); the 2024 burden is 628,785 (1.47 × IHME) against 620,072; trends are unchanged. Dropping the term worsens AIC by 384, 234, 98 and 44 in the <1, 12–23, 24–35 and 6–11 month bands (no change where the region variance was already shrunk to zero).
+
+- [Report](../results/cbh/no_region_re_dhsmics_map_gamma2_v1/REPORT.md), [curves](../results/cbh/no_region_re_dhsmics_map_gamma2_v1/sfig_pfpr_splines_no_region_re.png) and [fit statistics](../results/cbh/no_region_re_dhsmics_map_gamma2_v1/comparison_fit_statistics.csv)
+
 ## Burden with a prevalence floor (1%)
 
 Added 24 September 2026. The v7 burden recomputed with counterfactual PfPR min(current, 1%) instead of 0, i.e. deaths attributable to transmission above 1%, from the saved spline components (no refitting); 0%, 2% and 5% floors alongside. 2024: 589,119 deaths with the 1% floor (1.38 × IHME, 1.34 × UN IGME) against 620,072 at 0%; 466k at 5%. Deaths at or below 1% transmission are not included.
