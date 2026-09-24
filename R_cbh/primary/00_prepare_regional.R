@@ -7,7 +7,7 @@ source("R_cbh/covariates/settings.R")
 source("R_cbh/primary/settings.R")
 library(data.table)
 settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional"));cs <- cbh_covariate_settings();cfg <- cbh_config()
-stopifnot(Sys.getenv("CBH_PRIMARY_VERSION","regional") %in% c("regional","regional18","regional_imputed","regional_mics"))
+stopifnot(Sys.getenv("CBH_PRIMARY_VERSION","regional") %in% c("regional","regional18","regional_imputed","regional_mics","regional_mics_v5"))
 spec <- cbh_primary_regional_spec(settings);stopifnot(length(spec$covariates)==if(settings$nutrition)17L else 18L,"urban_pct" %in% spec$covariates)
 for(p in c(settings$out,settings$private))dir.create(p,recursive=TRUE,showWarnings=FALSE)
 meta <- readRDS(file.path(cfg$output_dir,"manifest.rds"))
@@ -84,11 +84,13 @@ for(i in seq_len(nrow(m))) {
   if(i%%20L==0L)message("Assembled ",i,"/",nrow(m)," survey shards")
 }
 if(settings$mics) {
-  # The DHS part must reproduce the complete-case v3 sample exactly before MICS is added.
+  # The DHS part must equal its declared sample (settings$dhs_part_note) exactly before MICS is added.
   dhs <- rbindlist(pieces)
   stopifnot(nrow(dhs)==settings$expected_dhs_records,sum(dhs$death)==settings$expected_dhs_deaths,
     uniqueN(dhs$region)==settings$expected_dhs_regions)
-  message("DHS part reproduces v3: ",nrow(dhs)," records, ",sum(dhs$death)," deaths, ",uniqueN(dhs$region)," regions")
+  dhs_part <- data.frame(records=nrow(dhs),deaths=sum(dhs$death),regions=uniqueN(dhs$region),surveys=uniqueN(dhs$survey),
+    countries=uniqueN(dhs$country),note=settings$dhs_part_note)
+  message("DHS part matches ",settings$dhs_part_note,": ",nrow(dhs)," records, ",sum(dhs$death)," deaths, ",uniqueN(dhs$region)," regions")
   rm(dhs)
   mmeta <- readRDS(file.path(settings$mics_output_dir,"manifest.rds")); stopifnot(mmeta$complete)
   mm <- mmeta$manifest[mmeta$manifest$status %in% c("built","cached"),]
@@ -131,6 +133,7 @@ if(settings$imputed) {
     file.path(settings$out,"imputation_record_counts.csv"))
 } else if(settings$mics) {
   cbh_atomic_csv(counts,file.path(settings$out,"prepared_sample_dhs_mics.csv"))
+  cbh_atomic_csv(dhs_part,file.path(settings$out,"dhs_part.csv"))
 } else {
   expected <- cbh_read_csv(file.path(cs$out,"complete_case_summary.csv"))
   if(!settings$nutrition)expected <- expected[expected$baseline=="eligible_MAP",]

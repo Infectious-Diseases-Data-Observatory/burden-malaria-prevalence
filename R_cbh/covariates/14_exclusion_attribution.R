@@ -8,9 +8,14 @@ source("R_cbh/analysis/model.R")
 source("R_cbh/primary/settings.R")
 source("R_cbh/primary/specification.R")
 library(data.table)
+# --liberia (24 September 2026): the same attribution with the HIV panel that adds Liberia
+# (R_cbh/hiv/03_add_liberia_aidsinfo.R), for the DHS part of the v7 primary; written to its own folder.
+args <- commandArgs(trailingOnly=TRUE); stopifnot(all(args %in% "--liberia")); liberia <- "--liberia" %in% args
 cfg <- cbh_config(); primary <- cbh_primary_settings("regional"); stopifnot(isTRUE(primary$nutrition))
 private <- file.path(cfg$output_dir,"regional_adjustment/planned17_audit")
-out <- "results/cbh/planned17_covariate_missingness"
+audit <- "results/cbh/planned17_covariate_missingness"
+out <- if(liberia) paste0(audit,"_lbr") else audit
+dir.create(out,recursive=TRUE,showWarnings=FALSE)
 spec <- cbh_primary_regional_spec(primary)
 # National annual series first (country-year gaps), then the regional summaries
 # ordered by how often they are missing in the availability audit.
@@ -21,7 +26,7 @@ order_vars <- c("log_hiv_incidence","log_health_expenditure_pc","political_stabi
 stopifnot(setequal(order_vars,spec$covariates))
 wide <- cbh_read_csv(file.path(private,"regional_covariates_wide.csv"))
 cbh_unique(wide,c("survey","regkey"),"Regional overlay")
-hiv <- cbh_read_csv(cbh_trial_spec()$incidence_panel)
+hiv <- cbh_read_csv(if(liberia) cbh_primary_settings("regional_mics")$hiv_panel else cbh_trial_spec()$incidence_panel)
 meta <- readRDS(file.path(cfg$output_dir,"manifest.rds")); stopifnot(meta$complete)
 m <- meta$manifest[meta$manifest$status %in% c("built","cached"),]
 key <- function(d) paste(d$survey,d$regkey)
@@ -45,7 +50,12 @@ t <- rbindlist(tallies)
 summary <- t[reason!="retained",.(records=sum(records),deaths=sum(deaths),surveys=uniqueN(survey),countries=uniqueN(country)),by=reason]
 summary <- summary[match(intersect(order_vars,summary$reason),reason)]
 summary[,share_of_excluded_pct:=100*records/sum(records)]
-cc <- cbh_read_csv(file.path(out,"complete_case_summary.csv"))
+cc <- cbh_read_csv(file.path(audit,"complete_case_summary.csv"))
+if(liberia) {
+  # Eligibility is unchanged; the retained DHS records must equal the v7 DHS part.
+  cc$retained_records <- cbh_primary_settings("regional_mics")$expected_dhs_records
+  cc$missing_records <- cc$eligible_records-cc$retained_records
+}
 stopifnot(eligible==cc$eligible_records,retained==cc$retained_records,sum(summary$records)==cc$missing_records)
 labels <- c(log_hiv_incidence="Child HIV incidence (national series unavailable)",
   log_health_expenditure_pc="Health expenditure per capita",political_stability="Political stability",
@@ -64,7 +74,8 @@ writeLines(c("# Disjoint attribution of covariate exclusions","",
   "| Attributed reason | Records | Deaths | Surveys affected | Share of excluded |","|---|---:|---:|---:|---:|",
   sprintf("| %s | %s | %s | %d | %.1f%% |",summary$label,format(summary$records,big.mark=",",trim=TRUE),
     format(summary$deaths,big.mark=",",trim=TRUE),summary$surveys,summary$share_of_excluded_pct),"",
-  "Overlapping per-variable counts are in covariate_missingness.csv; per-survey attribution in exclusion_attribution_by_survey.csv. Reproduce: `Rscript R_cbh/covariates/14_exclusion_attribution.R`."),
+  paste0(if(liberia) "HIV panel with Liberia's child incidence derived from UNAIDS counts (DHS part of the v7 primary). " else "",
+    "Overlapping per-variable counts are in ",if(liberia) "../planned17_covariate_missingness/" else "","covariate_missingness.csv; per-survey attribution in exclusion_attribution_by_survey.csv. Reproduce: `Rscript R_cbh/covariates/14_exclusion_attribution.R",if(liberia) " --liberia" else "","`.")),
   file.path(out,"EXCLUSION_ATTRIBUTION.md"))
 print(as.data.frame(summary[,.(label,records,deaths,surveys,share_of_excluded_pct)]))
 message("Exclusion attribution complete")

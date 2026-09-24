@@ -16,7 +16,7 @@ input_paths <- c(
   survey_coverage=file.path(root,"survey_coverage.csv"),
   diagnostics=file.path(root,"fit_diagnostics.csv"),
   fits=file.path(root,"fit_manifest.csv"),
-  attribution="results/cbh/planned17_covariate_missingness/exclusion_attribution.csv")
+  attribution=file.path(if(is.null(settings$attribution_dir)) "results/cbh/planned17_covariate_missingness" else settings$attribution_dir,"exclusion_attribution.csv"))
 m <- cbh_read_csv(input_paths[["survey_manifest"]])
 c <- cbh_read_csv(input_paths[["child_checks"]])
 e <- cbh_read_csv(input_paths[["eligibility"]])
@@ -29,7 +29,7 @@ if(mics) {
     mics_eligibility=file.path(md,"eligibility_flow.csv"),mics_registry="data/derived_mics/survey_registry_mics.csv",
     mics_inventory="results/mics_inventory/survey_inventory.csv",
     mics_attribution="results/mics_inventory/exclusion_attribution_mics_by_survey.csv",
-    dhs_attribution_by_survey="results/cbh/planned17_covariate_missingness/exclusion_attribution_by_survey.csv")
+    dhs_attribution_by_survey=sub("exclusion_attribution[.]csv$","exclusion_attribution_by_survey.csv",input_paths[["attribution"]]))
   input_paths <- c(input_paths,mics_paths)
   m <- rbind(m,cbh_read_csv(mics_paths[["mics_manifest"]])[names(m)])
   c <- rbind(c,cbh_read_csv(mics_paths[["mics_child_checks"]])[names(c)])

@@ -1,0 +1,7 @@
+"reason","records","deaths","surveys","countries","share_of_excluded_pct","label"
+"log_hiv_incidence",10839,92,1,1,1.38281830081369,"Child HIV incidence (national series unavailable)"
+"log_health_expenditure_pc",63255,850,7,6,8.06994848399023,"Health expenditure per capita"
+"political_stability",173291,3852,25,22,22.1081249346163,"Political stability"
+"wasting_pct",422079,6168,10,10,53.8480086344813,"Wasting prevalence"
+"electricity_pct",83796,1591,1,1,10.6905288619784,"Household electricity"
+"mean_wealth_quintile",30574,954,9,9,3.90057078412011,"Wealth-quintile score"

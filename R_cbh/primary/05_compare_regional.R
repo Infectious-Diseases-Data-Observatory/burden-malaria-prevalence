@@ -7,7 +7,7 @@ source("R_cbh/reporting/labels.R")
 source("R_cbh/reporting/log_axes.R")
 library(ggplot2)
 settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional_mics"));out <- settings$out
-stopifnot(Sys.getenv("CBH_PRIMARY_VERSION","regional_mics") %in% c("regional","regional_imputed","regional_mics"))
+stopifnot(Sys.getenv("CBH_PRIMARY_VERSION","regional_mics") %in% c("regional","regional_imputed","regional_mics","regional_mics_v5"))
 formula_path <- file.path(out,"model_formula.txt")
 writeLines(trimws(readLines(formula_path),which="right"),formula_path)
 ages <- cbh_config()$age_bands$age_band
@@ -175,6 +175,16 @@ if(settings$imputed) {
     "| Sample | Complete case | Imputed | Change |","|---|---:|---:|---:|",
     paste0("| ",sample_comparison$measure," | ",fmt(sample_comparison$previous)," | ",fmt(sample_comparison$revised)," | ",fmt(sample_comparison$change)," |"),"",
     "The imputed sample contains the complete-case sample entirely, plus the previously excluded records, 25 of them whole surveys including all five MIS surveys. Differences combine the added records and the imputed covariate values; they are not a test of either alone.","")
+} else if(isTRUE(settings$liberia)) {
+  title <- "# Primary PfPR-ACM model: DHS and MICS surveys, with Liberia"
+  what_changed <- c(
+    sprintf("Seven separate MAP age-band models, gamma=2, with the same 17-variable specification and sample rules as `%s`, now including Liberia. All seven converged, have finite covariance and full rank, and pass the positive smoothing-Hessian and exact fitted-input checks.",basename(settings$reference)),"",
+    "## What changed","",
+    "Liberia had no child HIV incidence series in the UNAIDS/UNICEF workbook, so its surveys failed complete-case selection. Its child rate is now derived from the UNAIDS new HIV infections among children aged 0-14 published on AIDSinfo (epidemiological estimates 2026), divided by IHME-implied under-5 person-years less children aged 0-4 living with HIV; this reproduces the workbook's published child rates (median derived/published 0.99 across 741 country-years; [check](../hiv_incidence/liberia_aidsinfo/REPORT.md)). Liberia's 2007, 2013 and 2019-20 DHS enter; its 2009 MIS still lacks anthropometry. Every other country's HIV value is unchanged.","",
+    "MAP band-entry exposure, age bands, full-band offset, unweighted binomial/cloglog likelihood, reference spline knots, cr basis dimensions and gamma=2 are held fixed. Confounders are re-scaled on the enlarged sample.","",
+    "| Sample | DHS and MICS (v5) | With Liberia (v7) | Change |","|---|---:|---:|---:|",
+    paste0("| ",sample_comparison$measure," | ",fmt(sample_comparison$previous)," | ",fmt(sample_comparison$revised)," | ",fmt(sample_comparison$change)," |"),"",
+    "The v7 sample contains the v5 sample entirely. Differences reflect the added Liberia records and the rescaling of confounders on the larger sample.","")
 } else if(settings$mics) {
   title <- "# Primary PfPR-ACM model: DHS and MICS surveys"
   what_changed <- c(
