@@ -44,6 +44,10 @@ Refitted on 24 September 2026 as `primary_map_regional17_dhsmics_imputed_gamma2_
 - [Imputation audits: regional](../results/cbh/covariate_imputation_dhsmics_v6/REGIONAL_IMPUTATION.md) and [national](../results/cbh/covariate_imputation_dhsmics_v6/NATIONAL_IMPUTATION.md), with the [Somalia, South Sudan and Zimbabwe series](../results/cbh/covariate_imputation_dhsmics_v6/somalia_south_sudan_zimbabwe_series.csv)
 - [Liberia's UNAIDS-derived HIV incidence](../results/cbh/hiv_incidence/liberia_aidsinfo/REPORT.md); [extended HIV incidence panel](../results/cbh/hiv_incidence/imputed_no_adolescent_series.csv) and [latent-adolescent validation](../results/cbh/hiv_incidence/latent_adolescent_validation.csv)
 
+## bam versus gam
+
+Added 24 September 2026. The same model fitted with `gam(method = "REML")` on exact cell-level aggregates and with `bam` (fREML, with and without discretisation), on the specification without the region random intercept: hazard ratios agree to within 0.0005 in every band. [Report](../results/cbh/bam_vs_gam_dhsmics_map_gamma2_v1/REPORT.md).
+
 ## Primary model without the survey-region random intercept
 
 Added 24 September 2026. The seven v7 age-band models refitted without `s(region, bs = "re")` (survey and country random intercepts kept; same data, knots and gamma = 2). Hazard ratios change by at most 0.023 (40%→20%) and 0.014 (20%→0%); the 2024 burden is 628,785 (1.47 × IHME) against 620,072; trends are unchanged. Dropping the term worsens AIC by 384, 234, 98 and 44 in the <1, 12–23, 24–35 and 6–11 month bands (no change where the region variance was already shrunk to zero).
