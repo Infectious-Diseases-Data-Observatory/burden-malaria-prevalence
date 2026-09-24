@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
-# Comparison of the DHS+MICS imputed-covariate sensitivity (v6) with the complete-case
-# DHS+MICS primary (v5): overlaid PfPR splines (supplementary manuscript figure), hazard
+# Comparison of the DHS+MICS imputed-covariate sensitivity (v8) with the complete-case
+# DHS+MICS primary (v7): overlaid PfPR splines (supplementary manuscript figure), hazard
 # ratio contrasts, sample sizes, caption and report. Reads saved aggregates only; no
 # refitting, no TeX writes.
 source("R_cbh/load_pipeline.R")
@@ -19,7 +19,7 @@ pc <- read(1); pc <- pc[pc$series == "map_full", ]; pd <- read(2); ps <- read(3)
 nc <- read(4); nd <- read(5); ns <- read(6); counts <- read(7); by_survey <- read(8); selection <- read(9)
 pooled <- read(10)
 stopifnot(nrow(pd) == 7L, nrow(nd) == 7L, all(nd$converged), all(nd$gamma == 2), all(nd$input_verified),
-  all(nd$min_smoothing_hessian_eigenvalue > 0), ns$records == st$expected_records, ps$records == 7498459L,
+  all(nd$min_smoothing_hessian_eigenvalue > 0), ns$records == st$expected_records, ps$records == cbh_primary_settings("regional_mics")$expected_records,
   counts$records[counts$programme == "All"] == ns$records)
 ages <- cbh_config()$age_bands$age_band
 labels <- setNames(st$comparison_labels, c("reference", "imputed"))
@@ -83,7 +83,7 @@ caption <- c("# Supplementary figure caption: imputed-covariate sensitivity (DHS
   " countries, including all five Malaria Indicator Surveys and all ", mics_surveys, " MICS surveys with complete birth histories outside Lesotho). ",
   "Whole-survey gaps in the regional indicators (wasting, stunting, facility delivery, electricity and the wealth score) were imputed by chained equations at the survey-region level (predictive mean matching, ", M, " imputations, point value their mean); the missing 2001 World Governance Indicators round by linear interpolation; ",
   "health expenditure for Zimbabwe 2000–2009, Somalia 2000–2012, South Sudan before 2017 and all countries in 2024, and South Sudan's GDP before 2008 and political stability before independence, from generalised additive models on the observed national panel; ",
-  "and child HIV incidence for Liberia and São Tomé and Príncipe from the incidence model with a latent adolescent series. ",
+  "child HIV incidence for São Tomé and Príncipe from the incidence model with a latent adolescent series, and Liberia's from UNAIDS counts of new infections among children. ",
   "Observed values were never replaced. The specification, reference knots, basis dimensions and gamma = 2 are those of the primary analysis; covariates were re-standardised on the enlarged sample. ",
   "Each curve is drawn over the central 95% of its own exposure distribution. ",
   "Hazard ratios for PfPR 40% to 20% are ", paste(hr(labels[["reference"]], "40% to 20%"), collapse = ", "), " (complete case) and ",
@@ -98,16 +98,16 @@ w0 <- wide_hr("20% to 0%")
 tab <- function(w, title) c(paste0("### PfPR ", title), "", paste0("| Age (months) | ", labels[["reference"]], " | ", labels[["imputed"]], " |"), "|---|---:|---:|",
   sprintf("| %s | %s | %s |", ages, fmt_ci(w$r), fmt_ci(w$i)), "")
 tot <- counts[counts$programme == "All", ]
-lines <- c("# Imputed-covariate sensitivity on the DHS and MICS sample (v6)", "",
+lines <- c("# Imputed-covariate sensitivity on the DHS and MICS sample (v8)", "",
   sprintf("The 17-covariate primary specification refitted after imputing every remaining covariate gap, so that all MAP-eligible DHS and MICS records are retained. Reference: the complete-case DHS+MICS primary `%s`. This version: `%s`. The DHS-only counterpart is `primary_map_regional17_imputed_gamma2_v4`.", basename(ref), st$id), "",
-  "## Sample", "", "| Measure | Complete case (v5) | Imputed (v6) |", "|---|---:|---:|",
+  "## Sample", "", "| Measure | Complete case (v7) | Imputed (v8) |", "|---|---:|---:|",
   sprintf("| %s | %s | %s |", sample$measure, fmt(sample$previous), fmt(sample$revised)), "",
   sprintf("Records whose values were imputed (point version): regional covariates %s; political stability %s (2001 interpolation and South Sudan before independence); GDP %s (South Sudan 2005–2007); health expenditure %s; child HIV incidence without an adolescent series %s. The extended HIV panel also changes censored and imputed incidence values in other countries, so the comparison mixes the covariate imputation with that panel change, as for v4 against v3.",
     fmt(tot$regional_any_model_imputed), fmt(tot$political_stability_imputed), fmt(tot$gdp_imputed), fmt(tot$health_expenditure_imputed), fmt(tot$hiv_no_adolescent_series)), "",
   "## Figure", "", "![Complete-case versus imputed PfPR curves](sfig_pfpr_splines_imputed_covariates.png)", "", caption[3], "",
   "## Hazard ratios", "", "Pointwise conditional 95% intervals; the samples are nested, so compare descriptively.", "",
   tab(w40, "40% to 20%"), tab(w0, "20% to 0%"),
-  sprintf("Largest absolute change in the 40%% to 20%% hazard ratio between v5 and v6: %.3f. Multiple-imputation check (%d imputed datasets, fixed smoothing parameters, Rubin's rules): largest change from the point fit %.3f; between-imputation share of variance at most %s ([report](multiple_imputation/REPORT.md)).", delta, M, mi_delta, fmt_share), "",
+  sprintf("Largest absolute change in the 40%% to 20%% hazard ratio between v7 and v8: %.3f. Multiple-imputation check (%d imputed datasets, fixed smoothing parameters, Rubin's rules): largest change from the point fit %.3f; between-imputation share of variance at most %s ([report](multiple_imputation/REPORT.md)).", delta, M, mi_delta, fmt_share), "",
   "## Fits", "",
   sprintf("All seven fits converged with full rank, finite coefficients and covariances and positive smoothing-Hessian eigenvalues; %d used the tighter-tolerance restart. Fitted model columns were checked against the input rows. Total fitting time %.0f minutes.",
     sum(grepl("strict", cbh_read_csv(file.path(out, "fit_manifest.csv"))$selected_version)), sum(nd$elapsed_seconds) / 60), "",
@@ -116,5 +116,5 @@ lines <- c("# Imputed-covariate sensitivity on the DHS and MICS sample (v6)", ""
 writeLines(lines, file.path(out, "REPORT.md"))
 prov <- c(inputs, figure)
 cbh_atomic_csv(data.frame(file = prov, md5 = vapply(prov, cbh_file_hash, ""), row.names = NULL), file.path(out, "sfig_provenance.csv"))
-print(data.frame(age = ages, v5 = w40$r$hazard_ratio, v6 = w40$i$hazard_ratio, pooled = mi40$pooled_hr))
-cat(sprintf("Largest 40%%->20%% change v5->v6: %.3f; MI vs point: %.3f; max between share %s\n", delta, mi_delta, fmt_share))
+print(data.frame(age = ages, v7 = w40$r$hazard_ratio, v8 = w40$i$hazard_ratio, pooled = mi40$pooled_hr))
+cat(sprintf("Largest 40%%->20%% change v7->v8: %.3f; MI vs point: %.3f; max between share %s\n", delta, mi_delta, fmt_share))

@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-# Multiple-imputation check for the DHS+MICS imputed-covariate sensitivity (v6), as for
+# Multiple-imputation check for the DHS+MICS imputed-covariate sensitivity (v8), as for
 # the DHS-only version (R_cbh/sensitivity/imputation/01_propagate.R). For each of M
 # imputed datasets (regional mice imputations; national draws of health expenditure,
 # GDP and political stability; child HIV incidence draws), refit the seven age-band
@@ -37,7 +37,8 @@ nkey <- paste(d0$country, d0$entry_year)
 nk <- lapply(setNames(national_vars, national_vars), function(v) match(nkey, paste(national_imp[[v]]$keys$iso3, national_imp[[v]]$keys$year)))
 hk <- match(nkey, paste(hiv_draws$keys$iso3, hiv_draws$keys$year)); stopifnot(!anyNA(hk))
 hiv_status <- hiv_panel$hiv_incidence_status[match(nkey, paste(hiv_panel$iso3, hiv_panel$year))]
-vary_hiv <- hiv_status != "reported_numeric"
+# Liberia's rate is derived from UNAIDS counts (fixed, like reported values), not drawn.
+vary_hiv <- !hiv_status %in% c("reported_numeric", "derived_aidsinfo_counts")
 imputed_flags <- regional_imp$imputed[rk, , drop = FALSE]
 varied <- data.frame(component = c("regional covariates (any)", "health expenditure", "GDP per capita", "political stability (model fill)",
   "child HIV incidence (imputed or censored series)"),
@@ -130,7 +131,7 @@ rows <- unlist(lapply(c("40% to 20%", "20% to 0%"), function(c) { z <- contrasts
       fmt(z[c("pooled_hr", "pooled_lower_95", "pooled_upper_95")]), 100 * z$between_imputation_share), "") }))
 writeLines(c("# Multiple-imputation check: imputed-covariate sensitivity, DHS and MICS", "",
   sprintf("The point fit in `%s` uses one imputed dataset (mean of the mice imputations, GAM fitted means and posterior-median HIV incidence). This check refits all seven age-band models in each of %d imputed datasets with the smoothing parameters fixed at the point fit, and pools the PfPR log hazard ratios with Rubin's rules (within-imputation variance from the conditional covariance, between-imputation variance across the %d fits; Barnard–Rubin degrees of freedom).", st$id, M, M), "",
-  "Varied components per imputation: the mice imputations of the regional covariates; the GAM draws of health expenditure (Zimbabwe, Somalia, South Sudan, 2024), GDP and political stability (South Sudan before independence); and one posterior draw of the child HIV incidence series for every country-year whose value is imputed or censored (São Tomé and Príncipe and Liberia among them). Observed values never change. Records affected:", "",
+  "Varied components per imputation: the mice imputations of the regional covariates; the GAM draws of health expenditure (Zimbabwe, Somalia, South Sudan, 2024), GDP and political stability (South Sudan before independence); and one posterior draw of the child HIV incidence series for every country-year whose value is imputed or censored (São Tomé and Príncipe among them; Liberia's rate is derived from UNAIDS counts and held fixed). Observed values never change. Records affected:", "",
   sprintf("- %s: %s records", varied$component, format(varied$records, big.mark = ",")), "",
   "![Pooled versus point curves](pooled_vs_point_curves.png)", "", rows,
   "The between-imputation share is (1 + 1/M) B / T. A small share means the covariate imputation adds little to the sampling uncertainty already in the point fit. Smoothing parameters are fixed, so smoothing uncertainty is not part of either interval. Survey design and exposure uncertainty remain unpropagated.", "",

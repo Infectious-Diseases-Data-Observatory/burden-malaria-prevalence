@@ -25,9 +25,10 @@
 #   coverage  sensitivity: main sample, share of the unit's confirmed clusters with SMC
 #             by the entry year (0-1) in place of the binary indicator
 cbh_smc_settings <- function() list(
-  id = "smc_dhsmics_map_gamma2_v1",
-  out = "results/cbh/smc_dhsmics_map_gamma2_v1",
-  private = "data/derived_cbh/models/smc_dhsmics_map_gamma2_v1",
+  # v2 (24 September 2026) refits on the v7 primary (with Liberia); v1 was fitted on v5.
+  id = "smc_dhsmics_map_gamma2_v2",
+  out = "results/cbh/smc_dhsmics_map_gamma2_v2",
+  private = "data/derived_cbh/models/smc_dhsmics_map_gamma2_v2",
   primary_version = "regional_mics",
   source = "data/SMC_rollout/smc_by_dhs_cluster.csv",
   countries = c(burkina_faso = "BFA", cameroon = "CMR", chad = "TCD", cote_divoire = "CIV", drc = "COD",

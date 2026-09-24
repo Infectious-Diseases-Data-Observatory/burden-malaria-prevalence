@@ -4,7 +4,7 @@
 #   east_africa  UN M49 Eastern Africa countries
 #   early        surveys with survey year <= median survey year (one vote per survey)
 #   late         surveys with survey year >  median survey year
-# sample = "dhsmics" (default) refits the DHS and MICS primary (v5); sample = "dhs"
+# sample = "dhsmics" (default) refits the DHS and MICS primary (v7, with Liberia; v2 was v5); sample = "dhs"
 # reproduces the earlier DHS-only refits of v3 (subgroups_map_gamma2_v1).
 cbh_subgroup_settings <- function(sample = c("dhsmics", "dhs")) {
   sample <- match.arg(sample)
@@ -25,7 +25,7 @@ cbh_subgroup_settings <- function(sample = c("dhsmics", "dhs")) {
     colours = c(map_full = "#222222", sahel = "#C34D26", east_africa = "#009E73",
                 early = "#7B4FA3", late = "#E69F00"))
   if (sample == "dhsmics") {
-    st$id <- "subgroups_dhsmics_map_gamma2_v2"
+    st$id <- "subgroups_dhsmics_map_gamma2_v3"   # v7 primary (with Liberia); v2 = v5, kept as history
     st$primary_version <- "regional_mics"
     st$centroids <- c(st$centroids, "data/derived_mics/mics_region_centroids.csv")
     st$registry <- c(st$registry, "data/derived_mics/survey_registry_mics.csv")

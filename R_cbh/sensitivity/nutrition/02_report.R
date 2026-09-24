@@ -8,7 +8,7 @@ source("R_cbh/reporting/labels.R")
 library(ggplot2)
 args <- commandArgs(trailingOnly = TRUE); stopifnot(all(args %in% "--dhs-only"))
 dhs_only <- "--dhs-only" %in% args
-st <- list(out = file.path("results/cbh", if (dhs_only) "nutrition_adjustment_map_gamma2_v1" else "nutrition_adjustment_dhsmics_map_gamma2_v2"))
+st <- list(out = file.path("results/cbh", if (dhs_only) "nutrition_adjustment_map_gamma2_v1" else "nutrition_adjustment_dhsmics_map_gamma2_v3"))
 primary <- cbh_primary_settings(if (dhs_only) "regional" else "regional_mics")
 labels <- c(full = "All 17 covariates (primary analysis)",
             drop = "Wasting and stunting removed (sensitivity)")

@@ -6,7 +6,7 @@
 # refits the seven primary age-band models on the SAME complete-case sample with
 # the remaining 15 covariates, using the primary reference knots, so the only
 # change is the adjustment set. No data rebuild, no HIV refit, no TeX writes.
-# Default: the DHS and MICS primary (v5). --dhs-only: the DHS-only primary (v3).
+# Default: the DHS and MICS primary (v7, with Liberia; v2 was v5). --dhs-only: the DHS-only primary (v3).
 source("R_cbh/load_pipeline.R")
 source("R_cbh/analysis/model.R")
 source("R_cbh/sensitivity/model.R")
@@ -15,7 +15,7 @@ source("R_cbh/primary/specification.R")
 library(mgcv); library(data.table)
 args <- commandArgs(trailingOnly = TRUE); stopifnot(all(args %in% c("--force", "--dhs-only")))
 dhs_only <- "--dhs-only" %in% args
-st <- list(id = if (dhs_only) "nutrition_adjustment_map_gamma2_v1" else "nutrition_adjustment_dhsmics_map_gamma2_v2",
+st <- list(id = if (dhs_only) "nutrition_adjustment_map_gamma2_v1" else "nutrition_adjustment_dhsmics_map_gamma2_v3",
            dropped = c("wasting_pct", "stunting_pct"))
 st$out <- file.path("results/cbh", st$id); st$private <- file.path("data/derived_cbh/models", st$id)
 primary <- cbh_primary_settings(if (dhs_only) "regional" else "regional_mics"); stopifnot(isTRUE(primary$nutrition))
