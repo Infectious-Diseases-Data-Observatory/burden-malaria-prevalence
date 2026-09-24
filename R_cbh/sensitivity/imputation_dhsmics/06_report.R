@@ -5,6 +5,7 @@
 # refitting, no TeX writes.
 source("R_cbh/load_pipeline.R")
 source("R_cbh/reporting/labels.R")
+source("R_cbh/primary/settings.R")
 source("R_cbh/sensitivity/imputation_dhsmics/settings.R")
 library(ggplot2)
 st <- cbh_imputed_dhsmics_settings(); out <- st$out; ref <- st$reference

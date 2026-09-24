@@ -1,0 +1,8 @@
+death ~ s(pfpr_pct, bs = "cr", k = 5) + s(calendar_year, bs = "cr", 
+    k = 6) + z_mean_maternal_age_first_birth + z_mean_maternal_education_years + 
+    z_mean_wealth_quintile + z_urban_pct + z_dtp3_pct + z_measles_pct + 
+    z_facility_delivery_pct + z_short_birth_interval_pct + z_improved_water_pct + 
+    z_improved_sanitation_pct + z_electricity_pct + z_wasting_pct + 
+    z_stunting_pct + z_log_hiv_incidence + z_log_gdp_pc + z_log_health_expenditure_pc + 
+    z_political_stability + s(survey, bs = "re") + s(country, 
+    bs = "re") + s(region, bs = "re") + smc_placebo + offset(log(band_years))
