@@ -26,8 +26,9 @@ No TeX file has been edited. Update manuscript text and captions manually using:
 - [Source comparison table source](tables/source_comparison.latex.txt) and its
   [values](tables/source_comparison_2000_2024.csv).
 - [Main figure captions](figures/primary_figure_captions.md) and the
-  [Figure 3 caption](figures/fig3_burden_comparison_caption.md); Figure 3 is
-  `figures/fig3_burden_comparison.png`.
+  [Figure 3 caption](figures/fig4_burden_comparison_caption.md). Figure 3 is written
+  both as `figures/fig4_burden_comparison.png`, the file main.tex includes, and as
+  `figures/fig3_burden_comparison.png`; the two files are identical.
 - [Inclusion-flow caption](<Supplementary Figures/sfig_study_flow_caption.md>).
 - [Annual totals](tables/annual_totals_2000_2024.csv) and
   [Nigerian state totals](tables/nigeria_state_totals_2024.csv).

@@ -1,0 +1,28 @@
+% Replacement table source; saved as plain text. No manuscript file is edited.
+\begin{table}[htbp]
+\centering
+\caption{Ten countries with the largest absolute differences between the PfPR-ACM model and IHME estimates of malaria-attributable deaths before age five in 2024.}
+\label{tab:country}
+\begin{tabular}{lrrr}
+\toprule
+Country & PfPR-ACM model & IHME & UN IGME \\
+\midrule
+Nigeria & 214,938 & 138,111 & 165,329 \\
+Niger & 36,990 & 20,343 & 23,877 \\
+Chad & 19,407 & 4,884 & 14,345 \\
+Mozambique & 18,975 & 10,285 & 10,315 \\
+Mali & 20,254 & 12,945 & 6,984 \\
+DR Congo & 69,080 & 61,774 & 105,372 \\
+South Sudan & 11,086 & 4,779 & 3,980 \\
+Cameroon & 22,345 & 16,295 & 6,286 \\
+Angola & 20,520 & 14,652 & 4,734 \\
+Central African Republic & 9,138 & 3,865 & 5,220 \\
+\midrule
+All 42 countries & 611,440 & 428,147 & 440,123 \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+\begin{minipage}{\linewidth}\footnotesize
+UN IGME denotes the direct under-five CA-CODE 2026 series. Totals include all 42 estimable countries, not only the ten shown. Death counts are rounded after estimation. The model uses the revised regional-adjustment MAP fits with $\gamma=2$.
+\end{minipage}
+\end{table}

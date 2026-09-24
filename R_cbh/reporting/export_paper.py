@@ -41,14 +41,9 @@ for row in figures:
     assert source.is_relative_to(root)
     assert hashlib.md5(source.read_bytes()).hexdigest() == row["md5"]
     assets.append((source, Path("figures") / row["filename"]))
-# main.tex includes figures/fig4_burden_comparison.png for Figure 3, so the verified
-# Figure 3 image is written under that name as well as the manifest's fig3 name.
-burden_figure = root / "burden_comparison/fig4_burden_comparison.png"
-assert Path(figures[2]["source"]) == burden_figure
-assets.append((burden_figure, Path("figures/fig4_burden_comparison.png")))
 assets.extend([
     (root / "paper_figures/CAPTIONS.md", Path("figures/primary_figure_captions.md")),
-    (root / "burden_comparison/CAPTION.md", Path("figures/fig4_burden_comparison_caption.md")),
+    (root / "burden_comparison/CAPTION.md", Path("figures/fig3_burden_comparison_caption.md")),
     (root / "burden_comparison/sfig_burden_comparison_counts.png", Path("Supplementary Figures/sfig_burden_comparison_counts.png")),
     (root / "burden_comparison/CAPTION_counts.md", Path("Supplementary Figures/sfig_burden_comparison_counts_caption.md")),
     (subgroups / "sfig_pfpr_splines_by_subgroup.png", Path("Supplementary Figures/sfig_pfpr_splines_by_subgroup.png")),
@@ -177,9 +172,8 @@ No TeX file has been edited. Update manuscript text and captions manually using:
 - [Source comparison table source](tables/source_comparison.latex.txt) and its
   [values](tables/source_comparison_2000_2024.csv).
 - [Main figure captions](figures/primary_figure_captions.md) and the
-  [Figure 3 caption](figures/fig4_burden_comparison_caption.md). Figure 3 is written
-  both as `figures/fig4_burden_comparison.png`, the file main.tex includes, and as
-  `figures/fig3_burden_comparison.png`; the two files are identical.
+  [Figure 3 caption](figures/fig3_burden_comparison_caption.md); Figure 3 is
+  `figures/fig3_burden_comparison.png`.
 - [Inclusion-flow caption](<Supplementary Figures/sfig_study_flow_caption.md>).
 - [Annual totals](tables/annual_totals_2000_2024.csv) and
   [Nigerian state totals](tables/nigeria_state_totals_2024.csv).

@@ -44,7 +44,7 @@ models, 17 covariates, gamma = 2, fixed reference knots); covariates are re-scal
 
 Run `python3 R_cbh/reporting/export_paper.py --destination <Overleaf folder> --copy`; it stops if the v6 figure or
 caption is missing. It refreshes every results figure `main.tex` includes (all except `figures/Causal_diagram.pdf`),
-including `figures/fig3_burden_comparison.png` for Figure 3, and writes the table sources `tables/age_band_results.latex.txt`,
+including `figures/fig4_burden_comparison.png` for Figure 3, and writes the table sources `tables/age_band_results.latex.txt`,
 `tables/country_comparison_2024.latex.txt` and `tables/source_comparison.latex.txt`. Until the export runs, the images
 in Overleaf are the DHS-only versions.
 
@@ -244,8 +244,9 @@ Values: medians 1.73 (north) and 1.24 (south); Lagos ratio 0.70.
 
 ### Line 141 (Figure 3 image)
 
-Include `figures/fig3_burden_comparison.png` (updated in Overleaf on 24 September 2026); the export no longer writes
-`figures/fig4_burden_comparison.png`, and the old file and `figures/fig4_burden_comparison_caption.md` can be deleted.
+`\includegraphics[width=\linewidth]{figures/fig4_burden_comparison.png}` can stay. The export now writes the v5
+combined figure to `figures/fig4_burden_comparison.png` as well as `figures/fig3_burden_comparison.png`, so both names
+hold the same image after export. Before export, both Overleaf files are the DHS-only version.
 
 ### Line 142 (Figure 3 caption)
 
