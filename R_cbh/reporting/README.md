@@ -26,4 +26,6 @@ The current runner is `Rscript R_cbh/primary/run_regional.R --report-only`. It r
 
 `Rscript R_cbh/reporting/15_random_effects_forest.R` (runner stage `random_effects`; added 24 September 2026) draws the country random intercepts (forest plot by UN M49 sub-region) and the survey-region random intercepts (ranked caterpillar plot) for the seven age-band models, with each term's EDF and estimated SD (`random_effects/`). Not yet exported to Overleaf.
 
+`Rscript R_cbh/reporting/16_calendar_trend.R` (runner stage `calendar_trend`; added 24 September 2026) draws the calendar-year spline of each age-band model as the hazard ratio relative to January 2000, with records by entry year (`calendar_trend/`). Not yet exported to Overleaf.
+
 Figure 1 (`03_survey_map.R`) labels timeline rows with full country names (DRC, CAF and RC abbreviated), grouped by UN M49 region, alphabetical within region, with the number of mothers (n) per country.
