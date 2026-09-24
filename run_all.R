@@ -31,6 +31,7 @@ help <- c(
   "       subgroups (R_cbh/sensitivity/subgroups/)          -> results/cbh/subgroups_dhsmics_map_gamma2_v2/",
   "       no nutrition covariates (sensitivity/nutrition/)   -> results/cbh/nutrition_adjustment_dhsmics_map_gamma2_v2/",
   "       imputed covariates (sensitivity/imputation_dhsmics/) -> results/cbh/primary_map_regional17_dhsmics_imputed_gamma2_v6/",
+  "       SMC before/after (sensitivity/smc/; needs data/SMC_rollout/) -> results/cbh/smc_dhsmics_map_gamma2_v1/",
   "       The imputed-covariate fits and multiple-imputation refits take hours; run detached.",
   "  4. python3 R_cbh/reporting/export_paper.py --destination <Overleaf folder> [--copy]",
   "",
@@ -49,7 +50,8 @@ mics <- file.path("R_mics", c("00a_extract.R", "00_dump_metadata.R", "01_invento
   "11_region_centroids.R"))
 sensitivities <- file.path("R_cbh/sensitivity", c("subgroups/01_fit.R", "subgroups/02_report.R",
   "nutrition/01_fit.R", "nutrition/02_report.R", file.path("imputation_dhsmics", c("01_impute_national.R",
-  "02_impute_regional.R", "03_prepare.R", "04_fit.R", "05_propagate.R", "06_report.R"))))
+  "02_impute_regional.R", "03_prepare.R", "04_fit.R", "05_propagate.R", "06_report.R")),
+  file.path("smc", c("01_assign_smc.R", "02_fit.R", "03_report.R", "04_maps.R"))))
 modes <- list("--check-inputs" = "R_cbh/01_make_analysis_data.R", "--mics-build" = mics,
   "--primary" = "R_cbh/primary/run_regional.R", "--sensitivities" = sensitivities,
   "--audit" = "R_cbh/audit/01_verify_saved_primary.R")

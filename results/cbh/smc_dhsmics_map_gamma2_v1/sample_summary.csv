@@ -1,0 +1,5 @@
+"variant","records","deaths","post_records","post_deaths","mean_indicator","surveys","countries","regions","admin1_units","switching_units","switching_by_country","countries_with_post","countries_list"
+"main",2019244,36140,158235,2246,0.0783634865325835,27,8,276,400,24,"BFA 2, CMR 2, NGA 20","BFA CMR NGA","BFA CIV CMR MLI NER NGA TCD UGA"
+"placebo",1861009,33894,85839,1713,0.0461249784391156,27,8,265,386,22,"CMR 2, NGA 20","BFA CMR NGA","BFA CIV CMR MLI NER NGA TCD UGA"
+"national",2287670,39988,417303,5966,0.182413984534483,28,8,286,410,75,"BFA 2, CMR 2, MLI 17, NGA 20, TCD 34","BFA CMR MLI NGA TCD","BFA CIV CMR MLI NER NGA TCD UGA"
+"coverage",2019244,36140,232328,4139,0.0829788931968123,27,8,276,400,29,"BFA 2, CMR 2, NGA 25","BFA CMR NGA","BFA CIV CMR MLI NER NGA TCD UGA"

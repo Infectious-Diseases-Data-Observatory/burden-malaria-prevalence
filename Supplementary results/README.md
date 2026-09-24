@@ -59,6 +59,14 @@ Saved so far:
 - [Imputation audits: regional](../results/cbh/covariate_imputation_dhsmics_v6/REGIONAL_IMPUTATION.md) and [national](../results/cbh/covariate_imputation_dhsmics_v6/NATIONAL_IMPUTATION.md), with the [Somalia, South Sudan and Zimbabwe series](../results/cbh/covariate_imputation_dhsmics_v6/somalia_south_sudan_zimbabwe_series.csv)
 - [Extended HIV incidence panel](../results/cbh/hiv_incidence/imputed_no_adolescent_series.csv) and [latent-adolescent validation](../results/cbh/hiv_incidence/latent_adolescent_validation.csv)
 
+## SMC introduction before/after (DHS and MICS)
+
+Added 23 September 2026. The seven primary age-band models refitted in the eight countries with SMC in the DataWell cluster file, with an admin-1 indicator for band entry at or after the unit's SMC switch-on (Nigeria by state). Main analysis: confirmed (district- or region-level) switch-ons only; national-scope years, a coverage share and a 3-year-early placebo are sensitivities. No age band shows a statistically detectable association (hazard ratios 0.83–1.15, all intervals include 1); placebo hazard ratios 0.92–1.07. Plan Section 3.4.5.
+
+- [Report](../results/cbh/smc_dhsmics_map_gamma2_v1/REPORT.md) and [hazard ratios by age](../results/cbh/smc_dhsmics_map_gamma2_v1/smc_hazard_ratios_by_age.png)
+- [Serial coverage maps, 2015–2022](../results/cbh/smc_dhsmics_map_gamma2_v1/smc_coverage_maps_2015_2022.png) and [caption](../results/cbh/smc_dhsmics_map_gamma2_v1/CAPTION_smc_coverage_maps.md)
+- [Admin-1 switch-on years](../results/cbh/smc_dhsmics_map_gamma2_v1/admin1_smc_years.csv) and [sample by country](../results/cbh/smc_dhsmics_map_gamma2_v1/country_summary.csv)
+
 ## Sahelian child mortality by calendar month
 
 Added 16 September 2026. A descriptive analysis of the all-cause death rate of children under two years by month of the year in Sahelian survey regions (boundary centroid at or above 11°N, west of the Horn of Africa; 247 regions in 41 surveys), by age band (<1, 1–5, 6–11, 12–23 completed months). Month of death is derived from month of birth and reported age at death; see [R_cbh/seasonality/README.md](../R_cbh/seasonality/README.md) for the derivation and its limits. It fits no prevalence model and uses DHS and MIS surveys only (no MICS).
