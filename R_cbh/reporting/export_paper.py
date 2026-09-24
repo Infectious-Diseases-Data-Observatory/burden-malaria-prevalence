@@ -55,6 +55,8 @@ assets.extend([
     (imputed / "sfig_pfpr_splines_imputed_covariates.png", Path("Supplementary Figures/sfig_pfpr_splines_imputed_covariates.png")),
     (imputed / "CAPTION_sfig_imputed_covariates.md", Path("Supplementary Figures/sfig_pfpr_splines_imputed_covariates_caption.md")),
     (root / "study_flow/CAPTION.md", Path("Supplementary Figures/sfig_study_flow_caption.md")),
+    (root / "covariate_effects/sfig_covariate_forest.png", Path("Supplementary Figures/sfig_covariate_forest.png")),
+    (root / "covariate_effects/CAPTION.md", Path("Supplementary Figures/sfig_covariate_forest_caption.md")),
 ])
 for name in ("age_band_results.csv", "age_band_results.md", "age_band_results.latex.txt",
              "country_comparison_2024.csv", "country_comparison_2024_top10.md", "country_comparison_2024.latex.txt"):
