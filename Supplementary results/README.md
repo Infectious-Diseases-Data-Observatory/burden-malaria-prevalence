@@ -44,6 +44,12 @@ Refitted on 24 September 2026 as `primary_map_regional17_dhsmics_imputed_gamma2_
 - [Imputation audits: regional](../results/cbh/covariate_imputation_dhsmics_v6/REGIONAL_IMPUTATION.md) and [national](../results/cbh/covariate_imputation_dhsmics_v6/NATIONAL_IMPUTATION.md), with the [Somalia, South Sudan and Zimbabwe series](../results/cbh/covariate_imputation_dhsmics_v6/somalia_south_sudan_zimbabwe_series.csv)
 - [Liberia's UNAIDS-derived HIV incidence](../results/cbh/hiv_incidence/liberia_aidsinfo/REPORT.md); [extended HIV incidence panel](../results/cbh/hiv_incidence/imputed_no_adolescent_series.csv) and [latent-adolescent validation](../results/cbh/hiv_incidence/latent_adolescent_validation.csv)
 
+## Burden with a prevalence floor (1%)
+
+Added 24 September 2026. The v7 burden recomputed with counterfactual PfPR min(current, 1%) instead of 0, i.e. deaths attributable to transmission above 1%, from the saved spline components (no refitting); 0%, 2% and 5% floors alongside. 2024: 589,119 deaths with the 1% floor (1.38 × IHME, 1.34 × UN IGME) against 620,072 at 0%; 466k at 5%. Deaths at or below 1% transmission are not included.
+
+- [Report](../results/cbh/reference_floor_dhsmics_map_gamma2_v1/REPORT.md), [annual totals by floor](../results/cbh/reference_floor_dhsmics_map_gamma2_v1/year_totals.csv) and [2024 country comparison](../results/cbh/reference_floor_dhsmics_map_gamma2_v1/country_comparison_2024_floor1.csv)
+
 ## SMC introduction before/after (DHS and MICS)
 
 Added 23 September 2026; a supplementary result that is not part of the paper (24 September 2026). Refitted on v7 on 24 September 2026 as `smc_dhsmics_map_gamma2_v2` (v1, on v5, is below). The seven primary age-band models refitted in the eight countries with SMC in the DataWell cluster file, with an admin-1 indicator for band entry at or after the unit's SMC switch-on (Nigeria by state). Main analysis: confirmed (district- or region-level) switch-ons only; national-scope years, a coverage share and a 3-year-early placebo are sensitivities. Plan Section 3.4.5.

@@ -1,0 +1,7 @@
+"file","md5"
+"data/derived_cbh/models/primary_map_regional17_dhsmics_gamma2_v7/pfpr_components.rds","54cdc9a20c423b82dabd3085ab3e519a"
+"results/cbh/primary_map_regional17_dhsmics_gamma2_v7/annual_comparison/country_age_estimates_2000_2024.csv","7d6c1832fb10d3314ba7748ce0d521b8"
+"results/cbh/primary_map_regional17_dhsmics_gamma2_v7/annual_comparison/country_estimates_2000_2024.csv","bd7a822d3719431f88f496e92f217ab8"
+"results/cbh/primary_map_regional17_dhsmics_gamma2_v7/fit_manifest.csv","9fa7fcac91f77c4e3c58d82012434281"
+"results/cbh/age_band_separate_v1/country_burden_2024/ihme_disjoint_age_inputs.csv","fbabbf78595d9c2919612c48e521b2f0"
+"R_cbh/sensitivity/reference_floor/01_burden.R","1f28882eab3d8b4e8cd999d9200708da"
