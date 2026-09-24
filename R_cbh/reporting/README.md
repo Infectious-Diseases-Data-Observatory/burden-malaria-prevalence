@@ -24,4 +24,6 @@ The current runner is `Rscript R_cbh/primary/run_regional.R --report-only`. It r
 
 `Rscript R_cbh/reporting/14_covariate_forest.R` (runner stage `covariate_forest`; added 24 September 2026) draws the supplementary covariate forest plot: hazard ratios per 1 SD for the 17 covariates in each age-band model, with 95% intervals conditional on the smoothing parameters, from the saved fits (`covariate_effects/`; exported as `Supplementary Figures/sfig_covariate_forest.png`).
 
+`Rscript R_cbh/reporting/15_random_effects_forest.R` (runner stage `random_effects`; added 24 September 2026) draws the country random intercepts (forest plot by UN M49 sub-region) and the survey-region random intercepts (ranked caterpillar plot) for the seven age-band models, with each term's EDF and estimated SD (`random_effects/`). Not yet exported to Overleaf.
+
 Figure 1 (`03_survey_map.R`) labels timeline rows with full country names (DRC, CAF and RC abbreviated), grouped by UN M49 region, alphabetical within region, with the number of mothers (n) per country.
