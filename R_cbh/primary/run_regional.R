@@ -5,21 +5,22 @@ args <- commandArgs(trailingOnly=TRUE)
 imputed <- "--imputed" %in% args; args <- setdiff(args,"--imputed")
 mics <- "--mics" %in% args; args <- setdiff(args,"--mics")   # accepted for old calls; DHS+MICS is the default
 dhs_only <- "--dhs-only" %in% args; args <- setdiff(args,"--dhs-only")
-if(mics && dhs_only) stop("--mics and --dhs-only conflict: DHS+MICS (v5) is the default; --dhs-only runs the DHS-only v3.")
-# Since 23 September 2026 the primary combines DHS and MICS surveys; --dhs-only runs the DHS-only v3.
+if(mics && dhs_only) stop("--mics and --dhs-only conflict: DHS+MICS with Liberia (v7) is the default; --dhs-only runs the DHS-only v3.")
+# Since 23 September 2026 the primary combines DHS and MICS surveys, and since 24 September it includes
+# Liberia (v7); --dhs-only runs the DHS-only v3.
 if(!imputed && !dhs_only) mics <- TRUE
 if(length(args)>1L || (length(args) && !args %in% c("--resume","--report-only")))
-  stop(paste("Use no arguments (fresh fits of the DHS+MICS primary, primary_map_regional17_dhsmics_gamma2_v5),",
+  stop(paste("Use no arguments (fresh fits of the DHS+MICS primary with Liberia, primary_map_regional17_dhsmics_gamma2_v7),",
     "--resume (reuse verified fit caches) or --report-only (saved fits). Add --dhs-only for the DHS-only v3 history",
     "(primary_map_regional17_gamma2_v3) or --imputed for the DHS-only imputed-covariate v4 history",
-    "(primary_map_regional17_imputed_gamma2_v4). The DHS+MICS imputed-covariate version (v6) is run by",
-    "R_cbh/sensitivity/imputation_dhsmics/, not by this runner."))
-# The DHS-plus-MICS version (primary_map_regional17_dhsmics_gamma2_v5) is the default primary and runs every
-# stage; the study flow and survey map combine the DHS and MICS ledgers.
+    "(primary_map_regional17_imputed_gamma2_v4). The DHS+MICS imputed-covariate version (v8) is run by",
+    "R_cbh/sensitivity/imputation_dhsmics/, not by this runner; the v5 history is CBH_PRIMARY_VERSION=regional_mics_v5."))
+# The DHS-plus-MICS version with Liberia (primary_map_regional17_dhsmics_gamma2_v7) is the default primary and
+# runs every stage; the study flow and survey map combine the DHS and MICS ledgers.
 # --dhs-only (v3) and --imputed (v4) are history. --imputed runs only the model stages: it never
 # touches the study flow, survey map, paper manifest, results index or validation, which describe
 # the primary analysis. Neither runs the index stage, so a history run never repoints the shared
-# Key results/README.md away from v5.
+# Key results/README.md away from v7.
 Sys.setenv(CBH_PRIMARY_VERSION=if(imputed) "regional_imputed" else if(mics) "regional_mics" else "regional")
 settings <- cbh_primary_settings()
 stages <- c(prepare="R_cbh/primary/00_prepare_regional.R",fit="R_cbh/primary/01_fit.R",
