@@ -44,7 +44,10 @@ are not fully propagated.
 The supplementary sensitivity figures are refitted on the DHS and MICS surveys:
 subgroups (`subgroups_dhsmics_map_gamma2_v3`) and no nutrition covariates (`nutrition_adjustment_dhsmics_map_gamma2_v3`)
 on this sample, and imputed covariates on the larger MAP-eligible sample
-(`primary_map_regional17_dhsmics_imputed_gamma2_v8`, which retains every MAP-eligible record: 8,797,963 records, 123,419 deaths, 166 surveys and 40 countries). Their captions are exported to
+(`primary_map_regional17_dhsmics_imputed_gamma2_v8`, which retains every MAP-eligible record: 8,797,963 records, 123,419 deaths, 166 surveys and 40 countries). A tensor-product version of Figure 3
+(`Supplementary Figures/sfig_burden_comparison_tensor.png`), with PfPR and
+calendar time modelled jointly and no survey-region random intercept, is an
+exploratory sensitivity. Their captions are exported to
 `Supplementary Figures/`. The DHS-only sensitivity fits are kept in the analysis
 project as history.
 
