@@ -44,6 +44,10 @@ Refitted on 24 September 2026 as `primary_map_regional17_dhsmics_imputed_gamma2_
 - [Imputation audits: regional](../results/cbh/covariate_imputation_dhsmics_v6/REGIONAL_IMPUTATION.md) and [national](../results/cbh/covariate_imputation_dhsmics_v6/NATIONAL_IMPUTATION.md), with the [Somalia, South Sudan and Zimbabwe series](../results/cbh/covariate_imputation_dhsmics_v6/somalia_south_sudan_zimbabwe_series.csv)
 - [Liberia's UNAIDS-derived HIV incidence](../results/cbh/hiv_incidence/liberia_aidsinfo/REPORT.md); [extended HIV incidence panel](../results/cbh/hiv_incidence/imputed_no_adolescent_series.csv) and [latent-adolescent validation](../results/cbh/hiv_incidence/latent_adolescent_validation.csv)
 
+## PfPR × calendar-time tensor product
+
+Added 25 September 2026. On the collapsed cells and without the region random intercept, `te(PfPR, year)` (and `s + s + ti`) against separate splines. AIC favours the interaction only at <1 and 1–5 months (ΔAIC −15 and −7), where the curves barely change; at 24–59 months the fitted low-PfPR gradient steepens over time but the evidence is mixed (no AIC gain in free fits, gains with fixed random-effect variances, null within surveys, few deaths at PfPR <5%). If real it would raise the 2024 burden to about 736,000 (1.72 × IHME) and shrink the 2015–2024 decline to −16%. Kept as exploratory; separate splines remain primary. [Report](../results/cbh/tensor_pfpr_year_dhsmics_map_gamma2_v1/REPORT.md).
+
 ## bam versus gam
 
 Added 24 September 2026. The same model fitted with `gam(method = "REML")` on exact cell-level aggregates and with `bam` (fREML, with and without discretisation), on the specification without the region random intercept: hazard ratios agree to within 0.0005 in every band. [Report](../results/cbh/bam_vs_gam_dhsmics_map_gamma2_v1/REPORT.md).
