@@ -123,4 +123,6 @@ PfPR curves of the tensor product by year of band entry (relative to PfPR 20% in
 
 ![HR 20% to 0% by year](sfig_hr_20_to_0_by_year.png)
 
-Files: `model_fit_comparison.csv`, `hazard_ratios_by_year.csv`, `hr_20_to_0_by_year.csv`, `pfpr_curves_by_year.csv`, `pfpr_support_by_period.csv`, `year_totals.csv`, `deaths_by_age_2024.csv`, `burden_2024_alternative_times.csv`, `fit_diagnostics.csv`, `smooth_summaries.csv`, `model_formulas.txt`. Reproduce: `Rscript R_cbh/sensitivity/tensor_pfpr_year/01_fit.R`, then `03_checks.R`, then `02_report.R`.
+Figure 3 analogue with the tensor-product values (countries, Nigerian states and the annual series, with the primary shown for reference): [figure3/fig3_burden_comparison_tensor.png](figure3/fig3_burden_comparison_tensor.png), caption in [figure3/CAPTION.md](figure3/CAPTION.md) (`04_figure3.R`).
+
+Files: `model_fit_comparison.csv`, `hazard_ratios_by_year.csv`, `hr_20_to_0_by_year.csv`, `pfpr_curves_by_year.csv`, `pfpr_support_by_period.csv`, `year_totals.csv`, `deaths_by_age_2024.csv`, `burden_2024_alternative_times.csv`, `fit_diagnostics.csv`, `smooth_summaries.csv`, `model_formulas.txt`. Reproduce: `Rscript R_cbh/sensitivity/tensor_pfpr_year/01_fit.R`, then `03_checks.R`, `02_report.R` and `04_figure3.R`.

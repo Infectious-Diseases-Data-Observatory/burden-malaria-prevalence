@@ -7,25 +7,17 @@
 source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 suppressPackageStartupMessages({library(data.table); library(mgcv); library(ggplot2)})
+source("R_cbh/sensitivity/tensor_pfpr_year/components.R")
 base <- cbh_primary_settings("regional_mics")
 id <- "tensor_pfpr_year_dhsmics_map_gamma2_v1"; out <- file.path("results/cbh", id); private <- file.path("data/derived_cbh/models", id)
 ages <- cbh_config()$age_bands$age_band
 band_label <- setNames(ifelse(ages == "<1", "<1 month", paste(ages, "months")), ages)
-comp <- readRDS(file.path(private, "pfpr_year_components.rds"))
+comp <- cbh_tensor_components(private)
 get_comp <- function(m, a) comp[[sprintf("%s_age_%d", m, match(a, ages))]]
 models <- c("separate", "tensor", "ti")
 model_label <- c(separate = "Separate splines", tensor = "Tensor product te(PfPR, year)", ti = "Separate + ti(PfPR, year)")
 
-# log HR for PfPR `from` -> `to` at calendar time `year` (all vectors recycled), with SE.
-lhr <- function(z, from, to, year) {
-  n <- max(length(from), length(to), length(year)); from <- rep_len(from, n); to <- rep_len(to, n); year <- rep_len(year, n)
-  L <- matrix(0, n, length(z$ix))
-  for (k in seq_along(z$smooths)) {
-    s <- z$smooths[[k]]; cols <- match(z$index[[k]], z$ix)
-    L[, cols] <- L[, cols] + PredictMat(s, data.frame(pfpr_pct = to, calendar_year = year)) - PredictMat(s, data.frame(pfpr_pct = from, calendar_year = year))
-  }
-  list(est = drop(L %*% z$coef), se = sqrt(pmax(rowSums((L %*% z$Vp) * L), 0)))
-}
+lhr <- cbh_tensor_lhr
 
 # Model fit.
 dg <- fread(file.path(out, "fit_diagnostics.csv")); ss <- fread(file.path(out, "smooth_summaries.csv"))
@@ -46,7 +38,7 @@ con <- rbindlist(lapply(models, function(m) rbindlist(lapply(ages, function(a) r
              lower_95 = exp(k$est - 1.96 * k$se), upper_95 = exp(k$est + 1.96 * k$se))
 }))))))
 cbh_atomic_csv(as.data.frame(con), file.path(out, "hazard_ratios_by_year.csv"))
-last_entry <- 2023 + 11 / 12; eval_year <- function(y) pmin(y + .5, last_entry)
+last_entry <- cbh_tensor_last_entry; eval_year <- cbh_tensor_eval_year
 grid_y <- c(seq(2000.5, 2023.75, by = .25), last_entry)
 hr20 <- rbindlist(lapply(models, function(m) rbindlist(lapply(ages, function(a) {
   k <- lhr(get_comp(m, a), 20, 0, grid_y)
@@ -167,7 +159,8 @@ lines <- c("# Tensor product of PfPR and calendar time (no region random interce
   "2024 attributable deaths by age band:", "", "| Age (months) | Separate | Tensor | ti |", "|---|---:|---:|---:|", ba[, sprintf("| %s | %s | %s | %s |", age_band, f0(separate), f0(tensor), f0(ti))], "",
   "Note: the ti model's neonatal interaction (about 4.6 EDF) oscillates over time around a hazard ratio close to 1; applied to the large neonatal all-cause totals this moves tens of thousands of deaths, so the ti burden row is unstable and is shown only for completeness. The tensor product, which spans essentially the same function space, does not show this. The time-varying models' lower 2000 and higher 2024 totals, and hence their smaller declines, follow directly from the assumed steepening of the PfPR effect and are not separate findings.", "",
   "PfPR curves of the tensor product by year of band entry (relative to PfPR 20% in the same year, 95% intervals conditional on smoothing parameters; solid within the period's children-weighted 2.5th–97.5th PfPR percentiles, dashed outside), with the time-constant separate-spline curve for reference:", "", "![PfPR curves by year](sfig_pfpr_curves_by_year_tensor.png)", "", "![HR 20% to 0% by year](sfig_hr_20_to_0_by_year.png)", "",
-  "Files: `model_fit_comparison.csv`, `hazard_ratios_by_year.csv`, `hr_20_to_0_by_year.csv`, `pfpr_curves_by_year.csv`, `pfpr_support_by_period.csv`, `year_totals.csv`, `deaths_by_age_2024.csv`, `burden_2024_alternative_times.csv`, `fit_diagnostics.csv`, `smooth_summaries.csv`, `model_formulas.txt`. Reproduce: `Rscript R_cbh/sensitivity/tensor_pfpr_year/01_fit.R`, then `03_checks.R`, then `02_report.R`.")
+  "Figure 3 analogue with the tensor-product values (countries, Nigerian states and the annual series, with the primary shown for reference): [figure3/fig3_burden_comparison_tensor.png](figure3/fig3_burden_comparison_tensor.png), caption in [figure3/CAPTION.md](figure3/CAPTION.md) (`04_figure3.R`).", "",
+  "Files: `model_fit_comparison.csv`, `hazard_ratios_by_year.csv`, `hr_20_to_0_by_year.csv`, `pfpr_curves_by_year.csv`, `pfpr_support_by_period.csv`, `year_totals.csv`, `deaths_by_age_2024.csv`, `burden_2024_alternative_times.csv`, `fit_diagnostics.csv`, `smooth_summaries.csv`, `model_formulas.txt`. Reproduce: `Rscript R_cbh/sensitivity/tensor_pfpr_year/01_fit.R`, then `03_checks.R`, `02_report.R` and `04_figure3.R`.")
 writeLines(lines, file.path(out, "REPORT.md"))
 inputs <- c(file.path(private, "pfpr_year_components.rds"), file.path(out, c("fit_diagnostics.csv", "smooth_summaries.csv", "pfpr_support_by_period.csv")),
   if (has_checks) file.path(out, c("interaction_checks.csv", "binned_pfpr_by_period.csv", "support_pfpr_class_by_period.csv")),
