@@ -54,9 +54,14 @@ hr20 <- rbindlist(lapply(models, function(m) rbindlist(lapply(ages, function(a) 
 }))))
 cbh_atomic_csv(as.data.frame(hr20), file.path(out, "hr_20_to_0_by_year.csv"))
 grid_p <- seq(0, 70, by = .5)
-curves <- rbindlist(lapply(c("separate", "tensor"), function(m) rbindlist(lapply(ages, function(a) rbindlist(lapply(if (m == "separate") 2015 else years, function(y) {
-  k <- lhr(get_comp(m, a), 20, grid_p, y + .5)
-  data.table(model = m, age_band = a, year = y, pfpr_pct = grid_p, log_hr = k$est)
+# Curves relative to PfPR 20% in the same year, flagged by whether PfPR lies within that period's
+# observed range (children-weighted 2.5th-97.5th percentile of band entries; pfpr_support_by_period.csv).
+support <- fread(file.path(out, "pfpr_support_by_period.csv"))
+period_of <- c(`2005` = "2005-09", `2010` = "2010-14", `2015` = "2015-19", `2020` = "2020-23")
+curves <- rbindlist(lapply(c("separate", "tensor"), function(m) rbindlist(lapply(ages, function(a) rbindlist(lapply(years, function(y) {
+  k <- lhr(get_comp(m, a), 20, grid_p, y + .5); sp <- support[age_band == a & period == period_of[as.character(y)]]
+  data.table(model = m, age_band = a, year = y, pfpr_pct = grid_p, log_hr = k$est, lower_95 = k$est - 1.96 * k$se, upper_95 = k$est + 1.96 * k$se,
+             within_period_support = grid_p >= sp$pfpr_p025 & grid_p <= sp$pfpr_p975)
 }))))))
 cbh_atomic_csv(as.data.frame(curves), file.path(out, "pfpr_curves_by_year.csv"))
 
@@ -85,13 +90,22 @@ cbh_atomic_csv(as.data.frame(alt), file.path(out, "burden_2024_alternative_times
 # Figures.
 theme_t <- theme_minimal(base_size = 12) + theme(legend.position = "bottom", panel.grid.minor = element_blank(), strip.text = element_text(face = "bold"),
   panel.border = element_rect(fill = NA, colour = "grey85"))
-curves[, band := factor(band_label[age_band], levels = band_label)]
-curves[, series := ifelse(model == "separate", "Separate splines (all years)", paste("Tensor product,", year))]
-cols <- c(`Separate splines (all years)` = "#222222", setNames(c("#9ecae1", "#4292c6", "#2171b5", "#08306b"), paste("Tensor product,", years)))
-p1 <- ggplot(curves, aes(pfpr_pct, log_hr, colour = series, linetype = model == "separate")) + geom_hline(yintercept = 0, colour = "grey60", linewidth = .3) +
-  geom_line(linewidth = .75) + scale_colour_manual(values = cols, name = NULL) + scale_linetype_manual(values = c(`TRUE` = "22", `FALSE` = "solid"), guide = "none") +
-  facet_wrap(~band, nrow = 2) + labs(x = expression(italic(Pf)*PR["2–10"]~"(%) at band entry"), y = "Log hazard ratio relative to PfPR 20% (same year)") + theme_t
-ggsave(file.path(out, "sfig_pfpr_curves_by_year_tensor.png"), p1, width = 13, height = 7.5, dpi = 300, device = ragg::agg_png, bg = "white")
+curves[, `:=`(band = factor(band_label[age_band], levels = band_label), year_lab = factor(paste0("Mid-", year), levels = paste0("Mid-", years)))]
+te <- curves[model == "tensor"]; se <- curves[model == "separate"]
+# Solid within the period's observed PfPR range, dashed outside (segments split so each is one line).
+te[, seg := rleid(within_period_support), by = .(age_band, year)]
+p1 <- ggplot() + geom_hline(yintercept = 0, colour = "grey60", linewidth = .3) +
+  geom_ribbon(data = te, aes(pfpr_pct, ymin = lower_95, ymax = upper_95), fill = "#2171b5", alpha = .15) +
+  geom_line(data = se, aes(pfpr_pct, log_hr, colour = "Separate splines (same in every year)"), linewidth = .5, linetype = "22") +
+  geom_line(data = te, aes(pfpr_pct, log_hr, colour = "Tensor product", linetype = within_period_support, group = interaction(seg, within_period_support)), linewidth = .8) +
+  scale_colour_manual(values = c(`Tensor product` = "#2171b5", `Separate splines (same in every year)` = "#222222"), name = NULL) +
+  scale_linetype_manual(values = c(`TRUE` = "solid", `FALSE` = "31"), breaks = c("TRUE", "FALSE"),
+    labels = c(`TRUE` = "Within the period's observed PfPR range", `FALSE` = "Outside it"), name = NULL) +
+  facet_grid(band ~ year_lab, scales = "free_y") + coord_cartesian(xlim = c(0, 70)) +
+  labs(x = expression(italic(Pf)*PR["2–10"]~"(%) at band entry"), y = "Log hazard ratio relative to PfPR 20% in the same year") +
+  guides(colour = guide_legend(order = 1), linetype = guide_legend(order = 2, override.aes = list(colour = "#2171b5"))) +
+  theme_t + theme(strip.text.y = element_text(angle = 0))
+ggsave(file.path(out, "sfig_pfpr_curves_by_year_tensor.png"), p1, width = 12, height = 15, dpi = 300, device = ragg::agg_png, bg = "white")
 hr20[, band := factor(band_label[age_band], levels = band_label)]; hr20[, label := factor(model_label[model], levels = model_label)]
 p2 <- ggplot(hr20[model != "ti"], aes(calendar_year, hr, colour = label, fill = label)) + geom_hline(yintercept = 1, colour = "grey60", linewidth = .3) +
   geom_ribbon(aes(ymin = lower_95, ymax = upper_95), alpha = .15, colour = NA) + geom_line(linewidth = .75) +
@@ -152,7 +166,7 @@ lines <- c("# Tensor product of PfPR and calendar time (no region random interce
     f0(alt[model == "ti" & evaluated_at == 2024.5]$deaths_2024), f0(alt[model == "ti" & evaluated_at == 2019.5]$deaths_2024)), "",
   "2024 attributable deaths by age band:", "", "| Age (months) | Separate | Tensor | ti |", "|---|---:|---:|---:|", ba[, sprintf("| %s | %s | %s | %s |", age_band, f0(separate), f0(tensor), f0(ti))], "",
   "Note: the ti model's neonatal interaction (about 4.6 EDF) oscillates over time around a hazard ratio close to 1; applied to the large neonatal all-cause totals this moves tens of thousands of deaths, so the ti burden row is unstable and is shown only for completeness. The tensor product, which spans essentially the same function space, does not show this. The time-varying models' lower 2000 and higher 2024 totals, and hence their smaller declines, follow directly from the assumed steepening of the PfPR effect and are not separate findings.", "",
-  "![PfPR curves by year](sfig_pfpr_curves_by_year_tensor.png)", "", "![HR 20% to 0% by year](sfig_hr_20_to_0_by_year.png)", "",
+  "PfPR curves of the tensor product by year of band entry (relative to PfPR 20% in the same year, 95% intervals conditional on smoothing parameters; solid within the period's children-weighted 2.5th–97.5th PfPR percentiles, dashed outside), with the time-constant separate-spline curve for reference:", "", "![PfPR curves by year](sfig_pfpr_curves_by_year_tensor.png)", "", "![HR 20% to 0% by year](sfig_hr_20_to_0_by_year.png)", "",
   "Files: `model_fit_comparison.csv`, `hazard_ratios_by_year.csv`, `hr_20_to_0_by_year.csv`, `pfpr_curves_by_year.csv`, `pfpr_support_by_period.csv`, `year_totals.csv`, `deaths_by_age_2024.csv`, `burden_2024_alternative_times.csv`, `fit_diagnostics.csv`, `smooth_summaries.csv`, `model_formulas.txt`. Reproduce: `Rscript R_cbh/sensitivity/tensor_pfpr_year/01_fit.R`, then `03_checks.R`, then `02_report.R`.")
 writeLines(lines, file.path(out, "REPORT.md"))
 inputs <- c(file.path(private, "pfpr_year_components.rds"), file.path(out, c("fit_diagnostics.csv", "smooth_summaries.csv", "pfpr_support_by_period.csv")),

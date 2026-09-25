@@ -117,6 +117,8 @@ Calendar time is evaluated at mid-year, held at December 2023 (the last observed
 
 Note: the ti model's neonatal interaction (about 4.6 EDF) oscillates over time around a hazard ratio close to 1; applied to the large neonatal all-cause totals this moves tens of thousands of deaths, so the ti burden row is unstable and is shown only for completeness. The tensor product, which spans essentially the same function space, does not show this. The time-varying models' lower 2000 and higher 2024 totals, and hence their smaller declines, follow directly from the assumed steepening of the PfPR effect and are not separate findings.
 
+PfPR curves of the tensor product by year of band entry (relative to PfPR 20% in the same year, 95% intervals conditional on smoothing parameters; solid within the period's children-weighted 2.5th–97.5th PfPR percentiles, dashed outside), with the time-constant separate-spline curve for reference:
+
 ![PfPR curves by year](sfig_pfpr_curves_by_year_tensor.png)
 
 ![HR 20% to 0% by year](sfig_hr_20_to_0_by_year.png)
