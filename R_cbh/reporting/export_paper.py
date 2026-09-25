@@ -24,6 +24,8 @@ assert destination.is_dir()
 subgroups = Path("results/cbh/subgroups_dhsmics_map_gamma2_v3")
 nutrition = Path("results/cbh/nutrition_adjustment_dhsmics_map_gamma2_v3")
 imputed = Path("results/cbh/primary_map_regional17_dhsmics_imputed_gamma2_v8")
+# Figure 3 recomputed with the PfPR x calendar-time tensor-product model (exploratory sensitivity).
+tensor_fig3 = Path("results/cbh/tensor_pfpr_year_dhsmics_map_gamma2_v1/figure3")
 manuscript_updates = Path("docs/MANUSCRIPT_UPDATE_DHS_MICS.md")
 
 def digest(path):
@@ -57,6 +59,8 @@ assets.extend([
     (root / "study_flow/CAPTION.md", Path("Supplementary Figures/sfig_study_flow_caption.md")),
     (root / "covariate_effects/sfig_covariate_forest.png", Path("Supplementary Figures/sfig_covariate_forest.png")),
     (root / "covariate_effects/CAPTION.md", Path("Supplementary Figures/sfig_covariate_forest_caption.md")),
+    (tensor_fig3 / "fig3_burden_comparison_tensor.png", Path("Supplementary Figures/sfig_burden_comparison_tensor.png")),
+    (tensor_fig3 / "CAPTION.md", Path("Supplementary Figures/sfig_burden_comparison_tensor_caption.md")),
 ])
 for name in ("age_band_results.csv", "age_band_results.md", "age_band_results.latex.txt",
              "country_comparison_2024.csv", "country_comparison_2024_top10.md", "country_comparison_2024.latex.txt"):
@@ -88,6 +92,9 @@ for sensitivity in (subgroups, nutrition):
     stale = [row["file"] for row in read_csv(sensitivity / "report_provenance.csv")
              if not Path(row["file"]).is_file() or hashlib.md5(Path(row["file"]).read_bytes()).hexdigest() != row["md5"]]
     assert not stale, f"Stale report provenance in {sensitivity}: {', '.join(stale)}; rerun its report script"
+stale = [row["file"] for row in read_csv(tensor_fig3 / "provenance.csv")
+         if not Path(row["file"]).is_file() or hashlib.md5(Path(row["file"]).read_bytes()).hexdigest() != row["md5"]]
+assert not stale, f"Stale provenance for the tensor Figure 3: {', '.join(stale)}; rerun R_cbh/sensitivity/tensor_pfpr_year/04_figure3.R"
 
 sample =read_csv(root / "prepared_sample.csv")[0]
 annual = next(row for row in read_csv(root / "annual_comparison/annual_totals_2000_2024.csv") if row["year"] == "2024")
@@ -198,7 +205,10 @@ are not fully propagated.
 The supplementary sensitivity figures are refitted on the DHS and MICS surveys:
 subgroups (`{subgroups.name}`) and no nutrition covariates (`{nutrition.name}`)
 on this sample, and imputed covariates on the larger MAP-eligible sample
-(`{imputed.name}`{v6_text}). Their captions are exported to
+(`{imputed.name}`{v6_text}). A tensor-product version of Figure 3
+(`Supplementary Figures/sfig_burden_comparison_tensor.png`), with PfPR and
+calendar time modelled jointly and no survey-region random intercept, is an
+exploratory sensitivity. Their captions are exported to
 `Supplementary Figures/`. The DHS-only sensitivity fits are kept in the analysis
 project as history.
 
