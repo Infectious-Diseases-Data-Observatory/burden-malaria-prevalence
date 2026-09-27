@@ -61,6 +61,9 @@ long <- rbind(cur[,.(label,value=1000*q5_allcause,series="All causes (IHME)")],
 long[,series:=factor(series,levels=c("All causes (IHME)","Caused by malaria (PfPR-ACM model)"))]
 fills <- c(`All causes (IHME)`="#C9D6E3",`Caused by malaria (PfPR-ACM model)`="#1F4E79")
 xmax <- ceiling(max(1000*cur$q5_allcause)/20)*20
+# Both panels use the same fixed vertical range, so the country rows align exactly; the column header
+# of the right panel sits above that range (drawn in the top margin) and does not stretch its axis.
+rows <- coord_cartesian(ylim=c(.4,nrow(cur)+.6),expand=FALSE,clip="off")
 p <- ggplot()+
   geom_col(data=long[series=="All causes (IHME)"],aes(value,label,fill=series),width=.75)+
   geom_col(data=long[series!="All causes (IHME)"],aes(value,label,fill=series),width=.45)+
@@ -70,7 +73,7 @@ p <- ggplot()+
   annotate("text",x=c(xmax+3,xmax+15),y=nrow(cur)+1.1,label=c("All\ncauses","Malaria"),hjust=0,vjust=0,size=3.4,lineheight=.9,colour=c("grey25","#1F4E79"))+
   scale_fill_manual(values=fills,name=NULL)+
   scale_x_continuous(limits=c(0,xmax+26),breaks=seq(0,xmax,20),expand=c(0,0))+
-  coord_cartesian(clip="off")+
+  rows+
   labs(x=sprintf("Probability of dying before age 5, %d (per 1,000 live births)",max(st$years)),y=NULL)+
   theme_minimal(base_size=15)+theme(panel.grid.minor=element_blank(),panel.grid.major.y=element_blank(),legend.position="bottom",
     axis.text.y=element_blank(),legend.text=element_text(size=13),plot.margin=margin(30,12,8,4))
@@ -79,6 +82,7 @@ pf <- ggplot(cur,aes(pfpr_pct,label))+
   geom_col(fill="#C8553D",width=.6)+
   geom_text(aes(label=sprintf("%.1f",pfpr_pct)),hjust=-.15,size=3.3,colour="grey25")+
   scale_x_continuous(limits=c(0,pmax_x+12),breaks=seq(0,pmax_x,10),expand=c(0,0))+
+  rows+
   labs(x=bquote(italic(Pf)*PR["2–10"]*","~.(max(st$years))~"(%)"),y=NULL)+
   theme_minimal(base_size=15)+theme(panel.grid.minor=element_blank(),panel.grid.major.y=element_blank(),
     axis.text.y=element_text(size=11.5),plot.margin=margin(30,4,8,8))
