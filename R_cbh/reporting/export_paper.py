@@ -65,6 +65,8 @@ assets.extend([
     (tensor_fig3 / "CAPTION.md", Path("Supplementary Figures/sfig_burden_comparison_tensor_caption.md")),
     (linear / "sfig_pfpr_linear_1_30.png", Path("Supplementary Figures/sfig_pfpr_linear_1_30.png")),
     (linear / "CAPTION.md", Path("Supplementary Figures/sfig_pfpr_linear_1_30_caption.md")),
+    (root / "covariate_pairs/sfig_covariate_pairs.png", Path("Supplementary Figures/sfig_covariate_pairs.png")),
+    (root / "covariate_pairs/CAPTION.md", Path("Supplementary Figures/sfig_covariate_pairs_caption.md")),
 ])
 for name in ("age_band_results.csv", "age_band_results.md", "age_band_results.latex.txt",
              "country_comparison_2024.csv", "country_comparison_2024_top10.md", "country_comparison_2024.latex.txt"):
@@ -96,6 +98,10 @@ for sensitivity in (subgroups, nutrition, linear):
     stale = [row["file"] for row in read_csv(sensitivity / "report_provenance.csv")
              if not Path(row["file"]).is_file() or hashlib.md5(Path(row["file"]).read_bytes()).hexdigest() != row["md5"]]
     assert not stale, f"Stale report provenance in {sensitivity}: {', '.join(stale)}; rerun its report script"
+for figure_dir, script in ((root / "covariate_pairs", "R_cbh/reporting/17_covariate_pairs.R"),):
+    stale = [row["file"] for row in read_csv(figure_dir / "provenance.csv")
+             if not Path(row["file"]).is_file() or hashlib.md5(Path(row["file"]).read_bytes()).hexdigest() != row["md5"]]
+    assert not stale, f"Stale provenance for {figure_dir}: {', '.join(stale)}; rerun {script}"
 stale = [row["file"] for row in read_csv(tensor_fig3 / "provenance.csv")
          if not Path(row["file"]).is_file() or hashlib.md5(Path(row["file"]).read_bytes()).hexdigest() != row["md5"]]
 assert not stale, f"Stale provenance for the tensor Figure 3: {', '.join(stale)}; rerun R_cbh/sensitivity/tensor_pfpr_year/04_figure3.R"
@@ -214,7 +220,9 @@ on this sample, and imputed covariates on the larger MAP-eligible sample
 calendar time modelled jointly and no survey-region random intercept, is an
 exploratory sensitivity. PfPR forced to be linear on records with PfPR 1–30%
 (`Supplementary Figures/sfig_pfpr_linear_1_30.png`, `{linear.name}`) is compared
-with a spline on the same records and with the primary. Their captions are exported to
+with a spline on the same records and with the primary. Bivariate scatter plots of the
+17 adjustment variables by survey programme (`Supplementary Figures/sfig_covariate_pairs.png`)
+use the primary sample. Their captions are exported to
 `Supplementary Figures/`. The DHS-only sensitivity fits are kept in the analysis
 project as history.
 

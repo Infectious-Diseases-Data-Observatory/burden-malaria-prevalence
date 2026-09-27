@@ -49,7 +49,9 @@ on this sample, and imputed covariates on the larger MAP-eligible sample
 calendar time modelled jointly and no survey-region random intercept, is an
 exploratory sensitivity. PfPR forced to be linear on records with PfPR 1–30%
 (`Supplementary Figures/sfig_pfpr_linear_1_30.png`, `linear_pfpr_1_30_dhsmics_map_gamma2_v1`) is compared
-with a spline on the same records and with the primary. Their captions are exported to
+with a spline on the same records and with the primary. Bivariate scatter plots of the
+17 adjustment variables by survey programme (`Supplementary Figures/sfig_covariate_pairs.png`)
+use the primary sample. Their captions are exported to
 `Supplementary Figures/`. The DHS-only sensitivity fits are kept in the analysis
 project as history.
 
