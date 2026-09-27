@@ -6,7 +6,11 @@
 # table of R_cbh/primary/02_effects.R); the zero-PfPR hazards multiply each band by the
 # model's hazard ratio for PfPR 0 versus the country's current PfPR. The synthetic-cohort
 # probability is 5q0 = 1 - exp(-sum of band cumulative hazards). Intervals draw each band's
-# log hazard ratio independently (the bands are separate models). Aggregates only.
+# log hazard ratio independently (the bands are separate models). IHME's own malaria-caused probability
+# (added 27 September 2026, at the user's request) is computed the same way from IHME malaria death rates:
+# 5q0 minus 5q0 with IHME's malaria hazard removed, the malaria hazard summed over late neonatal
+# (7-27 days), post-neonatal (under-5 minus late-neonatal and 1-4-year deaths, over the 1-11-month
+# person-years) and 1-4 years (IHME reports no early-neonatal malaria deaths). Aggregates only.
 source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 source("R_cbh/reporting/labels.R")
@@ -16,10 +20,12 @@ out <- file.path(root,"under5_probability"); dir.create(out,recursive=TRUE,showW
 ages <- cbh_config()$age_bands$age_band
 edges <- c(0,28/365.25*12,6,12,24,36,48,60)
 paths <- c(estimates=file.path(root,"burden/country_age_estimates.csv"),igme="data/igme_u5mr_by_country.csv",
-  ihme_inputs=file.path("results/cbh/age_band_separate_v1",sprintf("country_burden_%d",st$years),"ihme_disjoint_age_inputs.csv"))
+  ihme_inputs=file.path("results/cbh/age_band_separate_v1",sprintf("country_burden_%d",st$years),"ihme_disjoint_age_inputs.csv"),
+  ihme_malaria="data/ihme_malaria_u5_deaths_by_age_country_year.csv")
 stopifnot(all(file.exists(paths)))
 est <- fread(paths[["estimates"]])[status=="estimated"]
 stopifnot(setequal(unique(est$year),st$years),all(est[,.N,by=.(iso3,year)]$N==7L))
+mal <- fread(paths[["ihme_malaria"]],select=c("Age","Location","Unit","Year","Value"))[Unit %in% c("Number","Rate (per 100,000)")]
 set.seed(st$seed); n_draws <- 4000L
 res <- rbindlist(lapply(st$years,function(y) {
   src <- fread(file.path("results/cbh/age_band_separate_v1",sprintf("country_burden_%d",y),"ihme_disjoint_age_inputs.csv"))
@@ -33,10 +39,18 @@ res <- rbindlist(lapply(st$years,function(y) {
     H0 <- H*exp(z$log_hr_zero_vs_current)
     draws <- vapply(seq_len(7),function(g) H[g]*exp(rnorm(n_draws,z$log_hr_zero_vs_current[g],z$log_hr_se[g])),numeric(n_draws))
     q0_draws <- -expm1(-rowSums(draws)); q <- -expm1(-sum(H)); q0 <- -expm1(-sum(H0))
+    m <- mal[Location==z$Location[1] & Year==y]
+    md <- function(a) m[Age==a & Unit=="Number"]$Value; mr <- function(a) m[Age==a & Unit=="Rate (per 100,000)"]$Value/1e5
+    post_deaths <- md("Under 5")-md("7 to 27 days (late neonatal)")-md("1 to 4")
+    post_py <- sum(s[source_age %in% c("1 to 5 months","6-11 months")]$implied_person_years)
+    stopifnot(length(md("Under 5"))==1,length(mr("1 to 4"))==1,length(mr("7 to 27 days (late neonatal)"))==1,post_deaths>=0,post_py>0)
+    H_mal <- mr("7 to 27 days (late neonatal)")*21/365.25+post_deaths/post_py*(1-28/365.25)+mr("1 to 4")*4
+    stopifnot(H_mal<sum(H))
     data.table(year=y,iso3=iso,country=z$Location[1],pfpr_pct=weighted.mean(z$pfpr_pct,z$implied_person_years),
       q5_allcause=q,q5_no_malaria=q0,q5_no_malaria_lower=unname(quantile(q0_draws,.025)),q5_no_malaria_upper=unname(quantile(q0_draws,.975)),
       q5_attributable=q-q0,q5_attributable_lower=q-unname(quantile(q0_draws,.975)),q5_attributable_upper=q-unname(quantile(q0_draws,.025)),
-      share_attributable=(q-q0)/q,any_zero_below_support=any(z$zero_below_observed_support))
+      share_attributable=(q-q0)/q,q5_ihme_malaria=exp(-(sum(H)-H_mal))-exp(-sum(H)),ihme_malaria_u5_deaths=md("Under 5"),
+      any_zero_below_support=any(z$zero_below_observed_support))
   }))
 }))
 igme <- fread(paths[["igme"]])[year==max(st$years),.(iso3,igme_u5mr=u5mr)]
@@ -51,10 +65,11 @@ fmt1 <- function(x) sprintf("%.0f",1000*x)
 # each country's hazard ratios are evaluated (added 24 September 2026). Right panel: probability of
 # dying before age 5 per 1,000 live births (x axis from 0), all causes from the IHME age-band death
 # rates (light bar) and the part caused by malaria under the PfPR-ACM model (dark bar, 95% interval),
-# with both values listed on the right. Both panels share the country order (by all-cause probability).
+# with both values listed on the right. Both panels share the country order: by the probability caused by
+# malaria (user request, 27 September 2026), ties broken by the all-cause probability.
 display <- c(Swaziland="Eswatini",`Cote d'Ivoire`="Côte d'Ivoire",Congo="Republic of the Congo")
 cur[,country:=fifelse(country %in% names(display),display[country],country)]
-setorder(cur,-q5_allcause)
+setorder(cur,-q5_attributable,-q5_allcause)
 cur[,label:=factor(country,levels=rev(country))]
 long <- rbind(cur[,.(label,value=1000*q5_allcause,series="All causes (IHME)")],
   cur[,.(label,value=1000*q5_attributable,series="Caused by malaria (PfPR-ACM model)")])
@@ -69,12 +84,16 @@ p <- ggplot()+
   geom_col(data=long[series!="All causes (IHME)"],aes(value,label,fill=series),width=.45)+
   geom_errorbarh(data=cur,aes(xmin=1000*q5_attributable_lower,xmax=1000*q5_attributable_upper,y=label),height=.3,colour="grey20",linewidth=.4)+
   geom_text(data=cur,aes(x=xmax+3,y=label,label=sprintf("%.0f",1000*q5_allcause)),hjust=0,size=3.5,colour="grey25")+
+  geom_point(data=cur,aes(1000*q5_ihme_malaria,label,shape="Caused by malaria (IHME)"),fill="#F2B134",colour="grey10",size=3,stroke=.5)+
   geom_text(data=cur,aes(x=xmax+15,y=label,label=sprintf("%.0f",1000*q5_attributable)),hjust=0,size=3.5,colour="#1F4E79")+
-  annotate("text",x=c(xmax+3,xmax+15),y=nrow(cur)+1.1,label=c("All\ncauses","Malaria"),hjust=0,vjust=0,size=3.4,lineheight=.9,colour=c("grey25","#1F4E79"))+
-  scale_fill_manual(values=fills,name=NULL)+
-  scale_x_continuous(limits=c(0,xmax+26),breaks=seq(0,xmax,20),expand=c(0,0))+
+  geom_text(data=cur,aes(x=xmax+28,y=label,label=sprintf("%.0f",1000*q5_ihme_malaria)),hjust=0,size=3.5,colour="#8A5A00")+
+  annotate("text",x=c(xmax+3,xmax+15,xmax+28),y=nrow(cur)+1.1,label=c("All\ncauses","Malaria\n(model)","Malaria\n(IHME)"),hjust=0,vjust=0,size=3.4,lineheight=.9,
+    colour=c("grey25","#1F4E79","#8A5A00"))+
+  scale_fill_manual(values=fills,name=NULL,guide=guide_legend(order=1))+
+  scale_shape_manual(values=c(`Caused by malaria (IHME)`=23),name=NULL,guide=guide_legend(order=2))+
+  scale_x_continuous(limits=c(0,xmax+40),breaks=seq(0,xmax,20),expand=c(0,0))+
   rows+
-  labs(x=sprintf("Probability of dying before age 5, %d (per 1,000 live births)",max(st$years)),y=NULL)+
+  labs(x="Number of deaths before 5 years of age per 1,000 livebirths",y=NULL)+
   theme_minimal(base_size=15)+theme(panel.grid.minor=element_blank(),panel.grid.major.y=element_blank(),legend.position="bottom",
     axis.text.y=element_blank(),legend.text=element_text(size=13),plot.margin=margin(30,12,8,4))
 pmax_x <- ceiling(max(cur$pfpr_pct)/10)*10
@@ -86,15 +105,17 @@ pf <- ggplot(cur,aes(pfpr_pct,label))+
   labs(x=bquote(italic(Pf)*PR["2–10"]*","~.(max(st$years))~"(%)"),y=NULL)+
   theme_minimal(base_size=15)+theme(panel.grid.minor=element_blank(),panel.grid.major.y=element_blank(),
     axis.text.y=element_text(size=11.5),plot.margin=margin(30,4,8,8))
-fig <- pf+p+plot_layout(widths=c(1,2.6),guides="collect")&theme(legend.position="bottom")
+fig <- pf+p+plot_layout(widths=c(1,2.8),guides="collect")&theme(legend.position="bottom")
 figure <- file.path(out,"under5_death_probability_2024.png")
-ggsave(figure,fig,width=13,height=12,dpi=260,device=ragg::agg_png,bg="white")
+ggsave(figure,fig,width=13.8,height=12,dpi=260,device=ragg::agg_png,bg="white")
 top <- cur[order(-q5_attributable)][1:3]
-caption <- paste0("Probability of dying before age 5 in ",max(st$years)," per 1,000 live births, by country (",nrow(cur)," sub-Saharan African countries in the burden comparison, ordered by the all-cause probability). ",
+caption <- paste0("Probability of dying before age 5 in ",max(st$years)," per 1,000 live births, by country (",nrow(cur)," sub-Saharan African countries in the burden comparison, ordered by the probability caused by malaria). ",
   sprintf("Left: national MAP PfPR[2–10] in %d, population-weighted (GPW 2020, all ages) over MAP-covered pixels, the prevalence at which each country's malaria-caused probability is evaluated (median %.1f%%, range %.1f–%.1f%%). ",max(st$years),median(cur$pfpr_pct),min(cur$pfpr_pct),max(cur$pfpr_pct)),
-  "Right: all causes, from IHME age-specific all-cause death rates (light bars), and the part caused by malaria under the ", cbh_paper_model_label(), " (dark bars, with 95% intervals); both values are listed on the right. ",
+  "Right: all causes, from IHME age-specific all-cause death rates (light bars), and the part caused by malaria under the ", cbh_paper_model_label(), " (dark bars, with 95% intervals), and the part caused by malaria implied by IHME cause-specific malaria death rates (diamonds, point estimates); all three values are listed on the right. ",
   "Probabilities are period life-table (synthetic-cohort) calculations, 5q0 = 1 − exp(−Σ_g H_g), over the model's seven age bands (<1, 1–5, 6–11, 12–23, 24–35, 36–47 and 48–59 completed months), with band cumulative hazards H_g from the IHME death rates. ",
   "The malaria-caused probability is 5q0 minus the probability with malaria transmission removed, for which each band's hazard is multiplied by the model's hazard ratio for PfPR[2–10] = 0 versus the country's current population-weighted MAP prevalence. ",
+  "The IHME value is 5q0 minus the probability with IHME's malaria death rates removed (late neonatal, post-neonatal and 1–4 years; IHME reports no early-neonatal malaria deaths). ",
+  sprintf("Across the %d countries the model's malaria-caused probability is a median %.2f times IHME's (range %.2f–%.2f). ",nrow(cur),median(cur$q5_attributable/cur$q5_ihme_malaria),min(cur$q5_attributable/cur$q5_ihme_malaria),max(cur$q5_attributable/cur$q5_ihme_malaria)),
   sprintf("Intervals draw each band's log hazard ratio independently; they condition on the IHME rates and the fitted smoothing parameters. Zero prevalence lies below the observed exposure support, so the counterfactual is an extrapolation. Against UN IGME under-five mortality for %d, the IHME-based all-cause probabilities have median ratio %.2f and correlation %.2f; IHME and UN IGME differ markedly for some countries. ",max(st$years),check$median_ratio,check$cor),
   sprintf("The largest malaria-caused probabilities are in %s (%s per 1,000), %s (%s) and %s (%s); the median is %s per 1,000, %.0f%% of the all-cause probability.",
     top$country[1],fmt1(top$q5_attributable[1]),top$country[2],fmt1(top$q5_attributable[2]),top$country[3],fmt1(top$q5_attributable[3]),fmt1(median(cur$q5_attributable)),100*median(cur$share_attributable)))
