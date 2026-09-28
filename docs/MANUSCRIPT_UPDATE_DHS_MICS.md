@@ -6,6 +6,16 @@ of the 22 September version, 333 lines), a short quote of the current text and r
 was checked against the results files listed at the end. The export copies this file to Overleaf as
 `MANUSCRIPT_TEXT_UPDATES.md`.
 
+> **Superseded again for numbers (28 September 2026).** The primary is now `primary_map_regional17_dhsmics_gamma2_v9`:
+> v7 with the regional covariate derivations corrected (Uganda 2016 wealth decoding; MICS vaccination under the DHS
+> tabulation rules; MICS education, facility delivery, water and sanitation coding; Sierra Leone 2013 from its recodes;
+> published-value joins; see `docs/COVARIATE_ANOMALIES_2026-09-27.md`) and Uganda 2016's north and south Buganda regions
+> admitted: 7,621,617 child age-band records, 2,329,388 children, 104,143 deaths, 1,229 survey-regions, 135 surveys
+> (98 DHS, 37 MICS), 37 countries. PfPR hazard ratios moved by at most 0.011 (40%→20%) and 0.008 (20%→0%) against v7;
+> the 2024 burden is 629,136 deaths (v7 620,072; IHME 428,147; UN IGME 440,123). Sensitivities are refitted on v9
+> (subgroups and no-nutrition v4, imputed covariates v10, SMC v3). The v7 audit's replacement text needs these v9 values;
+> the exported `RESULTS_UPDATE.md` gives the current sample and totals.
+>
 > **Superseded for numbers (24 September 2026).** The primary is now `primary_map_regional17_dhsmics_gamma2_v7`: this
 > file's v5 sample plus Liberia's 2007, 2013 and 2019–20 DHS, whose child HIV incidence is now derived from UNAIDS counts
 > (135 surveys: 98 DHS, 37 MICS; 37 countries; 7,607,122 child age-band records; 103,987 deaths). The sensitivities are
