@@ -24,6 +24,11 @@ bounds <- unique(cbh_read_csv(cfg$boundary_regions)[c("svkey","region","regkey")
 crosswalk <- cbh_read_csv("data/derived_cbh/region_crosswalk.csv")
 pub <- cbh_read_csv(file.path(private,"published_indicators.csv"))
 pub$survey <- reg$svkey[match(pub$SurveyId,reg$SurveyId)]
+# Surveys whose published subnational rows are unusable; national rows are kept
+# and regional values come from 17_recode_replacements.R.
+excl <- cbh_read_csv("R_cbh/covariates/published_survey_exclusions.csv")
+stopifnot(!anyDuplicated(excl$survey),all(excl$survey %in% reg$svkey))
+pub <- pub[!(pub$survey %in% excl$survey & pub$level=="subnational"),,drop=FALSE]
 pub$clean_label <- trimws(gsub("[[:space:]]+"," ",gsub("(^| )(19|20)[0-9]{2}( |$)"," ",
   gsub("\\([^)]*(19|20)[0-9]{2}[^)]*\\)"," ",gsub("^[. ]+","",pub$CharacteristicLabel)))))
 pub$value <- suppressWarnings(as.numeric(pub$Value))
@@ -38,6 +43,7 @@ for(s in unique(pub$survey)) {
   b <- bounds[bounds$svkey==s,,drop=FALSE]
   if(!nrow(b)) next
   labels <- unique(pub$clean_label[pub$survey==s & pub$level=="subnational"])
+  if(!length(labels)) next  # national rows only (published_survey_exclusions.csv)
   x <- cbh_match_regions(labels,b)
   cw <- crosswalk[crosswalk$svkey==s & !is.na(crosswalk$regkey),]
   # Survey-specific recode matches are already reviewed and can resolve labels.
@@ -114,6 +120,16 @@ short[, value:=ifelse(observed_n==observed_n_second & weighted_n==weighted_n_sec
 short[,variable:="short_birth_interval_pct"]
 short[,population:="non_first_births_last_five_years"]
 p <- rbind(p[!grepl("^interval_",variable)],short[,names(p),with=FALSE])
+# Every partial published-region gap must be reviewed; repaired joins must stay joined.
+pubvars <- c("dtp3_pct","measles_pct","facility_delivery_pct","short_birth_interval_pct",
+  "improved_water_pct","improved_sanitation_pct","electricity_pct")
+cbh_published_gap_check(p,bounds,pubvars,file.path(out,"published_partial_gaps.csv"))
+fixed <- c("GA61FL estuaire","GA61FL ogoouemaritime","UG52FL north","ZW52FL harare","ZW62FL harare")
+stopifnot(all(outer(fixed,pubvars,paste) %in% p[is.finite(value),paste(survey,regkey,variable)]))
+# MIS joins publish only the household variables and birth interval.
+fixed_mis <- c("AO62FL mesoendemicunstable","UG5AFL eastcentral","UG5AFL midwestern")
+stopifnot(all(outer(fixed_mis,pubvars[4:7],paste) %in% p[is.finite(value),paste(survey,regkey,variable)]),
+  identical(pubvars[4:7],c("short_birth_interval_pct","improved_water_pct","improved_sanitation_pct","electricity_pct")))
 rec <- fread(file.path(private,"recode_regional.csv"))
 feeding <- fread(file.path(private,"feeding_extraction.csv"))
 national <- pub[pub$level=="national" & pub$IndicatorId=="CN_IYCB_C_EXB",]
@@ -131,6 +147,12 @@ key <- function(d) paste(d$survey,d$regkey,d$variable)
 # Official regional BF where available; otherwise retain validated recode estimate.
 j <- match(key(rec),key(p)); replace <- !is.na(j) & is.finite(p$value[j])
 rec <- rec[!replace]
+# Recode values with DHS definitions for surveys whose published regions are excluded.
+rr <- fread(file.path(private,"recode_replacements.csv"))
+stopifnot(setequal(unique(rr$survey),excl$survey),!anyDuplicated(key(rr)),!any(key(rr) %in% key(rec)),
+  setequal(unique(rr$variable),pubvars),!nrow(p[survey %in% excl$survey]),
+  all(rr$source=="DHS_recode_published_equivalent"),all(is.finite(rr$value)))
+rec <- rbind(rec,rr,fill=TRUE)
 p[,country:=reg$iso3[match(survey,reg$svkey)]]
 regional <- rbindlist(list(rec,p),use.names=TRUE,fill=TRUE)
 # Remove missing published BF duplicates when a recode value is the fallback.
@@ -163,11 +185,14 @@ m <- meta$manifest[meta$manifest$status %in% c("built","cached"),]
 hiv <- cbh_read_csv(cbh_trial_spec()$incidence_panel)
 old_required <- c("death","age_band","pfpr_pct","calendar_year","band_years","survey","country","region",cbh_trial_spec()$covariates)
 miss <- selections <- ages <- vaccines <- imputations <- list()
+# UG7BFL South/North Buganda, admitted by region_overrides.csv (2026-09-28), were
+# not in the previous fitted sample; they enter the eligible-MAP baselines only.
+buganda <- c("UGA:UG7BFL:central1","UGA:UG7BFL:central2")
 for(i in seq_len(nrow(m))) {
   object <- readRDS(file.path(cfg$output_dir,m$file[i]))
   stopifnot(identical(object$signature,m$signature[i]))
   d <- cbh_attach_incidence(object$data,hiv)
-  old <- d$model_ready & complete.cases(d[old_required])
+  old <- d$model_ready & complete.cases(d[old_required]) & !d$region %in% buganda
   for(v in old_required) if(is.numeric(d[[v]])) old <- old & is.finite(d[[v]])
   j <- match(paste(d$survey,d$regkey),paste(wide$survey,wide$regkey))
   for(v in spec$regional) d[[v]] <- wide[[v]][j]
@@ -232,7 +257,8 @@ summary[,missing_records_pct:=100*(1-retained_records/records)]
 stopifnot(summary[baseline=="previous_primary",records]==5885022L,
   summary[baseline=="previous_primary",deaths]==82415L,
   summary[baseline=="previous_primary",children]==1817912L,
-  summary[baseline=="previous_primary",regions]==1015L)
+  summary[baseline=="previous_primary",regions]==1015L,
+  loss[baseline=="eligible_MAP" & region %in% buganda,.N==2L && sum(records)==14495L && sum(deaths)==156L])
 tot <- missing[,lapply(.SD,sum),by=.(baseline,variable),.SDcols=c("records","missing_records","regions","regions_with_any_missing","regions_with_all_missing")]
 tot[,`:=`(missing_records_pct=100*missing_records/records,
   regions_with_any_missing_pct=100*regions_with_any_missing/regions,
@@ -248,7 +274,7 @@ cbh_atomic_csv(rbindlist(ages),file.path(out,"selection_by_survey_age.csv"))
 cbh_atomic_csv(rbindlist(vaccines),file.path(out,"vaccine_source_status.csv"))
 if(settings$unicef_fallback)cbh_atomic_csv(rbindlist(imputations),file.path(out,"imputation_by_survey.csv"))
 paths <- c(file.path(stage_private,"regional_covariates_wide.csv"),
-  file.path(private,c("published_indicators.csv","recode_regional.csv")),
+  file.path(private,c("published_indicators.csv","recode_regional.csv","recode_replacements.csv")),
   if(settings$unicef_fallback)settings$panel,
   "data/derived_cbh/manifest.rds",cbh_trial_spec()$incidence_panel,
   list.files("R_cbh/covariates",full.names=TRUE))

@@ -14,6 +14,10 @@ crosswalk <- cbh_read_csv("data/derived_cbh/region_crosswalk.csv")
 pub <- cbh_read_csv(file.path(private,"nutrition_published.csv"));pub$level <- "subnational"
 # Matching/selection rules copied from the existing audited regional assembler.
 pub$survey <- reg$svkey[match(pub$SurveyId,reg$SurveyId)]
+# All nutrition rows are subnational: excluded surveys use 17_recode_replacements.R.
+excl <- cbh_read_csv("R_cbh/covariates/published_survey_exclusions.csv")
+stopifnot(!anyDuplicated(excl$survey),all(excl$survey %in% reg$svkey))
+pub <- pub[!(pub$survey %in% excl$survey & pub$level=="subnational"),,drop=FALSE]
 pub$clean_label <- trimws(gsub("[[:space:]]+"," ",gsub("(^| )(19|20)[0-9]{2}( |$)"," ",
   gsub("\\([^)]*(19|20)[0-9]{2}[^)]*\\)"," ",gsub("^[. ]+","",pub$CharacteristicLabel)))))
 pub$value <- suppressWarnings(as.numeric(pub$Value))
@@ -28,6 +32,7 @@ for(s in unique(pub$survey)) {
   b <- bounds[bounds$svkey==s,,drop=FALSE]
   if(!nrow(b)) next
   labels <- unique(pub$clean_label[pub$survey==s & pub$level=="subnational"])
+  if(!length(labels)) next  # national rows only (published_survey_exclusions.csv)
   x <- cbh_match_regions(labels,b)
   cw <- crosswalk[crosswalk$svkey==s & !is.na(crosswalk$regkey),]
   # Survey-specific recode matches are already reviewed and can resolve labels.
@@ -94,9 +99,19 @@ for(s in unique(pub$survey)) for(v in names(indicator)) {
   }
 }
 nut <- cbh_bind(selected)
+cbh_published_gap_check(nut,bounds,names(indicator),file.path(out,"published_partial_gaps.csv"))
+fixed <- c("GA61FL estuaire","GA61FL ogoouemaritime","UG52FL north","ZW52FL harare","ZW62FL harare")
+stopifnot(all(outer(fixed,names(indicator),paste) %in% with(nut[is.finite(nut$value),],paste(survey,regkey,variable))))
 cbh_atomic_csv(nut,file.path(out,"nutrition_selected.csv"))
 cbh_atomic_csv(pub[is.na(pub$regkey),c("survey","IndicatorId","CharacteristicLabel","value")],
   file.path(out,"nutrition_unmatched.csv"))
+# Recode replacements (DHS definitions) for excluded surveys; published rows stay in nutrition_selected.csv.
+rr_path <- file.path(cfg$output_dir,"regional_adjustment/recode_replacements_nutrition.csv")
+rr <- cbh_read_csv(rr_path)
+stopifnot(setequal(unique(rr$survey),excl$survey),setequal(unique(rr$variable),names(indicator)),
+  !any(nut$survey %in% excl$survey),identical(names(rr),names(nut)),all(is.finite(rr$value)),
+  all(rr$source=="DHS_recode_published_equivalent"))
+nut <- rbind(nut,rr)
 oldwide <- cbh_read_csv("data/derived_cbh/regional_adjustment/reduced_v3/regional_covariates_wide.csv")
 age <- cbh_read_csv(file.path(private,"first_birth_age.csv"))
 newvars <- c("mean_maternal_age_first_birth","wasting_pct","stunting_pct")
@@ -114,6 +129,13 @@ for(v in c("wasting_pct","stunting_pct")) {
   wide[[v]] <- n$value[match(key(wide),key(n))]
 }
 wide <- cbh_regional_mean_fill(wide,newvars)
+# South/North Buganda (central1/central2) must carry their own recode means, not
+# same-survey fills, i.e. 02/03/11 were rerun after the region override.
+ug_old <- oldwide$survey=="UG7BFL" & oldwide$regkey %in% c("central1","central2")
+ug_new <- wide$survey=="UG7BFL" & wide$regkey %in% c("central1","central2")
+stopifnot(sum(ug_old)==2L,sum(ug_new)==2L,
+  !any(as.logical(unlist(oldwide[ug_old,paste0(c("mean_maternal_education_years","mean_wealth_quintile","urban_pct"),"_regional_mean_imputed")]))),
+  !any(wide$mean_maternal_age_first_birth_regional_mean_imputed[ug_new]))
 cbh_atomic_csv(wide[c("survey","regkey",regional,
   grep("^(mean_maternal_age_first_birth|wasting_pct|stunting_pct)_",names(wide),value=TRUE))],
   file.path(private,"regional_covariates_wide.csv"))
@@ -126,6 +148,9 @@ meta <- readRDS(file.path(cfg$output_dir,"manifest.rds"));stopifnot(meta$complet
 m <- meta$manifest[meta$manifest$status %in% c("built","cached"),]
 hiv_path <- cbh_trial_spec()$incidence_panel; hiv <- cbh_read_csv(hiv_path)
 ledger <- selections <- summaries <- list(); child_counts <- list(); hiv_flags <- list()
+# UG7BFL South/North Buganda (region_overrides.csv, 2026-09-28) are not in the
+# fitted 18-variable sample; they count as newly recovered records.
+buganda <- c("UGA:UG7BFL:central1","UGA:UG7BFL:central2")
 for(i in seq_len(nrow(m))) {
   object <- readRDS(file.path(cfg$output_dir,m$file[i]));stopifnot(identical(object$signature,m$signature[i]))
   d <- cbh_attach_incidence(object$data,hiv)
@@ -139,7 +164,7 @@ for(i in seq_len(nrow(m))) {
   for(v in regional) {values[[v]] <- wide[[v]][j];original[[v]] <- before[[v]][j]}
   valid <- vapply(values[variables],is.finite,logical(nrow(d)))
   oldvalid <- vapply(d[annual],is.finite,logical(nrow(d)))
-  oldkeep <- rowSums(!oldvalid)==0L
+  oldkeep <- rowSums(!oldvalid)==0L & !d$region %in% buganda
   for(v in cbh_regional_spec()$regional)oldkeep <- oldkeep & is.finite(oldwide[[v]][j])
   keep <- rowSums(!valid)==0L
   for(v in variables) {
@@ -161,8 +186,10 @@ for(i in seq_len(nrow(m))) {
   if(i%%20==0)message("Missingness: ",i,"/",nrow(m)," surveys")
 }
 l <- rbindlist(ledger); sel <- rbindlist(selections); cc <- rbindlist(child_counts)
-stopifnot(sum(sel$records)==6357802,nrow(sel)==1113,uniqueN(sel$survey)==120,
-  sum(sel$previous_records)==5680117)
+# Earlier MAP-eligible counts are reproduced outside the admitted Buganda regions.
+bug <- sel$region %in% buganda
+stopifnot(sum(sel$records[!bug])==6357802,sum(!bug)==1113,uniqueN(sel$survey)==120,
+  sum(sel$previous_records)==5680117,sum(bug)==2L,sum(sel$records[bug])==14495)
 summary <- l[,.(records=sum(records),regions=.N,surveys=uniqueN(survey),
   before_missing_records=sum(before_missing),after_missing_records=sum(after_missing),
   before_regions_any_missing=sum(before_missing>0),after_regions_any_missing=sum(after_missing>0),
@@ -197,7 +224,8 @@ labels <- c("Maternal age at first birth","Maternal education (years)","Househol
 summary[,covariate:=labels];cbh_atomic_csv(summary,file.path(out,"covariate_missingness.csv"))
 fmt <- function(x)format(x,big.mark=",",scientific=FALSE,trim=TRUE)
 writeLines(c("# Revised 17-covariate missingness audit","",
-  "Denominator: 6,357,802 MAP-eligible child–age-band records, 1,113 survey-regions, 120 surveys and 36 countries, before complete-case selection. Percentages below are the unweighted share of records lacking their assigned regional/annual predictor, not missing individual responses. Regional missingness counts treat each survey-region once; national annual measures may be missing for only some entry years.","",
+  sprintf("Denominator: %s MAP-eligible child–age-band records, %s survey-regions, %s surveys and %s countries, before complete-case selection. Percentages below are the unweighted share of records lacking their assigned regional/annual predictor, not missing individual responses. Regional missingness counts treat each survey-region once; national annual measures may be missing for only some entry years.",fmt(selection_summary$eligible_records),fmt(selection_summary$eligible_regions),fmt(selection_summary$eligible_surveys),fmt(selection_summary$eligible_countries)),"",
+  "Surveys in `R_cbh/covariates/published_survey_exclusions.csv` (SL61FL) use recode wasting/stunting from `17_recode_replacements.R` with DHS definitions instead of their published regional rows; every other partial published-region gap is listed in `published_partial_gaps.csv` and reviewed in `R_cbh/covariates/published_region_gaps_reviewed.csv`.","",
   "Before filling uses original regional values and observed numeric child HIV incidence. After filling applies the existing HIV posterior estimates, exact survey-year UNICEF DTP3/measles fallback and arithmetic mean of available regions in the same survey. Censored HIV values lack a usable numeric point estimate before filling and are counted separately in hiv_original_value_status.csv. No new HIV model, cross-survey borrowing, national nutrition fallback or mortality refit is performed.","",
   "| Covariate | Records missing before filling | Records missing after filling | Regions entirely missing after filling |",
   "|---|---:|---:|---:|",sprintf("| %s | %.2f%% | %.2f%% | %s |",labels,summary$before_missing_pct,summary$after_missing_pct,fmt(summary$after_regions_all_missing)),"",
@@ -205,12 +233,14 @@ writeLines(c("# Revised 17-covariate missingness audit","",
   sprintf("Against the fitted 18-variable sample (%s records), the new specification excludes %s records and recovers %s. These are availability results; no 17-variable mortality model has been fitted.",fmt(selection_summary$previous_records),fmt(selection_summary$newly_excluded),fmt(selection_summary$newly_recovered)),"",
   "Age at first birth uses v212, valid completed ages 8–49, weighted by v005 among distinct interviewed mothers with a birth in the last 60 months. It is not age at each recent birth. Wasting and stunting use the official WHO-standard DHS indicators CN_NUTS_C_WH2 and CN_NUTS_C_HA2 (below −2 SD, including severe cases). Published regional denominators and reviewed geography rules are preserved; ambiguous or unmatched estimates remain unavailable before the same-survey fallback. Regional nutritional summaries describe measured surviving children at survey, not anthropometry of children who died.","",
   "[CSV table](covariate_missingness.csv) · [Complete-case counts](complete_case_summary.csv) · [Regional missingness](missingness_by_survey_region.csv) · [Regional selection](selection_by_survey_region.csv) · [Nutrition selections](nutrition_selected.csv) · [Unmatched nutrition labels](nutrition_unmatched.csv) · [Maternal summary denominators](first_birth_age_summary.csv)","",
-  "Reproduce: Rscript R_cbh/covariates/11_extract_first_birth_age.R; python3 R_cbh/covariates/12_fetch_nutrition.py; Rscript R_cbh/covariates/13_audit_planned17.R. Public API retrieval is explicit and cached. New audit files are separate from all existing modelling data and results. No TeX files are written."),file.path(out,"README.md"))
+  "Reproduce: Rscript R_cbh/covariates/run.R (includes 17_recode_replacements.R); Rscript R_cbh/covariates/11_extract_first_birth_age.R; python3 R_cbh/covariates/12_fetch_nutrition.py; Rscript R_cbh/covariates/13_audit_planned17.R. Public API retrieval is explicit and cached. New audit files are separate from all existing modelling data and results. No TeX files are written."),file.path(out,"README.md"))
 paths <- c("R_cbh/covariates/11_extract_first_birth_age.R","R_cbh/covariates/12_fetch_nutrition.py",
   "R_cbh/covariates/13_audit_planned17.R","R_cbh/covariates/regional.R",cfg$registry,cfg$boundary_regions,
   file.path(private,c("nutrition_published.csv","nutrition_source_manifest.csv","first_birth_age.csv","first_birth_age_provenance.csv")),
   "data/derived_cbh/regional_adjustment/reduced_v3/regional_covariates_wide.csv",hiv_path,
   "R_cbh/covariates/published_region_aliases.csv","R_cbh/covariates/published_region_overrides.csv",
-  "R_cbh/covariates/published_region_versions.csv",file.path(cfg$output_dir,"manifest.rds"))
+  "R_cbh/covariates/published_region_versions.csv","R_cbh/covariates/published_survey_exclusions.csv",
+  "R_cbh/covariates/published_region_gaps_reviewed.csv","R_cbh/covariates/17_recode_replacements.R",rr_path,
+  file.path(cfg$output_dir,"manifest.rds"))
 cbh_atomic_csv(data.frame(file=paths,md5=vapply(paths,cbh_file_hash,"")),file.path(out,"provenance.csv"))
 print(selection_summary);message("All 17 missingness columns verified; previous audit reproduced for retained variables.")

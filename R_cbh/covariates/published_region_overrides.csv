@@ -6,3 +6,11 @@ GA71FL,Ogooué-Maritime (excluding Port-Gentil),ogoouemaritime,Current 11-region
 BJ51FL,Littoral (Cotonou),littoral,The Littoral department is reported as Cotonou
 BJ61FL,Littoral (Cotonou),littoral,The Littoral department is reported as Cotonou
 BJ71FL,Littoral (Cotonou),littoral,The Littoral department is reported as Cotonou
+GA61FL,Estuaire (excluding Libreville),estuaire,Ten-region survey geography reports Libreville/Port-Gentil separately
+GA61FL,Ogooué-Maritime (excluding Port-Gentil),ogoouemaritime,Ten-region survey geography reports Libreville/Port-Gentil separately
+ZW52FL,Harare Chitungwiza,harare,Harare province is published as Harare Chitungwiza
+ZW62FL,Harare Chitungwiza,harare,Harare province is published as Harare Chitungwiza
+UG52FL,Northern,north,Nine-region geography: published sub-region Northern (excluding West Nile) is recode region North
+AO62FL,Instable mesoendemic,mesoendemicunstable,Instável = unstable: recode 'mesoendemica instavel' has the published household (1994) and non-first-birth (1660) denominators
+UG5AFL,East Central (AIS/MIS),eastcentral,Source qualifier only: recode 'east central' has the published household (441) and non-first-birth (413) denominators
+UG5AFL,Western,midwestern,Ten-region MIS 2009 geography: recode 'mid western' has the published '..Western' household (450) and non-first-birth (355) denominators

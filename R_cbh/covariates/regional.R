@@ -15,7 +15,13 @@ cbh_regional_recode <- function(br, survey, rule, geo) {
   first_mother <- recent & mother_ok & !duplicated(ifelse(recent & mother_ok,mother,NA_character_))
   sex <- cbh_decode_category(column("b4"),c("male","female"),c(1,2))
   urban <- cbh_decode_category(column("v025"),c("urban","rural"),c(1,2))
-  wealth <- cbh_decode_category(column("v190"),c("poorest","poorer","middle","richer","richest"),1:5)
+  # v190 is the national combined index. DHS-7 recodes may label quintiles
+  # lowest/second/middle/fourth/highest (UG7BFL); an unknown label set must stop,
+  # not become missing responses.
+  wealth <- cbh_decode_category(column("v190"),c("poorest","poorer","middle","richer","richest",
+    "lowest","second","fourth","highest"),c(1:5,1,2,4,5))
+  raw <- cbh_label(column("v190")); undecoded <- !is.na(raw) & nzchar(trimws(raw)) & is.na(wealth)
+  if(any(undecoded)) stop(survey$svkey,": undecoded v190 labels: ",paste(unique(raw[undecoded]),collapse=", "))
   order <- num("bord"); order[!is.finite(order) | order<1 | order>40] <- NA_real_
   mage <- (num("b3")-num("v011"))/12; mage[!is.finite(mage)|mage<10|mage>55] <- NA_real_
   educ <- num("v133"); educ[!is.finite(educ)|educ<0|educ>30] <- NA_real_
@@ -139,4 +145,30 @@ cbh_regional_mean_fill <- function(wide,variables=cbh_regional_spec()$regional) 
     stopifnot(identical(wide[[v]][!missing],original[!missing]),all(!fill | donor_n>0L))
   }
   wide
+}
+
+# Published regional estimates: a boundary region with no finite value while other
+# regions of the same survey have one is a join failure unless reviewed in
+# published_region_gaps_reviewed.csv (survey,regkey,variables,reason; variables
+# ';'-separated). Stale reviews also stop. Writes the gap list (no values) to path.
+cbh_published_gap_check <- function(p,bounds,variables,path,
+  reviewed="R_cbh/covariates/published_region_gaps_reviewed.csv") {
+  p <- as.data.table(p)[variable %in% variables]
+  have <- unique(p[is.finite(value),.(survey,variable)])
+  grid <- merge(have,unique(as.data.table(bounds)[,.(survey=svkey,regkey)]),by="survey",allow.cartesian=TRUE)
+  gap <- grid[!p[is.finite(value)],on=.(survey,regkey,variable)]
+  setorder(gap,survey,regkey,variable)
+  cbh_atomic_csv(gap,path)
+  done <- cbh_read_csv(reviewed); done[] <- lapply(done,as.character)
+  cbh_unique(done,c("survey","regkey","variables","reason"),"Reviewed published gaps")
+  cbh_unique(done,c("survey","regkey"),"Reviewed published gaps")
+  rv <- as.data.table(done)[,.(variable=trimws(unlist(strsplit(variables,";",fixed=TRUE)))),by=.(survey,regkey)]
+  known <- c(cbh_regional_spec(TRUE)$regional,"wasting_pct","stunting_pct")
+  if(any(!rv$variable %in% known)) stop("Unknown variable in ",reviewed,": ",paste(setdiff(rv$variable,known),collapse=", "))
+  k <- function(d) paste(d$survey,d$regkey,d$variable)
+  bad <- gap[!k(gap) %in% k(rv)]
+  if(nrow(bad)) {print(bad); stop("Unreviewed partial published-region gap; review it and add it to ",reviewed)}
+  stale <- rv[variable %in% variables & !k(rv) %in% k(gap)]
+  if(nrow(stale)) {print(stale); stop("Reviewed published-region gap is no longer a gap; update ",reviewed)}
+  invisible(gap)
 }
