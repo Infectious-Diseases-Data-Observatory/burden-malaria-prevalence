@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-# Comparison of the primary without the survey-region random intercept with the v7 primary:
+# Comparison of the primary without the survey-region random intercept with the primary (written for v7, now v9):
 # PfPR hazard ratios, attributable fractions, curves, random-effect EDFs, AIC and the national
 # burden 2000-2024 against IHME and UN IGME. Reads saved fits and aggregates only.
 source("R_cbh/load_pipeline.R")
@@ -8,7 +8,9 @@ source("R_cbh/sensitivity/no_region_re/settings.R")
 suppressPackageStartupMessages({library(data.table); library(mgcv); library(ggplot2)})
 st <- cbh_no_region_settings(); base <- st$base; out <- st$out
 ages <- cbh_config()$age_bands$age_band
-labels <- c(v7 = "Primary v7 (survey, country and region random intercepts)", no_region = "Without the region random intercept")
+# Display label of the fitted primary (these reports were first written against v7).
+pv <- sub(".*_(v[0-9]+)$", "\\1", base$id)
+labels <- c(v7 = sprintf("Primary %s (survey, country and region random intercepts)", pv), no_region = "Without the region random intercept")
 comp <- list(v7 = readRDS(file.path(base$private, "pfpr_components.rds")), no_region = readRDS(file.path(st$private, "pfpr_components.rds")))
 names(comp$v7) <- ages[as.integer(sub(".*_", "", names(comp$v7)))]; names(comp$no_region) <- ages[as.integer(sub(".*_", "", names(comp$no_region)))]
 stopifnot(setequal(names(comp$v7), ages), setequal(names(comp$no_region), ages))
@@ -112,7 +114,7 @@ lines <- c("# Primary model without the survey-region random intercept", "",
   "AIC is mgcv's conditional AIC; fREML is the restricted likelihood criterion minimised by bam (lower is better for both). Both models share the fixed effects, so the fREML difference compares the random-effect structures directly.", "",
   "![PfPR curves](sfig_pfpr_splines_no_region_re.png)", "",
   "Files: `comparison_contrasts.csv`, `attributable_fraction_by_age.csv`, `comparison_pfpr_curves.csv`, `comparison_edf.csv`, `comparison_fit_statistics.csv`, `year_totals.csv`, `country_year_burden.csv`. Reproduce: `Rscript R_cbh/sensitivity/no_region_re/01_fit.R` then `02_report.R`.")
-writeLines(lines, file.path(out, "REPORT.md"))
+writeLines(gsub("\\bv7\\b", pv, lines), file.path(out, "REPORT.md"))
 inputs <- c(file.path(base$private, "pfpr_components.rds"), file.path(st$private, "pfpr_components.rds"), file.path(base$out, c("smooth_summaries.csv", "fit_manifest.csv",
   "annual_comparison/country_age_estimates_2000_2024.csv", "annual_comparison/country_estimates_2000_2024.csv")), file.path(out, c("smooth_summaries.csv", "fit_diagnostics.csv")),
   "R_cbh/sensitivity/no_region_re/02_report.R")

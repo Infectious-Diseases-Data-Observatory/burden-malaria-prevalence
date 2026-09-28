@@ -152,7 +152,7 @@ lines <- c("# Tensor product of PfPR and calendar time (no region random interce
   "Calendar time is evaluated at mid-year, held at December 2023 (the last observed band entry and last calendar-year knot) for 2024.", "",
   "| Model | 2000 | 2015 | 2024 | 2024 × IHME | Rate change 2000–2015 | Rate change 2015–2024 |", "|---|---:|---:|---:|---:|---:|---:|",
   sapply(c("v7", "separate", "tensor", "ti"), function(m) sprintf("| %s | %s | %s | %s | %.2f | %.1f%% | %.1f%% |",
-    c(v7 = "Primary v7 (with region RE, child-level)", separate = "Separate splines", tensor = "Tensor product", ti = "Separate + ti (see note)")[m], f0(tot(m, 2000)), f0(tot(m, 2015)), f0(tot(m, 2024)), yt[model == m & year == 2024]$ratio_ihme, pc(m, 2000, 2015), pc(m, 2015, 2024))), "",
+    c(v7 = sprintf("Primary %s (with region RE, child-level)", sub(".*_(v[0-9]+)$", "\\1", base$id)), separate = "Separate splines", tensor = "Tensor product", ti = "Separate + ti (see note)")[m], f0(tot(m, 2000)), f0(tot(m, 2015)), f0(tot(m, 2024)), yt[model == m & year == 2024]$ratio_ihme, pc(m, 2000, 2015), pc(m, 2015, 2024))), "",
   sprintf("2024 under other evaluation times: tensor %s at mid-2024 (extrapolated) and %s with the mid-2019 hazard ratios; ti %s and %s.",
     f0(alt[model == "tensor" & evaluated_at == 2024.5]$deaths_2024), f0(alt[model == "tensor" & evaluated_at == 2019.5]$deaths_2024),
     f0(alt[model == "ti" & evaluated_at == 2024.5]$deaths_2024), f0(alt[model == "ti" & evaluated_at == 2019.5]$deaths_2024)), "",
@@ -161,7 +161,7 @@ lines <- c("# Tensor product of PfPR and calendar time (no region random interce
   "PfPR curves of the tensor product by year of band entry (relative to PfPR 20% in the same year, 95% intervals conditional on smoothing parameters; solid within the period's children-weighted 2.5th–97.5th PfPR percentiles, dashed outside), with the time-constant separate-spline curve for reference:", "", "![PfPR curves by year](sfig_pfpr_curves_by_year_tensor.png)", "", "![HR 20% to 0% by year](sfig_hr_20_to_0_by_year.png)", "",
   "Figure 3 analogue with the tensor-product values (countries, Nigerian states and the annual series, with the primary shown for reference): [figure3/fig3_burden_comparison_tensor.png](figure3/fig3_burden_comparison_tensor.png), caption in [figure3/CAPTION.md](figure3/CAPTION.md) (`04_figure3.R`).", "",
   "Files: `model_fit_comparison.csv`, `hazard_ratios_by_year.csv`, `hr_20_to_0_by_year.csv`, `pfpr_curves_by_year.csv`, `pfpr_support_by_period.csv`, `year_totals.csv`, `deaths_by_age_2024.csv`, `burden_2024_alternative_times.csv`, `fit_diagnostics.csv`, `smooth_summaries.csv`, `model_formulas.txt`. Reproduce: `Rscript R_cbh/sensitivity/tensor_pfpr_year/01_fit.R`, then `03_checks.R`, `02_report.R` and `04_figure3.R`.")
-writeLines(lines, file.path(out, "REPORT.md"))
+writeLines(gsub("\\bv7\\b", sub(".*_(v[0-9]+)$", "\\1", base$id), lines), file.path(out, "REPORT.md"))
 inputs <- c(file.path(private, "pfpr_year_components.rds"), file.path(out, c("fit_diagnostics.csv", "smooth_summaries.csv", "pfpr_support_by_period.csv")),
   if (has_checks) file.path(out, c("interaction_checks.csv", "binned_pfpr_by_period.csv", "support_pfpr_class_by_period.csv")),
   file.path(base$out, c("annual_comparison/country_age_estimates_2000_2024.csv", "annual_comparison/country_estimates_2000_2024.csv")), "R_cbh/sensitivity/tensor_pfpr_year/02_report.R")

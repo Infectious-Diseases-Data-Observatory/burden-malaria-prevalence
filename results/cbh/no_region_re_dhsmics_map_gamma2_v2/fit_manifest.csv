@@ -1,0 +1,8 @@
+"fit_id","age_band","model_file","md5","selected_version","prepared_data_md5"
+"no_region_age_1","<1","data/derived_cbh/models/no_region_re_dhsmics_map_gamma2_v2/no_region_age_1.rds","5141521fed3ec417de98aaf5c4477f7f","original","95d6093b80b86d64e4bb84e7ecf0d846"
+"no_region_age_2","1-5","data/derived_cbh/models/no_region_re_dhsmics_map_gamma2_v2/no_region_age_2.rds","6ee5cfb82f4066ed16f8d46d75f48b42","original","95d6093b80b86d64e4bb84e7ecf0d846"
+"no_region_age_3","6-11","data/derived_cbh/models/no_region_re_dhsmics_map_gamma2_v2/no_region_age_3.rds","0f3408b699c0de08577b6b27060a6131","original","95d6093b80b86d64e4bb84e7ecf0d846"
+"no_region_age_4","12-23","data/derived_cbh/models/no_region_re_dhsmics_map_gamma2_v2/no_region_age_4.rds","ed88e8b5c6f971171c378d31e1373285","original","95d6093b80b86d64e4bb84e7ecf0d846"
+"no_region_age_5","24-35","data/derived_cbh/models/no_region_re_dhsmics_map_gamma2_v2/no_region_age_5.rds","e42b1e54658f8c1f3f4bd9d46c3842b6","original","95d6093b80b86d64e4bb84e7ecf0d846"
+"no_region_age_6","36-47","data/derived_cbh/models/no_region_re_dhsmics_map_gamma2_v2/no_region_age_6.rds","a7a9c83d46f87199a737266a1fc1cb5f","original","95d6093b80b86d64e4bb84e7ecf0d846"
+"no_region_age_7","48-59","data/derived_cbh/models/no_region_re_dhsmics_map_gamma2_v2/no_region_age_7.rds","dd1d17fa96afd38b4063b6bb59c2beba","original","95d6093b80b86d64e4bb84e7ecf0d846"

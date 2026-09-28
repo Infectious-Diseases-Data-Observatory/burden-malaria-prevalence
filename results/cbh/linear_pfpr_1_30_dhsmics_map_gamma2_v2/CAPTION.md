@@ -1,0 +1,3 @@
+# Supplementary figure: linear PfPR on 1–30%
+
+Association between PfPR[2–10] and all-cause mortality by age band when the log hazard is forced to be linear in PfPR over 1–30%. Red: linear term fitted to the 4,760,130 child-band records (54,680 deaths) with PfPR 1–30% at band entry; blue: penalised cubic spline fitted to the same records; black: the primary spline fitted to all 7,621,617 records. At 1–23 months the spline is penalised to a straight line and lies under the linear fit. Log hazard ratios relative to PfPR 20% with 95% intervals conditional on the smoothing parameters; shading marks PfPR outside 1–30%. All models share the primary adjustment (17 covariates, calendar-year spline, survey, country and survey-region random intercepts).

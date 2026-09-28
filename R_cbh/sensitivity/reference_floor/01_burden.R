@@ -4,7 +4,7 @@
 # the observed exposure support (2.5th percentile about 1.7%). Here the counterfactual is
 # min(P, floor): deaths attributable to transmission above the floor. floor = 1% is the
 # headline; 0% (the primary, reproduced exactly), 2% and 5% are shown alongside.
-# Uses the saved v7 spline components and annual inputs only: no refitting, no downloads.
+# Uses the saved primary spline components and annual inputs only: no refitting, no downloads.
 # Deaths below the floor are not estimated here (the WMR case-fatality method would need a
 # case source); the report states this.
 source("R_cbh/load_pipeline.R")
@@ -110,7 +110,7 @@ af0 <- dcast(af[floor_pct == 0], age_band ~ pfpr_pct, value.var = "attributable_
 by1 <- byage[floor_pct == headline][match(ages, age_band)]; by0 <- byage[floor_pct == 0][match(ages, age_band)]
 q1 <- q5[floor_pct == headline]; q0 <- q5[floor_pct == 0]
 lines <- c("# Burden with a 1% prevalence floor", "",
-  "Counterfactual PfPR[2-10] = min(current, 1%) instead of 0: deaths attributable to *P. falciparum* transmission above 1%, from the saved v7 spline components (no refitting). The 0% floor reproduces the primary exactly. Point estimates only, as in the primary. Deaths occurring at or below 1% transmission are not included; see the note at the end.", "",
+  "Counterfactual PfPR[2-10] = min(current, 1%) instead of 0: deaths attributable to *P. falciparum* transmission above 1%, from the saved primary spline components (no refitting). The 0% floor reproduces the primary exactly. Point estimates only, as in the primary. Deaths occurring at or below 1% transmission are not included; see the note at the end.", "",
   "## Totals across the 42 countries (primary 0% floor in brackets)", "",
   "| Year | PfPR-ACM, 1% floor (0%) | IHME | UN IGME | Rate per 1,000 child-years, 1% floor (0%) | IHME rate | UN IGME rate |", "|---|---:|---:|---:|---:|---:|---:|",
   tab(2000), tab(2015), tab(2024), "",

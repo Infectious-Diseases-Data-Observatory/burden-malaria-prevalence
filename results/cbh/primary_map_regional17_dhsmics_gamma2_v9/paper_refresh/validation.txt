@@ -1,0 +1,10 @@
+PASS: 4 main figures (Figure 3 combining country, state and annual comparisons; Figure 4 under-5 death probability) reference the revised primary version and match their hashes.
+PASS: seven fitted model hashes, convergence flags and gamma=2 verified.
+PASS: flow, 135 DHS and MICS surveys (98 DHS, 37 MICS), 1229 survey-regions, child-band/death/child totals reconcile.
+PASS: DHS part matches the v7 DHS part plus Uganda 2016's north and south Buganda regions (5,588,463 records, 77,587 deaths, 934 survey-regions); 37 MICS surveys add 2,033,154 records and 26,556 deaths.
+PASS: subgroup and no-nutrition refits (subgroups_dhsmics_map_gamma2_v4, nutrition_adjustment_dhsmics_map_gamma2_v4) were fitted to this primary's prepared data (md5 95d6093b80b86d64e4bb84e7ecf0d846).
+PASS: age-table death percentages sum to 100.0%; both contrasts retained; no fit-time column.
+PASS: 25 annual totals use 42 countries and reproduce the three national-burden years.
+PASS: 2024 country table reproduces all three Figure 3 panel C totals for 2024; 37 state totals reconcile.
+PASS: producer/data provenance hashes match; table source has valid row terminators.
+PASS: no TeX files created in this result version.

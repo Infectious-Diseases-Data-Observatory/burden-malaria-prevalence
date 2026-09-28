@@ -10,7 +10,9 @@ suppressPackageStartupMessages({library(data.table); library(mgcv); library(ggpl
 base <- cbh_primary_settings("regional_mics")
 id <- "linear_pfpr_1_30_dhsmics_map_gamma2_v2"; out <- file.path("results/cbh", id); private <- file.path("data/derived_cbh/models", id)
 ages <- cbh_config()$age_bands$age_band
-labels <- c(v7 = "Primary v7 spline, all records", spline = "Spline, PfPR 1–30% records", linear = "Linear, PfPR 1–30% records")
+# Display label of the fitted primary (these reports were first written against v7).
+pv <- sub(".*_(v[0-9]+)$", "\\1", base$id)
+labels <- c(v7 = sprintf("Primary %s spline, all records", pv), spline = "Spline, PfPR 1–30% records", linear = "Linear, PfPR 1–30% records")
 v7 <- readRDS(file.path(base$private, "pfpr_components.rds")); names(v7) <- ages[as.integer(sub(".*_", "", names(v7)))]
 new <- readRDS(file.path(private, "pfpr_components.rds"))
 pick <- function(m) { z <- new[vapply(new, function(x) x$model == m, NA)]; setNames(z, vapply(z, `[[`, "", "age_band")) }
@@ -151,7 +153,7 @@ lines <- c("# Linear PfPR[2–10] on the 1–30% range", "",
   byage[, sprintf("| %s | %s | %s |", age_band, f0(v7), f0(linear))], "",
   "![PfPR curves](sfig_pfpr_linear_1_30.png)", "",
   "Files: `selection_by_age.csv`, `fit_diagnostics.csv`, `fit_comparison.csv`, `smooth_summaries.csv`, `contrasts.csv`, `slope_per_10_points.csv`, `attributable_fraction_by_age.csv`, `pfpr_curves.csv`, `year_totals.csv`, `country_year_burden.csv`, `burden_2024_by_national_pfpr.csv`, `CAPTION.md`. Reproduce: `Rscript R_cbh/sensitivity/linear_pfpr_1_30/01_fit.R` then `02_report.R`.")
-writeLines(lines, file.path(out, "REPORT.md"))
+writeLines(gsub("\\bv7\\b", pv, lines), file.path(out, "REPORT.md"))
 inputs <- c(file.path(base$private, "pfpr_components.rds"), file.path(private, "pfpr_components.rds"),
   file.path(base$out, c("annual_comparison/country_age_estimates_2000_2024.csv", "annual_comparison/country_estimates_2000_2024.csv")),
   file.path(out, c("fit_diagnostics.csv", "smooth_summaries.csv", "selection_by_age.csv")), "R_cbh/sensitivity/linear_pfpr_1_30/02_report.R")
