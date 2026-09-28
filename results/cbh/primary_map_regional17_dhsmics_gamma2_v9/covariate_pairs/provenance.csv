@@ -1,0 +1,8 @@
+"file","md5"
+"data/derived_cbh/models/primary_map_regional17_dhsmics_gamma2_v9/complete_case_dataset.rds","95d6093b80b86d64e4bb84e7ecf0d846"
+"results/cbh/primary_map_regional17_dhsmics_gamma2_v9/fit_manifest.csv","4d522d7f2afe2d4a213527cfe6229be4"
+"results/cbh/primary_map_regional17_dhsmics_gamma2_v9/covariate_scaling.csv","9dac91dddb529d2e7108813c9bca725a"
+"results/cbh/primary_map_regional17_dhsmics_gamma2_v9/survey_map/survey_coverage.csv","22b692e4b9d748fe3f98c2a584f2728e"
+"data/derived_mics/regional_covariates_wide_mics.csv","6b67386e2a05be4c8bf9a8285d1676f2"
+"R_cbh/reporting/17_covariate_pairs.R","0c8377d878ac2c8f2f180a7e10eae261"
+"R_cbh/primary/specification.R","e5ba4dd07aebdd9cc9061e69591da017"

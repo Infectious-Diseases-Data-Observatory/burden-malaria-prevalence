@@ -1,0 +1,7 @@
+Secondary subnational burden, Nigerian states, 2024
+Model: seven separate primary MAP gamma=2 age-band fits (series map_full), verified against fit_manifest.csv.
+Exposure: population-weighted MAP PfPR2-10 by state for 2024 from data/pfpr_admin1_ng_cd_2024.csv (inherited extraction; see national_reconciliation_2024.csv note).
+Baseline: IHME all-cause under-5 deaths and rates by GBD age group and state, both sexes, 2024 (data/external/nigeria_states).
+Contrast: HR_zero_vs_current = exp(f_g(0) - f_g(P_state)); attributable = IHME deaths x (1 - HR). Annual person-time held fixed.
+Intervals: conditional on fitted smoothing parameters, exposure and the fixed HIV imputation; state totals are point estimates and band limits are not summed.
+Comparator: IHME under-5 malaria death rate per 100,000 by state, 2024, applied to the all-cause implied person-years.

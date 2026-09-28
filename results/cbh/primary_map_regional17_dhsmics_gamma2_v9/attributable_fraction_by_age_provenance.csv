@@ -1,0 +1,7 @@
+"file","md5"
+"data/derived_cbh/models/primary_map_regional17_dhsmics_gamma2_v9/pfpr_components.rds","9517757101fcc0050c13bba039449b6a"
+"results/cbh/primary_map_regional17_dhsmics_gamma2_v9/fit_manifest.csv","4d522d7f2afe2d4a213527cfe6229be4"
+"results/cbh/primary_map_regional17_dhsmics_gamma2_v9/fit_diagnostics.csv","22f13fdbc0245f6835a83b20c6740386"
+"results/cbh/primary_map_regional17_dhsmics_gamma2_v9/pfpr_curves.csv","1c658513f3994bcd8b64176c58b01a8e"
+"R_cbh/reporting/06_attributable_fraction_by_age.R","37175afc5be3404416db49fd9f392438"
+"R_cbh/primary/settings.R","33dcae33945b1a8abc953474e0ee01c2"
