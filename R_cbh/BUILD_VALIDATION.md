@@ -2,6 +2,8 @@
 
 Completed locally on 7 September 2026 using the declared input snapshots and R 4.6.0. Only aggregate checks are reported here; generated child records remain under ignored `data/derived_cbh/`. No mortality model was fitted.
 
+**Rebuilt 28 September 2026** for the v9 primary, after `config/region_overrides.csv` matched the south and north Buganda regions of Uganda 2016 (UG7BFL) to boundary regions Central 1 and Central 2. The two regions' 14,495 eligible rows (156 deaths) now have region and PfPR (UG7BFL: 89,861 model-ready rows, 887 deaths). Only the counts of rows with region and PfPR, rows without PfPR and unmatched labels changed; the 7 September values are given in brackets. Counts are from `data/derived_cbh/survey_manifest.csv`, `variable_missingness.csv`, `eligibility_flow.csv` and `region_crosswalk.csv`.
+
 ## Coverage
 
 | Quantity | Count |
@@ -11,9 +13,9 @@ Completed locally on 7 September 2026 using the declared input snapshots and R 4
 | Surveys unavailable because MAP geography is missing | 4 |
 | Processing failures | 0 |
 | Eligible child-band rows, before exposure/covariate filtering | 6,431,363 |
-| Rows with region and PfPR (`model_ready`) | 6,357,802 |
+| Rows with region and PfPR (`model_ready`) | 6,372,297 (6,357,802) |
 | Death outcomes in eligible rows | 91,849 |
-| Death outcomes in rows with region and PfPR | 90,938 |
+| Death outcomes in rows with region and PfPR | 91,094 (90,938) |
 
 The four unavailable surveys are Lesotho LS41FL, LS61FL, LS71FL and LS81FL. Their child histories were not expanded in this build, so the table's eligible counts describe the other 120 surveys only.
 
@@ -31,7 +33,7 @@ The five-year entry window contained 994,618 additional band opportunities that 
 
 ## Missingness requiring analysis decisions
 
-There are 73,561 eligible rows without PfPR (1.14%). Of these, 71,904 have unmatched regional geography; the remaining 1,657 lack an exact annual match. The crosswalk contains 28 unmatched source labels across 17 surveys. See `region_crosswalk.csv` and [config/README.md](config/README.md) for unresolved historical groupings, abbreviated/exclusion labels and missing MAP regions. They remain in the audit shards and are excluded by the default reader. Missing exposure is not assigned zero.
+There are 59,066 eligible rows without PfPR (0.92%; 73,561 or 1.14% on 7 September). Of these, 57,409 have unmatched regional geography (71,904); the remaining 1,657 lack an exact annual match (unchanged). The crosswalk contains 26 unmatched source labels across 16 surveys (28 across 17; the two UG7BFL Buganda labels are resolved). See `region_crosswalk.csv` and [config/README.md](config/README.md) for unresolved historical groupings, abbreviated/exclusion labels and missing MAP regions. They remain in the audit shards and are excluded by the default reader. Missing exposure is not assigned zero.
 
 Selected candidate-covariate missingness across all eligible rows, before choosing X:
 
