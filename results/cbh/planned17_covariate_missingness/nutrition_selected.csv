@@ -656,7 +656,9 @@
 "GA61FL","woleuntem","stunting_pct",18.3,,307,,214,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
 "GA61FL","ogoouelolo","stunting_pct",27,,351,,128,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
 "GA61FL","hautogooue","stunting_pct",21.9,,483,,444,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
+"GA61FL","estuaire","stunting_pct",14.7,,345,,372,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
 "GA61FL","moyenogooue","stunting_pct",25.8,,332,,130,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
+"GA61FL","ogoouemaritime","stunting_pct",23.8,,273,,48,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
 "GA61FL","ngounie","stunting_pct",27.2,,463,,268,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
 "GA61FL","nyanga","stunting_pct",22.2,,364,,107,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
 "GA61FL","libervilleportgentil","wasting_pct",2.9,,530,,1976,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
@@ -664,7 +666,9 @@
 "GA61FL","woleuntem","wasting_pct",1.5,,307,,214,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
 "GA61FL","ogoouelolo","wasting_pct",5,,351,,128,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
 "GA61FL","hautogooue","wasting_pct",4.3,,483,,444,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
+"GA61FL","estuaire","wasting_pct",2.8,,345,,372,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
 "GA61FL","moyenogooue","wasting_pct",4.1,,332,,130,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
+"GA61FL","ogoouemaritime","wasting_pct",3.3,,273,,48,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
 "GA61FL","ngounie","wasting_pct",3.5,,463,,268,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
 "GA61FL","nyanga","wasting_pct",4.9,,364,,107,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
 "GA71FL","liberville","stunting_pct",9.4,,612,,2620,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
@@ -1529,12 +1533,6 @@
 "SL51FL","northern","wasting_pct",8.6,,948,,1328,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
 "SL51FL","southern","wasting_pct",14.5,,590,,546,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
 "SL51FL","western","wasting_pct",9.9,,431,,383,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
-"SL61FL","eastern","stunting_pct",42.2,,1002,,1183,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
-"SL61FL","northern","stunting_pct",37,,3124,,3111,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
-"SL61FL","southern","stunting_pct",35,,922,,801,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
-"SL61FL","eastern","wasting_pct",6.7,,1002,,1183,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
-"SL61FL","northern","wasting_pct",10.4,,3124,,3111,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
-"SL61FL","southern","wasting_pct",8.7,,922,,801,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
 "SL7AFL","eastern","stunting_pct",25.3,,1074,,1122,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
 "SL7AFL","northern","stunting_pct",30.9,,1194,,1072,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
 "SL7AFL","northwestern","stunting_pct",32.4,,772,,726,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
@@ -1849,6 +1847,7 @@
 "UG52FL","eastcentral","stunting_pct",38.3,,646,,617,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
 "UG52FL","eastern","stunting_pct",36.2,,652,,821,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
 "UG52FL","westnile","stunting_pct",37.7,,472,,312,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
+"UG52FL","north","stunting_pct",40,,1044,,794,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
 "UG52FL","western","stunting_pct",37.6,,600,,843,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
 "UG52FL","southwest","stunting_pct",49.6,,576,,683,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
 "UG52FL","central1","wasting_pct",4.5,,494,,546,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
@@ -1857,6 +1856,7 @@
 "UG52FL","eastcentral","wasting_pct",9.9,,646,,617,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
 "UG52FL","eastern","wasting_pct",3.4,,652,,821,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
 "UG52FL","westnile","wasting_pct",8.3,,472,,312,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
+"UG52FL","north","wasting_pct",6.5,,1044,,794,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
 "UG52FL","western","wasting_pct",5,,600,,843,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
 "UG52FL","southwest","wasting_pct",9,,576,,683,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
 "UG61FL","central1","stunting_pct",32.5,,376,,485,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
@@ -2025,6 +2025,7 @@
 "ZW52FL","matabelelandsouth","stunting_pct",33.1,,416,,274,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
 "ZW52FL","midlands","stunting_pct",32.4,,698,,760,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
 "ZW52FL","masvingo","stunting_pct",33.4,,607,,651,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
+"ZW52FL","harare","stunting_pct",27.5,,487,,489,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
 "ZW52FL","bulawayo","stunting_pct",29.1,,259,,207,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
 "ZW52FL","manicaland","wasting_pct",5.6,,641,,644,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
 "ZW52FL","mashonalandcentral","wasting_pct",6.8,,501,,577,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
@@ -2034,6 +2035,7 @@
 "ZW52FL","matabelelandsouth","wasting_pct",4.5,,416,,274,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
 "ZW52FL","midlands","wasting_pct",5.1,,698,,760,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
 "ZW52FL","masvingo","wasting_pct",6.8,,607,,651,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
+"ZW52FL","harare","wasting_pct",4.3,,487,,489,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
 "ZW52FL","bulawayo","wasting_pct",6.8,,259,,207,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
 "ZW62FL","manicaland","stunting_pct",33.7,,646,,786,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
 "ZW62FL","mashonalandcentral","stunting_pct",32.9,,564,,576,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
@@ -2043,6 +2045,7 @@
 "ZW62FL","matabelelandsouth","stunting_pct",30.7,,560,,304,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
 "ZW62FL","midlands","stunting_pct",32.7,,605,,715,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
 "ZW62FL","masvingo","stunting_pct",30.7,,539,,618,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
+"ZW62FL","harare","stunting_pct",29,,442,,601,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
 "ZW62FL","bulawayo","stunting_pct",26.2,,317,,191,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
 "ZW62FL","manicaland","wasting_pct",2.1,,646,,786,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
 "ZW62FL","mashonalandcentral","wasting_pct",3.8,,564,,576,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
@@ -2052,6 +2055,7 @@
 "ZW62FL","matabelelandsouth","wasting_pct",4.1,,560,,304,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
 "ZW62FL","midlands","wasting_pct",2.7,,605,,715,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
 "ZW62FL","masvingo","wasting_pct",2.1,,539,,618,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
+"ZW62FL","harare","wasting_pct",2.8,,442,,601,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
 "ZW62FL","bulawayo","wasting_pct",2.3,,317,,191,"CN_NUTS_C_WH2","DHS_published_regional",FALSE,FALSE
 "ZW72FL","manicaland","stunting_pct",30.3,,747,,997,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE
 "ZW72FL","mashonalandcentral","stunting_pct",28.7,,653,,597,"CN_NUTS_C_HA2","DHS_published_regional",FALSE,FALSE

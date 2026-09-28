@@ -1,6 +1,9 @@
 PASS: birth-weighted and distinct-mother-weighted summaries
 PASS: youngest eligible infant denominator and unknown feeding responses
 PASS: regional means retain records with missing individual values
+PASS: DHS-7 wealth labels decode and unknown v190 labels stop; wealth observed for >=95% of eligible mothers in every survey with v190
+PASS: UG7BFL South/North Buganda matched to Central 1/Central 2 with all UG7BFL child-band rows model-ready
+PASS: excluded published surveys (SL61FL) use recode replacements with DHS definitions
 PASS: available-region means exclude NAs, preserve values, leave all-missing surveys unresolved and reject duplicate regions
 PASS: current 18 regional/annual confounders include urban proportion and exclude Hib3/PCV/rotavirus/exclusive breastfeeding; historical 22-variable specification remains reproducible
 PASS: selection and region-loss accounting

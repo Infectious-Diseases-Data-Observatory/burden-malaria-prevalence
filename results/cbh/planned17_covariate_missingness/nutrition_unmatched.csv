@@ -132,14 +132,10 @@
 "GA61FL","CN_NUTS_C_HA2","North",25.5
 "GA61FL","CN_NUTS_C_HA2","East",23
 "GA61FL","CN_NUTS_C_HA2","West",18.1
-"GA61FL","CN_NUTS_C_HA2","..Estuaire (excluding Libreville)",14.7
-"GA61FL","CN_NUTS_C_HA2","..Ogooué-Maritime (excluding Port-Gentil)",23.8
 "GA61FL","CN_NUTS_C_HA2","South",25.8
 "GA61FL","CN_NUTS_C_WH2","North",2.7
 "GA61FL","CN_NUTS_C_WH2","East",4.5
 "GA61FL","CN_NUTS_C_WH2","West",3.2
-"GA61FL","CN_NUTS_C_WH2","..Estuaire (excluding Libreville)",2.8
-"GA61FL","CN_NUTS_C_WH2","..Ogooué-Maritime (excluding Port-Gentil)",3.3
 "GA61FL","CN_NUTS_C_WH2","South",3.9
 "GA71FL","CN_NUTS_C_HA2","Libreville,Port-Gentil",9.8
 "GA71FL","CN_NUTS_C_HA2","North",21.1
@@ -931,36 +927,6 @@
 "RW41FL","CN_NUTS_C_WH2","Cyangugu/Ginkongoro",6.8
 "RW41FL","CN_NUTS_C_WH2","Kibuye/Ruhengeri/Gisenyi",9.4
 "RW41FL","CN_NUTS_C_WH2","Kigali Prefecture 1992",6.6
-"SL61FL","CN_NUTS_C_HA2","..Kailahun",40.7
-"SL61FL","CN_NUTS_C_HA2","..Kenema",39.4
-"SL61FL","CN_NUTS_C_HA2","..Kono",51.6
-"SL61FL","CN_NUTS_C_HA2","..Koinadugu (before 2017)",38.3
-"SL61FL","CN_NUTS_C_HA2","....Koinadugu",40.1
-"SL61FL","CN_NUTS_C_HA2","....Falaba",36.8
-"SL61FL","CN_NUTS_C_HA2","..Bombali",28.2
-"SL61FL","CN_NUTS_C_HA2","..Tonkolili",36.3
-"SL61FL","CN_NUTS_C_HA2","North Western",40.9
-"SL61FL","CN_NUTS_C_HA2","..Kambia",45
-"SL61FL","CN_NUTS_C_HA2","..Karene",41.4
-"SL61FL","CN_NUTS_C_HA2","..Port Loko",33.6
-"SL61FL","CN_NUTS_C_HA2","..Bo",27.6
-"SL61FL","CN_NUTS_C_HA2","..Bonthe",29.4
-"SL61FL","CN_NUTS_C_HA2","..Pujehun",46.4
-"SL61FL","CN_NUTS_C_WH2","..Kailahun",6.2
-"SL61FL","CN_NUTS_C_WH2","..Kenema",8.1
-"SL61FL","CN_NUTS_C_WH2","..Kono",4.3
-"SL61FL","CN_NUTS_C_WH2","..Koinadugu (before 2017)",8.3
-"SL61FL","CN_NUTS_C_WH2","....Koinadugu",10.5
-"SL61FL","CN_NUTS_C_WH2","....Falaba",6.5
-"SL61FL","CN_NUTS_C_WH2","..Bombali",25.5
-"SL61FL","CN_NUTS_C_WH2","..Tonkolili",7.6
-"SL61FL","CN_NUTS_C_WH2","North Western",9.4
-"SL61FL","CN_NUTS_C_WH2","..Kambia",11.9
-"SL61FL","CN_NUTS_C_WH2","..Karene",3
-"SL61FL","CN_NUTS_C_WH2","..Port Loko",9.8
-"SL61FL","CN_NUTS_C_WH2","..Bo",8.2
-"SL61FL","CN_NUTS_C_WH2","..Bonthe",9
-"SL61FL","CN_NUTS_C_WH2","..Pujehun",8.5
 "SL7AFL","CN_NUTS_C_HA2","..Kailahun",29.1
 "SL7AFL","CN_NUTS_C_HA2","..Kenema",24.5
 "SL7AFL","CN_NUTS_C_HA2","..Kono",23.3
@@ -1223,8 +1189,6 @@
 "TZ82FL","CN_NUTS_C_WH2","..Mjini Magharibi",10.5
 "TZ82FL","CN_NUTS_C_WH2","..Kaskazini Pemba",7.7
 "TZ82FL","CN_NUTS_C_WH2","..Kusini Pemba",3.3
-"UG52FL","CN_NUTS_C_HA2","..Northern",40
-"UG52FL","CN_NUTS_C_WH2","..Northern",6.5
 "UG7BFL","CN_NUTS_C_HA2","..East Central",29
 "UG7BFL","CN_NUTS_C_HA2","..Eastern",23.4
 "UG7BFL","CN_NUTS_C_HA2","..Northern",26.3
@@ -1247,7 +1211,3 @@
 "ZA71FL","CN_NUTS_C_WH2","Western  Cape",1.7
 "ZA71FL","CN_NUTS_C_WH2","Eastern Cape",1.5
 "ZA71FL","CN_NUTS_C_WH2","Northern Cape",2.1
-"ZW52FL","CN_NUTS_C_HA2","Harare Chitungwiza",27.5
-"ZW52FL","CN_NUTS_C_WH2","Harare Chitungwiza",4.3
-"ZW62FL","CN_NUTS_C_HA2","Harare Chitungwiza",29
-"ZW62FL","CN_NUTS_C_WH2","Harare Chitungwiza",2.8

@@ -4,7 +4,7 @@ The primary adjustment set now has 18 scalar predictors. Hib3, PCV, rotavirus an
 
 DTP3 and measles remain, with the existing exact country/survey-year UNICEF fallback. Other missing regional summaries use the arithmetic mean of finite available regions in the same survey, independently for each variable. Donor regions are counted once, observed values are preserved, and whole-survey gaps remain missing. The four retained national annual predictors (HIV incidence, GDP, health expenditure and political stability) retain their band-entry-year assignment and existing HIV imputation. No pre-introduction vaccine zero-fill is needed by the reduced specification.
 
-Starting from **6,357,802 MAP-eligible child-band records in 120 surveys**, complete cases retain **5,680,117 records, 1,755,838 children, 78,634 deaths, 973 survey-regions, 100 surveys and 34 countries**. Remaining missingness is **10.66%** of starting records. These are data-availability counts; the revised mortality models have not been fitted.
+Starting from **6,372,297 MAP-eligible child-band records in 120 surveys**, complete cases retain **5,694,612 records, 1,760,096 children, 78,790 deaths, 975 survey-regions, 100 surveys and 34 countries**. Remaining missingness is **10.63%** of starting records. These are data-availability counts; the revised mortality models have not been fitted.
 
 ## Missingness in the previous fitted sample
 
@@ -36,8 +36,8 @@ Denominator: 5,885,022 child-band records and 1,015 survey-regions. Percentages 
 | Starting sample | Records | Survey-regions | Regions lost | Regions lost (%) |
 |---|---:|---:|---:|---:|
 | previous_primary | 5,885,022 | 1,015 | 42 | 4.1% |
-| eligible_MAP | 6,357,802 | 1,113 | 140 | 12.6% |
-| regional_baseline | 5,948,359 | 1,015 | 42 | 4.1% |
+| eligible_MAP | 6,372,297 | 1,115 | 140 | 12.6% |
+| regional_baseline | 5,962,854 | 1,017 | 42 | 4.1% |
 
 Missingness across covariates overlaps. A survey-region is lost only if it retains zero records; partially affected regions are listed separately in the ledger. Source extraction tables can retain excluded variables for historical reproduction, but those variables are absent from the current wide overlay, formula and selection rule.
 

@@ -1,6 +1,6 @@
 # Disjoint attribution of covariate exclusions
 
-Of 6,357,802 MAP-eligible child-band records, 783,834 were excluded because at least one of the 17 covariates was unavailable after the HIV, UNICEF vaccination and available-region substitutions. Each excluded record is attributed here to the first missing covariate in the order: national annual series (child HIV incidence, health expenditure, political stability, GDP), then regional summaries (wasting, stunting, facility delivery, electricity, wealth, vaccination, birth interval, water, sanitation, urban, education, age at first birth). Counts are therefore disjoint and sum to the total; a record missing several covariates is counted once, under the first.
+Of 6,372,297 MAP-eligible child-band records, 783,834 were excluded because at least one of the 17 covariates was unavailable after the HIV, UNICEF vaccination and available-region substitutions. Each excluded record is attributed here to the first missing covariate in the order: national annual series (child HIV incidence, health expenditure, political stability, GDP), then regional summaries (wasting, stunting, facility delivery, electricity, wealth, vaccination, birth interval, water, sanitation, urban, education, age at first birth). Counts are therefore disjoint and sum to the total; a record missing several covariates is counted once, under the first.
 
 | Attributed reason | Records | Deaths | Surveys affected | Share of excluded |
 |---|---:|---:|---:|---:|
