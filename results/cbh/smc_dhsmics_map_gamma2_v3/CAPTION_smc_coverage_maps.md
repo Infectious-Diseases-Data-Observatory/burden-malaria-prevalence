@@ -1,0 +1,5 @@
+# SMC coverage maps, 2015–2022
+
+Admin-1 units of the 8 SMC countries in the cluster file (BFA, CIV, CMR, MLI, NER, NGA, TCD, UGA): Nigerian states and Burkina Faso regions (Snow admin-1 shapefile); other countries' DHS survey regions (the DHS boundary file whose regions best match the units). Confirmed units (district- or region-level campaign records: Nigeria, Burkina Faso, Uganda, Cameroon North and Far North) are shaded by the share of the unit's DHS/MIS clusters, pooled over survey rounds, located in areas where SMC had started by that year. Units whose switch-on is known only from national-scope records (Mali, Niger, Chad, Côte d'Ivoire, the rest of Cameroon) are shown in amber from the national programme's first year: the country ran SMC, but which areas were covered is not recorded. Grey areas inside the SMC countries have no cluster in the file. Other countries with SMC programmes (for example Senegal, The Gambia, Guinea, Ghana) are not in the file and are not shaded. Cluster shares approximate, but are not, population coverage; campaign cycles and eligible ages are not shown.
+
+Units without a polygon: 17 (listed in smc_units_without_map_polygon.csv).

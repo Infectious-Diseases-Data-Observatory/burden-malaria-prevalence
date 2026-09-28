@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
-# Comparison of the DHS+MICS imputed-covariate sensitivity (v8) with the complete-case
-# DHS+MICS primary (v7): overlaid PfPR splines (supplementary manuscript figure), hazard
+# Comparison of the DHS+MICS imputed-covariate sensitivity (v10; v8 on v7) with the complete-case
+# DHS+MICS primary (v9): overlaid PfPR splines (supplementary manuscript figure), hazard
 # ratio contrasts, sample sizes, caption and report. Reads saved aggregates only; no
 # refitting, no TeX writes.
 source("R_cbh/load_pipeline.R")
@@ -9,6 +9,7 @@ source("R_cbh/primary/settings.R")
 source("R_cbh/sensitivity/imputation_dhsmics/settings.R")
 library(ggplot2)
 st <- cbh_imputed_dhsmics_settings(); out <- st$out; ref <- st$reference
+vr <- sub(".*_(v[0-9]+)$", "\\1", basename(ref)); vi <- sub(".*_(v[0-9]+)$", "\\1", st$id)   # version labels, e.g. v9 and v10
 mi_dir <- file.path(out, "multiple_imputation")
 inputs <- c(file.path(ref, c("pfpr_curves.csv", "fit_diagnostics.csv", "prepared_sample_dhs_mics.csv")),
   file.path(out, c("pfpr_curves.csv", "fit_diagnostics.csv", "prepared_sample.csv", "imputation_record_counts.csv",
@@ -99,16 +100,16 @@ w0 <- wide_hr("20% to 0%")
 tab <- function(w, title) c(paste0("### PfPR ", title), "", paste0("| Age (months) | ", labels[["reference"]], " | ", labels[["imputed"]], " |"), "|---|---:|---:|",
   sprintf("| %s | %s | %s |", ages, fmt_ci(w$r), fmt_ci(w$i)), "")
 tot <- counts[counts$programme == "All", ]
-lines <- c("# Imputed-covariate sensitivity on the DHS and MICS sample (v8)", "",
+lines <- c(sprintf("# Imputed-covariate sensitivity on the DHS and MICS sample (%s)", vi), "",
   sprintf("The 17-covariate primary specification refitted after imputing every remaining covariate gap, so that all MAP-eligible DHS and MICS records are retained. Reference: the complete-case DHS+MICS primary `%s`. This version: `%s`. The DHS-only counterpart is `primary_map_regional17_imputed_gamma2_v4`.", basename(ref), st$id), "",
-  "## Sample", "", "| Measure | Complete case (v7) | Imputed (v8) |", "|---|---:|---:|",
+  "## Sample", "", sprintf("| Measure | Complete case (%s) | Imputed (%s) |", vr, vi), "|---|---:|---:|",
   sprintf("| %s | %s | %s |", sample$measure, fmt(sample$previous), fmt(sample$revised)), "",
   sprintf("Records whose values were imputed (point version): regional covariates %s; political stability %s (2001 interpolation and South Sudan before independence); GDP %s (South Sudan 2005–2007); health expenditure %s; child HIV incidence without an adolescent series %s. The extended HIV panel also changes censored and imputed incidence values in other countries, so the comparison mixes the covariate imputation with that panel change, as for v4 against v3.",
     fmt(tot$regional_any_model_imputed), fmt(tot$political_stability_imputed), fmt(tot$gdp_imputed), fmt(tot$health_expenditure_imputed), fmt(tot$hiv_no_adolescent_series)), "",
   "## Figure", "", "![Complete-case versus imputed PfPR curves](sfig_pfpr_splines_imputed_covariates.png)", "", caption[3], "",
   "## Hazard ratios", "", "Pointwise conditional 95% intervals; the samples are nested, so compare descriptively.", "",
   tab(w40, "40% to 20%"), tab(w0, "20% to 0%"),
-  sprintf("Largest absolute change in the 40%% to 20%% hazard ratio between v7 and v8: %.3f. Multiple-imputation check (%d imputed datasets, fixed smoothing parameters, Rubin's rules): largest change from the point fit %.3f; between-imputation share of variance at most %s ([report](multiple_imputation/REPORT.md)).", delta, M, mi_delta, fmt_share), "",
+  sprintf("Largest absolute change in the 40%% to 20%% hazard ratio between the complete-case and imputed fits: %.3f. Multiple-imputation check (%d imputed datasets, fixed smoothing parameters, Rubin's rules): largest change from the point fit %.3f; between-imputation share of variance at most %s ([report](multiple_imputation/REPORT.md)).", delta, M, mi_delta, fmt_share), "",
   "## Fits", "",
   sprintf("All seven fits converged with full rank, finite coefficients and covariances and positive smoothing-Hessian eigenvalues; %d used the tighter-tolerance restart. Fitted model columns were checked against the input rows. Total fitting time %.0f minutes.",
     sum(grepl("strict", cbh_read_csv(file.path(out, "fit_manifest.csv"))$selected_version)), sum(nd$elapsed_seconds) / 60), "",
@@ -117,5 +118,5 @@ lines <- c("# Imputed-covariate sensitivity on the DHS and MICS sample (v8)", ""
 writeLines(lines, file.path(out, "REPORT.md"))
 prov <- c(inputs, figure)
 cbh_atomic_csv(data.frame(file = prov, md5 = vapply(prov, cbh_file_hash, ""), row.names = NULL), file.path(out, "sfig_provenance.csv"))
-print(data.frame(age = ages, v7 = w40$r$hazard_ratio, v8 = w40$i$hazard_ratio, pooled = mi40$pooled_hr))
-cat(sprintf("Largest 40%%->20%% change v7->v8: %.3f; MI vs point: %.3f; max between share %s\n", delta, mi_delta, fmt_share))
+print(data.frame(age = ages, complete_case = w40$r$hazard_ratio, imputed = w40$i$hazard_ratio, pooled = mi40$pooled_hr))
+cat(sprintf("Largest 40%%->20%% change complete case -> imputed: %.3f; MI vs point: %.3f; max between share %s\n", delta, mi_delta, fmt_share))

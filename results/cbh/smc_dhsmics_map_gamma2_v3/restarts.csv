@@ -1,0 +1,2 @@
+"fit_id","variant","original_min_hessian","strict_min_hessian","original_max_gradient","strict_max_gradient","original_fREML","strict_fREML","strict_selected"
+"no_smc_age_7","no_smc",-2.36015582075711e-05,3.94718512770876e-05,5.66197067188714e-05,6.36071319190023e-05,4506.77355493345,4506.76185456276,TRUE

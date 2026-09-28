@@ -1,0 +1,14 @@
+"variable","survey_regions","imputed_regions","imputed_regions_dhs","imputed_regions_mics","imputed_surveys","observed_mean","imputed_mean","between_imputation_sd"
+"mean_maternal_age_first_birth",1470,0,0,0,0,19.3567213665335,,
+"mean_maternal_education_years",1470,0,0,0,0,4.4274108239038,,
+"mean_wealth_quintile",1470,66,66,0,9,2.82701764502337,2.94429113482309,0.270097981404359
+"urban_pct",1470,0,0,0,0,32.3834453915281,,
+"dtp3_pct",1470,0,0,0,0,68.7215892844176,,
+"measles_pct",1470,0,0,0,0,70.374141499369,,
+"facility_delivery_pct",1470,36,36,0,5,62.0314041740585,53.4971499402717,9.70701859477348
+"short_birth_interval_pct",1470,0,0,0,0,18.9280472251479,,
+"improved_water_pct",1470,0,0,0,0,67.7700172347801,,
+"improved_sanitation_pct",1470,0,0,0,0,40.9391642031202,,
+"electricity_pct",1470,12,12,0,1,33.8224956114694,19.3739091757288,7.01090352170543
+"wasting_pct",1470,111,93,18,14,7.62319288527133,9.04740694435056,3.35940789055572
+"stunting_pct",1470,89,71,18,13,33.2457309134302,36.7558217274801,6.45723619278434

@@ -1,0 +1,8 @@
+"fit_id","rows","deaths","countries","surveys","regions","converged","iterations","rank","coefficients","finite_coefficients","finite_covariance","elapsed_seconds","min_smoothing_hessian_eigenvalue","max_smoothing_gradient","warnings","age_band","gamma","input_verified"
+"imputed_dhsmics_age_1",1558784,45162,40,166,1459,TRUE,12,1692,1692,TRUE,TRUE,158.614,0.450403417070395,0.000111241747461577,"openMP not available: single threaded computation only","<1",2,TRUE
+"imputed_dhsmics_age_2",1397416,19132,40,166,1450,TRUE,15,1683,1683,TRUE,TRUE,167.411,0.0573630279886206,2.97176072194816e-07,"openMP not available: single threaded computation only","1-5",2,TRUE
+"imputed_dhsmics_age_3",1344090,17260,40,165,1448,TRUE,13,1680,1680,TRUE,TRUE,3244.919,0.674592074425291,4.54848123538909e-05,"openMP not available: single threaded computation only","6-11",2,TRUE
+"imputed_dhsmics_age_4",1163505,15876,40,162,1418,TRUE,14,1647,1647,TRUE,TRUE,106.042,0.611219475550735,1.62321259580267e-05,"openMP not available: single threaded computation only","12-23",2,TRUE
+"imputed_dhsmics_age_5",1151332,13594,40,162,1418,TRUE,18,1647,1647,TRUE,TRUE,126.185,0.0705505615473068,7.15195492517751e-06,"openMP not available: single threaded computation only","24-35",2,TRUE
+"imputed_dhsmics_age_6",1112590,7970,40,162,1418,TRUE,19,1647,1647,TRUE,TRUE,126.404,0.000130243062752593,0.000150356713718731,"openMP not available: single threaded computation only","36-47",2,TRUE
+"imputed_dhsmics_age_7",1084741,4581,40,162,1418,TRUE,22,1647,1647,TRUE,TRUE,139.373,0.000165453469496174,0.000207700341524086,"openMP not available: single threaded computation only","48-59",2,TRUE

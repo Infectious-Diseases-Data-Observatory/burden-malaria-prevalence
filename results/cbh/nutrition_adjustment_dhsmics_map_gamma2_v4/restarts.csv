@@ -1,0 +1,3 @@
+"fit_id","original_min_hessian","strict_min_hessian","original_fREML","strict_fREML","strict_selected"
+"nonutrition_age_2",-0.000331660235153723,0.434434358326447,41757.8320741256,41757.5889485608,TRUE
+"nonutrition_age_7",-5.1551064801712e-05,8.93264833975222e-05,12421.0938300788,12417.7662209933,TRUE
