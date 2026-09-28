@@ -26,7 +26,7 @@ vacc_extra <- list(
   MC_MOZ2008 = list(dtp_times = "IM16", meas_card = "IM6D"),                       # labels name no vaccine ('Quantas vezes recebeu?', 'Sarampo')
   MC_ZWE2009 = list(dtp_card = "im5cd"))                                           # DPT-HepB3 row of the MICS3 card (as MWI2006 IM5CD); im4cd is 99 when the dose is recorded there
 # Surveys outside v7 exempt from the 98% explicit-evidence check (their children with no information still count as 0).
-vacc_evidence_exempt <- c(MC_SSD2010 = "immunization module asked only when the reported age AG2Y is 0-1: blank for 20% of children 12-23 months by CAGE",
+vacc_evidence_exempt <- c(MC_SSD2010 = "after excluding children outside the AG2Y 0-1 module filter, about 6% of the rest have a blank module (non-response, counted as 0)",
                           MC_SOM2011NE = "item nonresponse: 'ever vaccinated' / 'ever DPT' coded 9 (missing) for about 5% of children 12-23 months")
 # Primary and total secondary durations (years) by country, used to turn level + grade into years.
 dur <- fread(text = "iso3,P,S
@@ -330,9 +330,12 @@ for (i in seq_len(nrow(setup))) {
     dtp <- ifelse(card %in% 1 | rec3 %in% 1, 1, ifelse(card %in% 0 | rec3 %in% 0 | anyx %in% c(2, 8) | ever_no | dk(c(dtp_ever, rcu)), 0, NA))
     ms <- ifelse(mc %in% 1 | mr %in% 1, 1, ifelse(mc %in% 0 | mr %in% 0 | anyx %in% c(2, 8) | dk(mrecu), 0, NA))
     if (length(d3) && any(cdone & seen & is.na(dtp))) stop(s$svkey, ": children with a seen card but no DTP3 value")
-    # MC_COD2017: card kept at the health centre (IM5 = 5), recall skipped: excluded, not counted as unvaccinated (user decision).
+    # Children the questionnaire did not ask are excluded, not counted as unvaccinated (user decisions): MC_COD2017 card kept at the
+    # health centre (IM5 = 5, recall skipped); MC_SSD2010 children outside the module's age filter (reported age AG2Y not 0-1)
+    # with an entirely blank module (28 September 2026; filter-failing children who were asked keep their answers).
     k5 <- if (s$svkey == "MC_COD2017") { if (!isTRUE(grepl("centre de sant", labs_of(sx)["5"]))) stop("MC_COD2017: IM5 code 5 is not 'card kept at the health centre'")
-      num(sx) %in% 5 } else rep(FALSE, nrow(ch))
+      num(sx) %in% 5 } else if (s$svkey == "MC_SSD2010") { imv <- grep("^IM", names(ch), value = TRUE, ignore.case = TRUE)
+      !(num(getv(ch, "AG2Y")) %in% 0:1) & rowSums(vapply(imv, function(v) !is.na(num(getv(ch, v))), logical(nrow(ch)))) == 0 } else rep(FALSE, nrow(ch))
     okc <- cdone & !is.na(creg) & !k5 & is.finite(cw) & cw > 0
     shd <- sum(cw[okc & is.finite(dtp)]) / sum(cw[okc]); shm <- sum(cw[okc & is.finite(ms)]) / sum(cw[okc])
     if (min(shd, shm) < 0.98 && !s$svkey %in% names(vacc_evidence_exempt)) stop(sprintf("%s: explicit vaccination evidence for only %.1f%% (DTP3) / %.1f%% (measles) of children 12-23 months", s$svkey, 100 * shd, 100 * shm))
