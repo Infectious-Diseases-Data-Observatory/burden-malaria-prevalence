@@ -1,0 +1,256 @@
+svkey,code,label,offset,base,cap,na_add,flat
+MC_BEN2014,0,maternelle,,,,,0
+MC_BEN2014,1,primaire,0,0,6,3,
+MC_BEN2014,2,secondaire 1 (1er cycle),6,0,4,2,
+MC_BEN2014,3,secondaire 2 (2e cycle ou lycée),10,0,3,1.5,
+MC_BEN2014,4,supérieur,13,0,6,2,
+MC_BEN2021,0,pre-primaire,,,,,0
+MC_BEN2021,1,primaire,0,0,6,3,
+MC_BEN2021,2,secondaire 1,6,0,4,2,
+MC_BEN2021,3,secondaire 2,10,0,3,1.5,
+MC_BEN2021,4,superieur,13,0,6,2,
+MC_CAF2018,0,prescolaire,,,,,0
+MC_CAF2018,1,fondamental 1,0,0,6,3,
+MC_CAF2018,2,fondamental 2,6,0,4,2,
+MC_CAF2018,3,secondaire general,10,0,3,1.5,
+MC_CAF2018,4,secondaire technique,10,0,3,1.5,
+MC_CAF2018,5,superieur,13,0,6,2,
+MC_CIV2016,0,,,,,,0
+MC_CIV2016,1,primaire,0,0,6,3,
+MC_CIV2016,2,secondaire,6,0,7,3.5,
+MC_CIV2016,3,supérieur,13,0,6,2,
+MC_CMR2014,0,,,,,,0
+MC_CMR2014,1,primaire,0,10,6,3,
+MC_CMR2014,2,secondaire,6,20,7,3.5,
+MC_CMR2014,3,supérieur,13,30,6,2,
+MC_COD2017,0,preprimaire,,,,,0
+MC_COD2017,10,primaire,0,0,6,3,
+MC_COD2017,20,secondaire 1,6,0,2,1,
+MC_COD2017,31,secondaire 2 gener,8,0,4,2,
+MC_COD2017,32,secondaire 2 techn,8,0,4,2,
+MC_COD2017,33,secondaire 2 profes,8,0,4,2,
+MC_COD2017,34,secondaire 2 art&m,8,0,4,2,
+MC_COD2017,40,superieur,12,0,6,2,
+MC_COG2014,0,maternelle,,,,,0
+MC_COG2014,1,primaire,0,0,6,3,
+MC_COG2014,2,secondaire 1 (collège),6,0,4,2,
+MC_COG2014,3,secondaire 2 (lycée),10,0,3,1.5,
+MC_COG2014,4,supérieur,13,0,6,2,
+MC_COM2022,0,pre primaire,,,,,0
+MC_COM2022,1,primaire,0,0,6,3,
+MC_COM2022,2,secondaire 1,6,0,4,2,
+MC_COM2022,3,secondaire 2,10,0,3,1.5,
+MC_COM2022,4,superieur,13,0,6,2,
+MC_GHA2011,0,preschool,,,,,0
+MC_GHA2011,1,primary,0,0,6,3,
+MC_GHA2011,2,middle/ jss/ jhs,6,0,4,1.5,
+MC_GHA2011,3,secondary/sss/shs,9,0,4,1.5,
+MC_GHA2011,4,voc/ comm/tech,,,,,9
+MC_GHA2011,5,post secondary (nursing/ teacher training),12,0,3,2,
+MC_GHA2011,6,tertiary,12,0,6,2,
+MC_GHA2017,0,early childhood education,,,,,0
+MC_GHA2017,1,primary,0,0,6,3,
+MC_GHA2017,2,middle,6,0,4,2,
+MC_GHA2017,3,jss/jhs,6,0,3,1.5,
+MC_GHA2017,4,secondary/tech/voc/comm,6,0,7,3.5,
+MC_GHA2017,5,sss/shs/tech/voc/comm,9,0,4,1.5,
+MC_GHA2017,6,higher,12,0,6,2,
+MC_GIN2016,0,,,,,,0
+MC_GIN2016,1,primaire,0,0,6,3,
+MC_GIN2016,2,collège,6,6,4,2,
+MC_GIN2016,3,lycée,10,10,3,1.5,
+MC_GIN2016,4,prof/t - a,,,,,9.5
+MC_GIN2016,5,prof/t - b,,,,,9.5
+MC_GIN2016,6,supérieur,13,0,6,2,
+MC_GMB2018,0,ece,,,,,0
+MC_GMB2018,1,primary,0,0,6,3,
+MC_GMB2018,2,lower secondary,6,0,3,1.5,
+MC_GMB2018,3,upper secondary,9,0,3,1.5,
+MC_GMB2018,4,vocational,,,,,9
+MC_GMB2018,5,diploma,12,0,6,2,
+MC_GMB2018,6,higher,12,0,6,2,
+MC_GNB2014,0,pré-escolar,,,,,0
+MC_GNB2014,1,primario,0,0,6,3,
+MC_GNB2014,2,secundário,6,0,6,3,
+MC_GNB2014,3,superior,12,0,6,2,
+MC_GNB2014,4,tecnico-profissional,,,,,9
+MC_GNB2018,0,,,,,,0
+MC_GNB2018,1,básico,0,0,9,4.5,
+MC_GNB2018,2,secundário,9,0,3,1.5,
+MC_GNB2018,3,técnico-profissional,,,,,9
+MC_GNB2018,4,técnico médio,9,0,3,1.5,
+MC_GNB2018,5,superior,12,0,6,2,
+MC_KEN2009MOM,1,primary,0,0,8,4,
+MC_KEN2009MOM,2,secondary,8,0,4,2,
+MC_KEN2009MOM,3,higher,12,0,6,2,
+MC_KEN2009MOM,6,,,,,,0
+MC_KEN2011NYA,0,preschool/kindergarten,,,,,0
+MC_KEN2011NYA,1,primary,0,0,8,4,
+MC_KEN2011NYA,2,post-primary\vocational,,,,,10
+MC_KEN2011NYA,3,secondary,8,0,4,2,
+MC_KEN2011NYA,4,higher,12,0,6,2,
+MC_KEN2011NYA,6,,,,,,0
+MC_KEN2013BUN,0,preschool,,,,,0
+MC_KEN2013BUN,1,primary,0,0,8,4,
+MC_KEN2013BUN,2,secondary,8,0,4,2,
+MC_KEN2013BUN,3,higher,12,0,6,2,
+MC_KEN2013KAK,0,,,,,,0
+MC_KEN2013KAK,1,primary,0,0,8,4,
+MC_KEN2013KAK,2,secondary,8,0,4,2,
+MC_KEN2013KAK,3,higher,12,0,6,2,
+MC_KEN2013TUR,0,,,,,,0
+MC_KEN2013TUR,1,primary,0,0,8,4,
+MC_KEN2013TUR,2,secondary,8,0,4,2,
+MC_KEN2013TUR,3,higher,12,0,6,2,
+MC_MDG2018,0,pre-scolaire,,,,,0
+MC_MDG2018,1,primaire,0,0,5,2.5,
+MC_MDG2018,2,secondaire 1,5,0,4,2,
+MC_MDG2018,3,secondaire 2,9,0,3,1.5,
+MC_MDG2018,4,superieur,12,0,6,2,
+MC_MLI2015,0,maternelle,,,,,0
+MC_MLI2015,1,primaire/fondamental 1,0,0,6,3,
+MC_MLI2015,2,fondamental 2,6,0,3,1.5,
+MC_MLI2015,3,lycée enseignement général,9,0,3,1.5,
+MC_MLI2015,4,enseignement technique professionnel,,,,,9
+MC_MLI2015,5,supérieur,12,0,6,2,
+MC_MOZ2008,0,alfabetização,,,,,0
+MC_MOZ2008,1,primário ep1,0,0,7,2.5,
+MC_MOZ2008,2,primário ep2,5,5,2,1,
+MC_MOZ2008,3,secundário esg1,7,7,3,1.5,
+MC_MOZ2008,4,secundário esg2,10,10,2,1,
+MC_MOZ2008,5,técnico elementar,,,,,9.5
+MC_MOZ2008,6,técnico básico,,,,,9.5
+MC_MOZ2008,7,técnico médio,,,,,9.5
+MC_MOZ2008,8,formação de professores,,,,,9.5
+MC_MOZ2008,9,superior,12,0,6,2,
+MC_MOZ2008,10,curriculo não padronizado,,,,,0
+MC_MRT2011,1,primaire,0,0,6,3,
+MC_MRT2011,2,secondaire general,6,0,7,3.5,
+MC_MRT2011,3,secondaire technique/professionnelle,,,,,9.5
+MC_MRT2011,4,superieur,13,0,6,2,
+MC_MRT2011,5,coranique,,,,,0
+MC_MRT2011,6,mahadra,,,,,0
+MC_MRT2015,0,maternelle,,,,,0
+MC_MRT2015,1,primaire,0,0,6,3,
+MC_MRT2015,2,secondaire,6,0,7,3.5,
+MC_MRT2015,3,supérieur,13,0,6,2,
+MC_MRT2015,4,coranique,,,,,0
+MC_MRT2015,5,mahadra,,,,,0
+MC_MWI2006,1,primary,0,0,8,4,
+MC_MWI2006,2,secondary,8,0,4,2,
+MC_MWI2006,3,higher,12,0,6,2,
+MC_MWI2006,6,non-standard curriculum,,,,,0
+MC_MWI2013,0,preschool,,,,,0
+MC_MWI2013,1,primary,0,0,8,4,
+MC_MWI2013,2,secondary,8,0,4,2,
+MC_MWI2013,3,higher,12,0,6,2,
+MC_MWI2019,0,ece,,,,,0
+MC_MWI2019,1,primary,0,0,8,4,
+MC_MWI2019,2,lower secondary,8,0,2,1,
+MC_MWI2019,3,upper secondary,10,2,2,1,
+MC_MWI2019,4,higher,12,0,6,2,
+MC_MWI2019,5,vocational training,,,,,10
+MC_NGA2016,0,,,,,,0
+MC_NGA2016,1,primary,0,10,6,3,
+MC_NGA2016,2,secondary / secondary-technical,6,20,6,3,
+MC_NGA2016,3,higher,12,30,6,2,
+MC_NGA2016,4,non-formal,,,,,0
+MC_SEN2015DKR,0,maternelle,,,,,0
+MC_SEN2015DKR,1,primaire,0,0,6,3,
+MC_SEN2015DKR,2,secondaire,6,0,7,3.5,
+MC_SEN2015DKR,3,supérieur,13,0,6,2,
+MC_SLE2017,0,,,,,,0
+MC_SLE2017,1,primary,0,0,6,3,
+MC_SLE2017,2,junior secondary,6,0,3,1.5,
+MC_SLE2017,3,senior secondary,9,0,4,1.5,
+MC_SLE2017,4,higher,12,0,6,2,
+MC_SLE2017,5,vocation/technical/nursing/teaching,,,,,9
+MC_SWZ2010,0,,,,,,0
+MC_SWZ2010,1,primary,0,0,7,3.5,
+MC_SWZ2010,2,secondary,7,0,3,1.5,
+MC_SWZ2010,3,high,10,0,2,1,
+MC_SWZ2010,4,tertiary,12,0,6,2,
+MC_SWZ2014,0,,,,,,0
+MC_SWZ2014,1,primary,0,0,7,3.5,
+MC_SWZ2014,2,secondary,7,0,3,1.5,
+MC_SWZ2014,3,high,10,0,2,1,
+MC_SWZ2014,4,tertiary,12,0,6,2,
+MC_SWZ2021,0,,,,,,0
+MC_SWZ2021,1,primary,0,0,7,3.5,
+MC_SWZ2021,2,secondary,7,0,5,2.5,
+MC_SWZ2021,3,higher,12,0,6,2,
+MC_SWZ2021,4,vocational,,,,,9.5
+MC_TCD2019,0,,,,,,0
+MC_TCD2019,10,primaire,0,0,6,3,
+MC_TCD2019,20,moyen (secondaire 1),6,0,4,2,
+MC_TCD2019,21,moyen technique,,,,,9.5
+MC_TCD2019,30,secondaire (secondaire 2),10,0,3,1.5,
+MC_TCD2019,31,secondaire technique,,,,,9.5
+MC_TCD2019,40,superieur,13,0,6,2,
+MC_TCD2019,41,superieur professionnel,13,0,6,2,
+MC_TGO2017,0,preprimaire,,,,,0
+MC_TGO2017,1,primaire,0,0,6,3,
+MC_TGO2017,2,secondaire 1/ceg,6,0,4,2,
+MC_TGO2017,3,secondaire 2/lycee,10,0,3,1.5,
+MC_TGO2017,4,superieur,13,0,6,2,
+MC_ZWE2014,0,preschool,,,,,0
+MC_ZWE2014,1,primary,0,10,7,3.5,
+MC_ZWE2014,2,secondary,7,20,6,3,
+MC_ZWE2014,3,higher,,,,,15
+MC_ZWE2019,0,early childhood education,,,,,0
+MC_ZWE2019,1,primary,0,0,7,3.5,
+MC_ZWE2019,2,vocational - national foundation certificate,,,,,10
+MC_ZWE2019,3,lower secondary,7,0,4,2,
+MC_ZWE2019,4,upper secondary,11,0,2,1,
+MC_ZWE2019,5,vocational - certificate,,,,,10
+MC_ZWE2019,6,vocational - apprenticeship / teacher?s college,13,0,6,2,
+MC_ZWE2019,7,tertiary - short cycle,13,0,6,2,
+MC_ZWE2019,8,tertiary - higher nat diploma / bachelor / bach?s honour,13,0,6,2,
+MC_ZWE2019,9,tertiary - master / doctorate medical courses,13,0,6,2,
+MC_ZWE2019,10,doctorate,13,0,6,2,
+MC_MDG2012S,0,maternelle,,,,,0
+MC_MDG2012S,1,primaire,0,0,5,2.5,
+MC_MDG2012S,2,secondaire i,5,5,4,2,
+MC_MDG2012S,3,secondaire ii,9,9,3,1.5,
+MC_MDG2012S,4,supérieur,12,12,6,2,
+MC_NGA2021,0,eccde,,,,,0
+MC_NGA2021,11,primary,0,0,6,3,
+MC_NGA2021,21,junior secondary,6,0,3,1.5,
+MC_NGA2021,22,vei/iei,,,,,9
+MC_NGA2021,31,senior secondary,9,0,3,1.5,
+MC_NGA2021,32,secondary technical,9,0,3,1.5,
+MC_NGA2021,41,higher/tertiary,12,0,6,2,
+MC_SOM2006,1,primary,0,0,8,4,
+MC_SOM2006,2,secondary,8,0,4,2,
+MC_SOM2006,3,higher,12,0,6,2,
+MC_SOM2006,4,koranic,,,,,0
+MC_SOM2006,5,non-standard curriculum,,,,,0
+MC_SOM2011NE,0,preschool,,,,,0
+MC_SOM2011NE,1,primary,0,0,8,4,
+MC_SOM2011NE,2,secondary,8,0,4,2,
+MC_SOM2011NE,3,higher,12,0,6,2,
+MC_SOM2011SL,0,preschool,,,,,0
+MC_SOM2011SL,1,primary,0,0,8,4,
+MC_SOM2011SL,2,secondary,8,0,4,2,
+MC_SOM2011SL,3,higher,12,0,6,2,
+MC_SSD2010,0,preschool,,,,,0
+MC_SSD2010,1,primary,0,0,8,4,
+MC_SSD2010,2,intermediate,6,0,3,1.5,
+MC_SSD2010,3,secondary,8,0,4,2,
+MC_SSD2010,4,university and higher institutes,12,0,6,2,
+MC_SSD2010,5,adult education,,,,,0
+MC_SSD2010,6,khalwa / sunday education,,,,,0
+MC_STP2014,0,pré-escolar,,,,,0
+MC_STP2014,1,básico,0,0,6,3,
+MC_STP2014,2,secundário,6,6,6,3,
+MC_STP2014,3,superior,12,0,6,2,
+MC_STP2019,0,pré-escolar,,,,,0
+MC_STP2019,1,básico,0,0,6,3,
+MC_STP2019,2,secundário,6,0,6,3,
+MC_STP2019,3,técnico profissional,,,,,9
+MC_STP2019,4,bacharelato,12,0,6,2,
+MC_STP2019,5,superior,12,0,6,2,
+MC_ZWE2009,0,pre school,,,,,0
+MC_ZWE2009,10,primary,0,0,7,3.5,
+MC_ZWE2009,20,secondary,7,0,6,3,
+MC_ZWE2009,30,higher,13,0,6,2,

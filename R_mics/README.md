@@ -29,6 +29,8 @@ first failing script. No step uses the network.
 - `config/paths.R` defines the one input outside this repository: the Africa admin-1 shapefile from the Snow prevalence
   project. Set the environment variable `MICS_ADMIN1_SHP` to use a copy elsewhere. Sourced by 04, 05 and 06.
 - `config/region_overrides.csv` holds the reviewed region-label translations, spellings and merges used by 05.
+- `R_mics/education_level_map.csv` maps each built survey's education level codes to completed years for 09 (columns
+  `svkey, code, label, offset, base, cap, na_add, flat`; see step 10).
 
 **Eligibility assessment**
 
@@ -58,7 +60,50 @@ skipped because Lesotho is malaria free and MAP publishes no prevalence surface 
    runs 08 without the builder's own `--force`, so shards whose signatures still match are reused;
    `Rscript R_mics/08_build_child_bands.R --force` rebuilds every shard.
 10. `09_regional_covariates.R` computes the 13 regional covariates from the microdata, with the WUENIC and within-survey
-    fallbacks. It uses every survey the builder marks `built` or `cached`.
+    fallbacks. It uses every survey the builder marks `built` or `cached`. Derivation rules (revised 28 September 2026 after the
+    covariate audit, `docs/COVARIATE_ANOMALIES_2026-09-27.md`; v7 inputs are archived in `data/derived_cbh/history/v7_inputs_2026-09-28/`):
+    - **DTP3 and measles** follow the DHS/MICS tabulation. The denominator is every child aged 12-23 months with a completed
+      under-5 interview (UF17 in MICS6, UF9 in MICS3-5). A child counts as vaccinated only on positive evidence: a card date,
+      44 (marked on card) or 66 (mother reported) in any DTP-containing dose-3 column (DTP/DTCoq or pentavalent), a recall count
+      of 3 or more, or, for measles, a first-dose measles/VAR or MR/RR card column (never MCV2) or a measles-containing 'ever'
+      item. Anything else counts as 0: a dose missing from a seen card (MICS6 IM5 1-3, MICS3-5 IM1 1; blank or 97-99),
+      'never received' or 'never vaccinated', counts 0-2, don't know, and no information. The only exception is
+      `MC_COD2017` IM5 = 5 (card kept at the health centre, recall skipped), which is excluded. Every DTP-containing recall
+      count is used (COG2014 has DTC and Penta items). `vacc_extra` lists the survey-specific columns (MRT2011, COG2014,
+      BEN2021, GHA2017, GNB2018, MDG2018, TGO2017, MOZ2008, and ZWE2009, whose DPT-HepB3 card row im5cd holds the third dose
+      when im4cd is blank, as in MWI2006). The script stops if a DTP-containing dose-3 card column is unused (including the
+      MICS3 IM4CD/IM5CD rows), a recall column is missing, the interview result code 1 is not 'completed', an MICS6 survey
+      other than COD2017 has IM5 = 5, or, before 'no information' is set to 0, explicit evidence covers less than 98% of
+      children. Two surveys outside v7 are exempt from that last check
+      (`vacc_evidence_exempt`: SSD2010 filtered the module on reported age, SOM2011NE has about 5% item nonresponse). Evidence
+      shares and the columns used are written to `results/mics_inventory/covariates/vaccination_evidence_by_survey.csv`.
+      A regression lock stops the script if the national DTP3/measles values of the surveys whose columns changed move by
+      0.15 points or more from the 28 September 2026 values; it is not an independent validation.
+      GIN2016, COM2022 and TCD2019 keep the WUENIC fallback.
+    - **Maternal education** uses `R_mics/education_level_map.csv`. A graded level gives offset + clamp(grade - base, 0, cap).
+      A graded level with no grade recorded gives offset + na_add. Ungraded levels take the flat value: pre-primary, Koranic,
+      Mahadra, non-formal, literacy and non-standard curricula get 0, and vocational levels outside the sequence get P + S/2.
+      A grade beyond a level's length but inside its cumulative span is read as counted from school entry (MOZ2008 superior
+      '12'). Never-attended women are identified by position, from the item just before the level question (WB5, WB3 or WM10,
+      code 2; WB3 for MDG2012S's WB4X), and get 0 years, as does a `welevel` of 'none'. In MICS6, WB6B is the grade attended, so a graded level whose
+      WB7 says 'not completed' loses one year (the DHS v133 convention). The script checks that this adjustment ran in exactly
+      the MICS6 surveys. It stops if more than 2% of mothers have no years, if a level code is unmapped, or if more than 10%
+      of a level cell with at least 20 mothers is out of range. `edu_years()` remains as a fallback for surveys missing from
+      the map, and prints a warning when used.
+    - **Facility delivery** counts any public, private-medical, NGO/mission or sector-unknown facility (DHS RH_DELP_C_DHF),
+      classified by code range when codes 11/12 are homes, and by labels otherwise (MOZ2008; SSD2010, where 'PHCF' is a
+      facility). In MOZ2008 the place is MN7_A when MN7_B = 1 and MN8 when MN7_B = 6, among women who answered MN7_B.
+      In COD2017 and TCD2019 the delivery labels look shifted by one from code 33 (36 reads 'MATERNITE PRIVEE', 96 'AUTRE
+      PRIVE MEDICAL', and there is no plain 'Autre'); the codes are trusted, so 96 counts as other (0), as in v7. Read as a
+      facility, it would add about 1 point to COD2017.
+    - **Water and sanitation** use the JMP 2017 ladder with survey overrides. Improved: COD2017 water 62 (delivered), MOZ2008
+      water 32 (protected well without pump), flush to an unknown place (MRT2011 toilet 14), MWI2006 'w. slab' latrines, and
+      MDG2018 toilet 24 (non-washable slab). Unimproved: MRT2011 water 33/34 (traditional wells), and MOZ2008 households with no
+      toilet, which skip WS7. Out of the denominator: GHA2017 toilets 24/61. Two non-v7 cases are left unclassified as in v7:
+      SOM2006 water 52-54 (roof top, berkad, balli) and MDG2012S toilets 24/25.
+    - `check_coding()` stops when more than 0.5% of answered codes are unclassified, or when a facility label contradicts its
+      class. `obs_share()` stops when water or sanitation is coded for fewer than 95% of interviewed households (80% for
+      SOM2006 water).
 11. `10_exclusion_attribution_mics.R` attributes MICS complete-case exclusions for the study flow.
 12. `11_region_centroids.R` writes boundary centroids of the MICS analysis regions (same method as the DHS centroid cache), used
     by the subgroup refit.
