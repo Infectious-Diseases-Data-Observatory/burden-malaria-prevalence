@@ -1,6 +1,6 @@
 # Current primary specification. Prepared data and national inputs are held fixed.
 cbh_primary_settings <- function(version=Sys.getenv("CBH_PRIMARY_VERSION","legacy")) {
-  stopifnot(version %in% c("legacy","regional","regional18","regional_imputed","regional_mics","regional_mics_v5"))
+  stopifnot(version %in% c("legacy","regional","regional18","regional_imputed","regional_mics","regional_mics_v5","regional_mics_v7"))
   settings <- list(
   id = "primary_map_gamma2_v1",
   out = "results/cbh/primary_map_gamma2_v1",
@@ -14,7 +14,7 @@ cbh_primary_settings <- function(version=Sys.getenv("CBH_PRIMARY_VERSION","legac
   hiv_panel = "data/derived_cbh/hiv_incidence/child_incidence_country_year.csv",
   comparison_labels = c("Previous 18-variable adjustment","Revised 17-variable adjustment"),
   expected_records=5885022L,expected_deaths=82415L,expected_regions=1015L)
-  if(version %in% c("regional","regional18","regional_imputed","regional_mics","regional_mics_v5")) {
+  if(version %in% c("regional","regional18","regional_imputed","regional_mics","regional_mics_v5","regional_mics_v7")) {
     settings$id <- "primary_map_regional18_gamma2_v2"
     settings$out <- file.path("results/cbh",settings$id)
     settings$private <- file.path("data/derived_cbh/models",settings$id)
@@ -23,7 +23,7 @@ cbh_primary_settings <- function(version=Sys.getenv("CBH_PRIMARY_VERSION","legac
     settings$regional <- TRUE
     settings$expected_records <- 5680117L;settings$expected_deaths <- 78634L;settings$expected_regions <- 973L
   }
-  if(version %in% c("regional","regional_imputed","regional_mics","regional_mics_v5")) {
+  if(version %in% c("regional","regional_imputed","regional_mics","regional_mics_v5","regional_mics_v7")) {
     settings$id <- "primary_map_regional17_gamma2_v3"
     settings$out <- file.path("results/cbh",settings$id)
     settings$private <- file.path("data/derived_cbh/models",settings$id)
@@ -49,7 +49,7 @@ cbh_primary_settings <- function(version=Sys.getenv("CBH_PRIMARY_VERSION","legac
     # Every MAP-eligible record: totals from the survey manifest (model_ready rows/deaths).
     settings$expected_records <- 6357802L;settings$expected_deaths <- 90938L;settings$expected_regions <- 1113L
   }
-  if(version %in% c("regional_mics","regional_mics_v5")) {
+  if(version %in% c("regional_mics","regional_mics_v5","regional_mics_v7")) {
     # DHS and MICS surveys with complete birth histories (decided 23 September 2026). The DHS part
     # is the complete-case sample of primary_map_regional17_gamma2_v3 and must reproduce it exactly;
     # MICS shards come from R_mics/08_build_child_bands.R and covariates from R_mics/09_regional_covariates.R.
@@ -70,8 +70,8 @@ cbh_primary_settings <- function(version=Sys.getenv("CBH_PRIMARY_VERSION","legac
     settings$sensitivity_dirs <- c(subgroups="results/cbh/subgroups_dhsmics_map_gamma2_v2",
       nutrition="results/cbh/nutrition_adjustment_dhsmics_map_gamma2_v2")
   }
-  if(version=="regional_mics") {
-    # Current primary (decided 24 September 2026): v5 plus Liberia, whose child HIV incidence is
+  if(version %in% c("regional_mics","regional_mics_v7")) {
+    # v7 (decided 24 September 2026; primary until 28 September, now regional_mics_v7): v5 plus Liberia, whose child HIV incidence is
     # derived from UNAIDS counts (R_cbh/hiv/03_add_liberia_aidsinfo.R). The base HIV panel plus
     # Liberia replaces the frozen base panel; every other value is v5's. Liberia's 2007, 2013 and
     # 2019-20 DHS enter (its 2009 MIS still lacks anthropometry). regional_mics_v5 is the v5 history.
@@ -89,6 +89,30 @@ cbh_primary_settings <- function(version=Sys.getenv("CBH_PRIMARY_VERSION","legac
     settings$attribution_dir <- "results/cbh/planned17_covariate_missingness_lbr"
     settings$sensitivity_dirs <- c(subgroups="results/cbh/subgroups_dhsmics_map_gamma2_v3",
       nutrition="results/cbh/nutrition_adjustment_dhsmics_map_gamma2_v3")
+  }
+  if(version=="regional_mics_v7") {
+    # History: v7's MICS overlay as fitted (the current file holds the v9 derivation).
+    settings$mics_overlay <- "data/derived_cbh/history/v7_inputs_2026-09-28/derived_mics/regional_covariates_wide_mics.csv"
+  }
+  if(version=="regional_mics") {
+    # Current primary (decided 27-28 September 2026): v7 with the regional covariate derivations corrected
+    # (docs/COVARIATE_ANOMALIES_2026-09-27.md: Uganda 2016 wealth decoding; MICS vaccination under the DHS
+    # tabulation rules with all DTP/pentavalent and measles-containing columns; MICS education, facility
+    # delivery, water and sanitation coding; Mozambique MICS 2008; published-value joins; Sierra Leone 2013
+    # from its recodes) and Uganda 2016's north and south Buganda regions admitted. The scaling changes,
+    # so this is a new version; regional_mics_v7 is the v7 history, whose covariate inputs are archived in
+    # data/derived_cbh/history/v7_inputs_2026-09-28/.
+    settings$id <- "primary_map_regional17_dhsmics_gamma2_v9"
+    settings$out <- file.path("results/cbh",settings$id)
+    settings$private <- file.path("data/derived_cbh/models",settings$id)
+    settings$data <- file.path(settings$private,"complete_case_dataset.rds")
+    settings$reference <- "results/cbh/primary_map_regional17_dhsmics_gamma2_v7"
+    settings$comparison_labels <- c("DHS and MICS surveys (v7)","Corrected regional covariates (v9)")
+    settings$expected_dhs_records <- 5588463L;settings$expected_dhs_deaths <- 77587L;settings$expected_dhs_regions <- 934L
+    settings$expected_records <- 7621617L;settings$expected_deaths <- 104143L;settings$expected_regions <- 1229L
+    settings$dhs_part_note <- "the v7 DHS part plus Uganda 2016's north and south Buganda regions"
+    settings$sensitivity_dirs <- c(subgroups="results/cbh/subgroups_dhsmics_map_gamma2_v4",
+      nutrition="results/cbh/nutrition_adjustment_dhsmics_map_gamma2_v4")
   }
   settings
 }

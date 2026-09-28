@@ -14,7 +14,7 @@ source("R_cbh/primary/settings.R")
 source("R_cbh/primary/specification.R")
 suppressPackageStartupMessages({library(data.table); library(mgcv)})
 base <- cbh_primary_settings("regional_mics")
-out <- "results/cbh/tensor_pfpr_year_dhsmics_map_gamma2_v1"
+out <- "results/cbh/tensor_pfpr_year_dhsmics_map_gamma2_v2"
 ages <- cbh_config()$age_bands$age_band; bands <- c("24-35", "36-47", "48-59")
 covs <- paste0("z_", cbh_primary_regional_spec(base)$covariates)
 vars <- unique(c("region", "calendar_year", "pfpr_pct", "band_years", "survey", "country", covs))

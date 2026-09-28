@@ -9,7 +9,7 @@ source("R_cbh/primary/settings.R")
 suppressPackageStartupMessages({library(data.table); library(mgcv); library(ggplot2)})
 source("R_cbh/sensitivity/tensor_pfpr_year/components.R")
 base <- cbh_primary_settings("regional_mics")
-id <- "tensor_pfpr_year_dhsmics_map_gamma2_v1"; out <- file.path("results/cbh", id); private <- file.path("data/derived_cbh/models", id)
+id <- "tensor_pfpr_year_dhsmics_map_gamma2_v2"; out <- file.path("results/cbh", id); private <- file.path("data/derived_cbh/models", id)
 ages <- cbh_config()$age_bands$age_band
 band_label <- setNames(ifelse(ages == "<1", "<1 month", paste(ages, "months")), ages)
 comp <- cbh_tensor_components(private)

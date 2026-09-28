@@ -20,7 +20,7 @@ source("R_cbh/primary/specification.R")
 suppressPackageStartupMessages({library(data.table); library(mgcv)})
 args <- commandArgs(trailingOnly = TRUE); stopifnot(all(args %in% "--force"))
 base <- cbh_primary_settings("regional_mics")
-id <- "linear_pfpr_1_30_dhsmics_map_gamma2_v1"; out <- file.path("results/cbh", id); private <- file.path("data/derived_cbh/models", id)
+id <- "linear_pfpr_1_30_dhsmics_map_gamma2_v2"; out <- file.path("results/cbh", id); private <- file.path("data/derived_cbh/models", id)
 for (p in c(out, private)) dir.create(p, recursive = TRUE, showWarnings = FALSE)
 ages <- cbh_config()$age_bands$age_band
 range_pct <- c(1, 30)

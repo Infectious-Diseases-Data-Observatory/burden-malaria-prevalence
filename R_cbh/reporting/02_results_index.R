@@ -31,7 +31,7 @@ writeLines(c("# Key results — primary MAP analysis","",
   if(mics) c(
     paste("| Supplementary: subgroup refits |",sensitivity("Report",file.path(st$sensitivity_dirs[["subgroups"]],"REPORT.md")),"|"),
     paste("| Supplementary: refit without nutrition covariates |",sensitivity("Contrasts",file.path(st$sensitivity_dirs[["nutrition"]],"CONTRASTS.md")),"|"),
-    paste("| Supplementary: imputed covariates |",sensitivity("Report",if(isTRUE(st$liberia)) "results/cbh/primary_map_regional17_dhsmics_imputed_gamma2_v8/REPORT.md" else "results/cbh/primary_map_regional17_dhsmics_imputed_gamma2_v6/REPORT.md"),"|")),
+    paste("| Supplementary: imputed covariates |",sensitivity("Report",if(st$id=="primary_map_regional17_dhsmics_gamma2_v9") "results/cbh/primary_map_regional17_dhsmics_imputed_gamma2_v10/REPORT.md" else if(isTRUE(st$liberia)) "results/cbh/primary_map_regional17_dhsmics_imputed_gamma2_v8/REPORT.md" else "results/cbh/primary_map_regional17_dhsmics_imputed_gamma2_v6/REPORT.md"),"|")),
   paste("| Age-band results table |",link("Table","tables/age_band_results.md"),"and",link("LaTeX source as text","tables/age_band_results.latex.txt"),"|"),
   paste("| Country, annual and state tables |",link("Table index","tables/README.md"),"|"),
   paste("| PfPR 40% to 20% effects |",link("Figure","pfpr_40_to_20.png"),"and",link("contrasts","pfpr_40_to_20_contrasts.csv"),"|"),

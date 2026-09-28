@@ -15,7 +15,7 @@ source("R_cbh/primary/settings.R")
 source("R_cbh/primary/specification.R")
 suppressPackageStartupMessages({library(data.table); library(mgcv)})
 base <- cbh_primary_settings("regional_mics")
-id <- "bam_vs_gam_dhsmics_map_gamma2_v1"; out <- file.path("results/cbh", id); private <- file.path("data/derived_cbh/models", id)
+id <- "bam_vs_gam_dhsmics_map_gamma2_v2"; out <- file.path("results/cbh", id); private <- file.path("data/derived_cbh/models", id)
 for (p in c(out, private)) dir.create(p, recursive = TRUE, showWarnings = FALSE)
 ages <- cbh_config()$age_bands$age_band
 args <- commandArgs(trailingOnly = TRUE); no_region <- "--no-region" %in% args; args <- setdiff(args, "--no-region")
@@ -27,7 +27,7 @@ if (no_region) form_child <- as.formula(gsub(" + s(region, bs = \"re\")", "", gs
 rhs <- sub("^death ~ ", "", gsub("\\s+", " ", deparse1(form_child)))
 form_cell <- as.formula(paste("cbind(deaths, survivors) ~", rhs))
 vars <- union(setdiff(all.vars(form_child), "death"), "region")
-manifest <- if (no_region) fread("results/cbh/no_region_re_dhsmics_map_gamma2_v1/fit_manifest.csv") else fread(file.path(base$out, "fit_manifest.csv"))[series == "map_full"]
+manifest <- if (no_region) fread("results/cbh/no_region_re_dhsmics_map_gamma2_v2/fit_manifest.csv") else fread(file.path(base$out, "fit_manifest.csv"))[series == "map_full"]
 knot_table <- fread(base$knots)
 dat <- as.data.table(readRDS(base$data)$data)[, c("death", vars, "age_band"), with = FALSE]
 stopifnot(nrow(dat) == base$expected_records)

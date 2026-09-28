@@ -11,7 +11,7 @@ source("R_cbh/reporting/labels.R")
 source("R_cbh/sensitivity/tensor_pfpr_year/components.R")
 suppressPackageStartupMessages({library(data.table); library(ggplot2); library(patchwork)})
 base <- cbh_primary_settings("regional_mics"); root <- base$out
-out <- "results/cbh/tensor_pfpr_year_dhsmics_map_gamma2_v1/figure3"; dir.create(out, recursive = TRUE, showWarnings = FALSE)
+out <- "results/cbh/tensor_pfpr_year_dhsmics_map_gamma2_v2/figure3"; dir.create(out, recursive = TRUE, showWarnings = FALSE)
 ages <- cbh_config()$age_bands$age_band
 comp <- cbh_tensor_components(); z_of <- function(a) comp[[sprintf("tensor_age_%d", match(a, ages))]]
 model_label <- paste(cbh_paper_model_label(), "(tensor product)"); primary_label <- paste(cbh_paper_model_label(), "(primary)")
@@ -89,6 +89,6 @@ caption <- paste(
   sprintf("(C) Annual under-five malaria mortality, 2000–2024, pooled across the same 42 countries on the common IHME-implied person-year denominator; the primary (time-constant) PfPR-ACM model is shown dotted for reference. With the tensor product the modelled rate falls %.1f%% from 2000 to 2015 and %.1f%% from 2015 to 2024.", -pc(2000, 2015), -pc(2015, 2024)),
   "Deaths equal IHME all-cause deaths in each of seven age bands multiplied by 1 − exp[f_g(0, t) − f_g(P, t)], where P is population-weighted MAP PfPR for the country or state and year and t is calendar time at mid-year, held at December 2023 (the last observed band entry) for 2024. The time-varying hazard ratio is an exploratory specification: its steepening at low PfPR at 24–59 months is not separable from between-survey differences (see the sensitivity report). Point estimates only.")
 writeLines(c("# Figure 3, tensor-product sensitivity: caption", "", caption), file.path(out, "CAPTION.md"))
-inputs <- c(unname(paths), "data/derived_cbh/models/tensor_pfpr_year_dhsmics_map_gamma2_v1/pfpr_year_components.rds", "R_cbh/sensitivity/tensor_pfpr_year/04_figure3.R", "R_cbh/sensitivity/tensor_pfpr_year/components.R")
+inputs <- c(unname(paths), "data/derived_cbh/models/tensor_pfpr_year_dhsmics_map_gamma2_v2/pfpr_year_components.rds", "R_cbh/sensitivity/tensor_pfpr_year/04_figure3.R", "R_cbh/sensitivity/tensor_pfpr_year/components.R")
 cbh_atomic_csv(data.frame(file = inputs, md5 = vapply(inputs, cbh_file_hash, "")), file.path(out, "provenance.csv"))
 print(t24); message("Tensor Figure 3 written: ", file.path(out, "fig3_burden_comparison_tensor.png"))

@@ -1,7 +1,7 @@
 # Shared helpers for the tensor-product sensitivity: saved PfPR/time components and the log hazard
 # ratio for PfPR `from` -> `to` at calendar time `year` (vectors recycled), with its SE. Covariates,
 # random effects and (in the separate and ti models) s(calendar_year) cancel in the contrast.
-cbh_tensor_components <- function(private = "data/derived_cbh/models/tensor_pfpr_year_dhsmics_map_gamma2_v1")
+cbh_tensor_components <- function(private = "data/derived_cbh/models/tensor_pfpr_year_dhsmics_map_gamma2_v2")
   readRDS(file.path(private, "pfpr_year_components.rds"))
 cbh_tensor_last_entry <- 2023 + 11 / 12   # last observed band entry and last calendar-year knot
 cbh_tensor_eval_year <- function(year) pmin(year + .5, cbh_tensor_last_entry)

@@ -15,7 +15,7 @@ source("R_cbh/primary/specification.R")
 library(mgcv); library(data.table)
 args <- commandArgs(trailingOnly = TRUE); stopifnot(all(args %in% c("--force", "--dhs-only")))
 dhs_only <- "--dhs-only" %in% args
-st <- list(id = if (dhs_only) "nutrition_adjustment_map_gamma2_v1" else "nutrition_adjustment_dhsmics_map_gamma2_v3",
+st <- list(id = if (dhs_only) "nutrition_adjustment_map_gamma2_v1" else "nutrition_adjustment_dhsmics_map_gamma2_v4",
            dropped = c("wasting_pct", "stunting_pct"))
 st$out <- file.path("results/cbh", st$id); st$private <- file.path("data/derived_cbh/models", st$id)
 primary <- cbh_primary_settings(if (dhs_only) "regional" else "regional_mics"); stopifnot(isTRUE(primary$nutrition))

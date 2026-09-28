@@ -8,7 +8,7 @@ source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 suppressPackageStartupMessages({library(data.table); library(mgcv); library(ggplot2)})
 base <- cbh_primary_settings("regional_mics")
-id <- "linear_pfpr_1_30_dhsmics_map_gamma2_v1"; out <- file.path("results/cbh", id); private <- file.path("data/derived_cbh/models", id)
+id <- "linear_pfpr_1_30_dhsmics_map_gamma2_v2"; out <- file.path("results/cbh", id); private <- file.path("data/derived_cbh/models", id)
 ages <- cbh_config()$age_bands$age_band
 labels <- c(v7 = "Primary v7 spline, all records", spline = "Spline, PfPR 1–30% records", linear = "Linear, PfPR 1–30% records")
 v7 <- readRDS(file.path(base$private, "pfpr_components.rds")); names(v7) <- ages[as.integer(sub(".*_", "", names(v7)))]
@@ -141,7 +141,7 @@ lines <- c("# Linear PfPR[2–10] on the 1–30% range", "",
   sprintf("2024: linear %.2f × IHME and %.2f × UN IGME (primary %.2f and %.2f). Rate change 2000–2015 %.1f%% and 2015–2024 %.1f%% (primary %.1f%% and %.1f%%).",
     tot("linear", 2024)$ratio_ihme, tot("linear", 2024)$ratio_unigme, tot("v7", 2024)$ratio_ihme, tot("v7", 2024)$ratio_unigme,
     pc("linear", 2000, 2015), pc("linear", 2015, 2024), pc("v7", 2000, 2015), pc("v7", 2015, 2024)), "",
-  "With a 1% counterfactual floor (deaths attributable to PfPR above 1%, as in `reference_floor_dhsmics_map_gamma2_v1`), which removes the extrapolated 0–1% segment from both models:", "",
+  "With a 1% counterfactual floor (deaths attributable to PfPR above 1%, as in `reference_floor_dhsmics_map_gamma2_v2`), which removes the extrapolated 0–1% segment from both models:", "",
   "| Year | Primary v7 | Linear, 1–30% |", "|---|---:|---:|",
   vapply(c(2000, 2015, 2024), function(y) sprintf("| %d | %s | %s |", y, f0(tot("v7", y)$model_deaths_floor1), f0(tot("linear", y)$model_deaths_floor1)), ""), "",
   "2024 deaths by national PfPR of the country:", "",

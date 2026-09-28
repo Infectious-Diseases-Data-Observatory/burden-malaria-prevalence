@@ -11,7 +11,7 @@ from pathlib import Path
 parser = argparse.ArgumentParser()
 parser.add_argument("--destination", type=Path, required=True)
 parser.add_argument("--copy", action="store_true", help="Copy after validating; default is a local export manifest only")
-parser.add_argument("--root", type=Path, default=Path("results/cbh/primary_map_regional17_dhsmics_gamma2_v7"))
+parser.add_argument("--root", type=Path, default=Path("results/cbh/primary_map_regional17_dhsmics_gamma2_v9"))
 parser.add_argument("--reference", type=Path, default=Path("results/cbh/primary_map_regional17_gamma2_v3"),
                     help="DHS-only primary; the DHS part of a DHS+MICS root must reproduce it unless the root has dhs_part.csv")
 args = parser.parse_args()
@@ -21,13 +21,13 @@ out.mkdir(parents=True, exist_ok=True)
 destination = args.destination.expanduser().resolve()
 assert destination.is_dir()
 # Sensitivities refitted on the DHS and MICS sample; the DHS-only versions are kept as history.
-subgroups = Path("results/cbh/subgroups_dhsmics_map_gamma2_v3")
-nutrition = Path("results/cbh/nutrition_adjustment_dhsmics_map_gamma2_v3")
-imputed = Path("results/cbh/primary_map_regional17_dhsmics_imputed_gamma2_v8")
+subgroups = Path("results/cbh/subgroups_dhsmics_map_gamma2_v4")
+nutrition = Path("results/cbh/nutrition_adjustment_dhsmics_map_gamma2_v4")
+imputed = Path("results/cbh/primary_map_regional17_dhsmics_imputed_gamma2_v10")
 # Figure 3 recomputed with the PfPR x calendar-time tensor-product model (exploratory sensitivity).
-tensor_fig3 = Path("results/cbh/tensor_pfpr_year_dhsmics_map_gamma2_v1/figure3")
+tensor_fig3 = Path("results/cbh/tensor_pfpr_year_dhsmics_map_gamma2_v2/figure3")
 # PfPR forced linear on records with PfPR 1-30%, against a spline on the same records and the primary.
-linear = Path("results/cbh/linear_pfpr_1_30_dhsmics_map_gamma2_v1")
+linear = Path("results/cbh/linear_pfpr_1_30_dhsmics_map_gamma2_v2")
 manuscript_updates = Path("docs/MANUSCRIPT_UPDATE_DHS_MICS.md")
 
 def digest(path):

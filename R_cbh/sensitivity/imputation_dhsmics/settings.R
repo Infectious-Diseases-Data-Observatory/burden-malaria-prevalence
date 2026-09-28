@@ -1,4 +1,4 @@
-# Imputed-covariate sensitivity on the DHS and MICS sample (v8; v6 was the same on the v5 primary).
+# Imputed-covariate sensitivity on the DHS and MICS sample (v10, on the v9 primary; v8 was the same on v7, v6 on v5).
 # v8 (24 September 2026): Liberia takes its child HIV incidence from UNAIDS counts
 # (R_cbh/hiv/03_add_liberia_aidsinfo.R) instead of the latent-adolescent imputation.
 # The DHS-only version (primary_map_regional17_imputed_gamma2_v4) runs through the
@@ -12,15 +12,15 @@ cbh_imputed_dhsmics_settings <- function() {
   base <- cbh_primary_settings("regional_mics")
   st <- base[c("knots", "years", "gamma", "seed", "nthreads", "regional", "nutrition",
                "mics_output_dir", "mics_overlay")]
-  st$id <- "primary_map_regional17_dhsmics_imputed_gamma2_v8"
+  st$id <- "primary_map_regional17_dhsmics_imputed_gamma2_v10"
   st$out <- file.path("results/cbh", st$id)
   st$private <- file.path("data/derived_cbh/models", st$id)
   st$data <- file.path(st$private, "complete_case_dataset.rds")
   st$reference <- base$out
   st$reference_data <- base$data
   st$imputed <- TRUE; st$mics <- TRUE
-  st$imputation_private <- "data/derived_cbh/regional_adjustment/imputed_dhsmics_v6"
-  st$imputation_results <- "results/cbh/covariate_imputation_dhsmics_v6"
+  st$imputation_private <- "data/derived_cbh/regional_adjustment/imputed_dhsmics_v10"
+  st$imputation_results <- "results/cbh/covariate_imputation_dhsmics_v10"
   st$imputed_overlay <- file.path(st$imputation_private, "regional_covariates_wide.csv")
   st$imputed_national <- file.path(st$imputation_private, "national_covariates_imputed.csv")
   st$dhs_overlay <- "data/derived_cbh/regional_adjustment/planned17_audit/regional_covariates_wide.csv"
@@ -30,11 +30,11 @@ cbh_imputed_dhsmics_settings <- function() {
   st$annual_maps <- c("data/derived_dhs/map_pfpr_window_years.csv", "data/derived_mics/map_pfpr_window_years_mics.csv")
   st$hiv_panel <- "data/derived_cbh/hiv_incidence/child_incidence_country_year_extended_lbr.csv"
   st$hiv_draws <- "data/derived_cbh/hiv_incidence/child_incidence_draws_extended.rds"
-  st$comparison_labels <- c("Complete-case covariates, DHS and MICS (v7)", "Imputed covariates, DHS and MICS (v8)")
-  # Every MAP-eligible record (model_ready totals of the two survey manifests). The DHS
-  # part equals the DHS-only imputed version v4.
-  st$expected_dhs_records <- 6357802L; st$expected_dhs_deaths <- 90938L; st$expected_dhs_regions <- 1113L
-  st$expected_records <- 8797963L; st$expected_deaths <- 123419L; st$expected_regions <- 1457L
+  st$comparison_labels <- c("Complete-case covariates, DHS and MICS (v9)", "Imputed covariates, DHS and MICS (v10)")
+  # Every MAP-eligible record (model_ready totals of the two survey manifests): v8 plus Uganda 2016's
+  # north and south Buganda regions (14,495 records, 156 deaths).
+  st$expected_dhs_records <- 6372297L; st$expected_dhs_deaths <- 91094L; st$expected_dhs_regions <- 1115L
+  st$expected_records <- 8812458L; st$expected_deaths <- 123575L; st$expected_regions <- 1459L
   st$expected_surveys <- 166L; st$expected_countries <- 40L
   st$m <- 10L; st$maxit <- 20L; st$imputation_seed <- 20260918L
   st

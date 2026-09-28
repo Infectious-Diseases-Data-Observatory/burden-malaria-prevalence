@@ -11,7 +11,7 @@ source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 suppressPackageStartupMessages({library(data.table); library(mgcv)})
 st <- cbh_primary_settings("regional_mics")
-out <- "results/cbh/reference_floor_dhsmics_map_gamma2_v1"
+out <- "results/cbh/reference_floor_dhsmics_map_gamma2_v2"
 dir.create(out, recursive = TRUE, showWarnings = FALSE)
 floors <- c(0, 1, 2, 5); headline <- 1
 paths <- c(components = file.path(st$private, "pfpr_components.rds"),
