@@ -59,6 +59,9 @@ UN IGME estimates all-cause mortality only. The under-5 malaria series on childm
    - Since 2026, VA-reported causes are first calibrated for misclassification with CHAMPS MITS matrices.
    - Covariates: U5MR, **PfPR** (the only malaria-specific one), GNI, measles, Hib3, PCV and rotavirus coverage, sanitation, wasting and year.
    - Countries with U5MR between 25 and 35 average the VA and VR models; low-mortality countries use a VR model.
+   - The response is the cause mix, not the death rate. Each covariate is a national country-year value, attached to a study at its mid-year and standardised with the study-data mean and SD (U5MR: mean 76.5, SD about 45 per 1,000; PfPR: mean 0.07, SD 0.14, on a 0–1 scale). Coefficients are log-odds of each cause relative to pneumonia, per SD.
+   - Posterior means for malaria, from the repository's run log `Postneonates/code/Estimate_VA_stan.Rout`: U5MR +0.08, PfPR +0.52, GNI −0.48, year +0.24, sanitation −0.20, Hib3 +0.13. U5MR mainly moves other causes (injuries −0.22, congenital −0.27, diarrhoea +0.16).
+   - For prediction, U5MR comes from `vavr_covariates_20250930.dta`, whose source is not documented (presumably UN IGME).
 3. **Low-burden countries.** Malaria is replaced by WHO Global Malaria Programme estimates. This covers about 13 African countries, including Ethiopia, Madagascar, Zimbabwe, Eritrea and Somalia.
 4. **Deaths.** The cause fractions are multiplied by the UN IGME 1–59-month envelope, after HIV (from UNAIDS), measles (from WHO) and crisis deaths are removed.
 
